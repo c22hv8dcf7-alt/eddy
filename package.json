@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  },
+  "name": "eddy",
+  "private": true,
+  "scripts": {
+    "predist": "echo 'dist/ is populated by build.sh from the exported Eddy HTML \u2014 see README.md'",
+    "tauri": "tauri"
+  },
+  "type": "module",
+  "version": "0.2.6"
+}

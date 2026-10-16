@@ -1,0 +1,76 @@
+# Eddy auto-release workflow
+# Trigger: push a tag like v0.2.6 -> builds, signs, and publishes automatically
+# Required repo secret: TAURI_SIGNING_PRIVATE_KEY (contents of ~/.tauri/eddy.key)
+
+name: Release Eddy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli
+
+      - name: Install frontend deps
+        run: npm install
+        working-directory: .
+
+      - name: Build Tauri app
+        run: npx tauri build
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+
+      - name: Prepare release assets
+        run: |
+          cd src-tauri/target/release/bundle/macos
+          tar -czf Eddy.app.tar.gz Eddy.app
+          TAURI_SIGNING_PRIVATE_KEY="${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" npx tauri signer sign --app-version ${{ github.ref_name }} Eddy.app.tar.gz
+          # The signer writes Eddy.app.tar.gz.sig next to the tarball
+          ls -la Eddy.app.tar.gz*
+
+      - name: Generate latest.json
+        run: |
+          python3 << 'PYEOF'
+          import json, base64
+          tag = "${{ github.ref_name }}"
+          version = tag.lstrip('v')
+          sig = open('src-tauri/target/release/bundle/macos/Eddy.app.tar.gz.sig').read().strip()
+          latest = {
+              "version": version,
+              "notes": f"Eddy {version}",
+              "pub_date": "${{ github.event.head_commit.timestamp }}",
+              "platforms": {
+                  "darwin-aarch64": {
+                      "signature": sig,
+                      "url": f"https://github.com/${{ github.repository }}/releases/download/{tag}/Eddy.app.tar.gz"
+                  }
+              }
+          }
+          json.dump(latest, open('src-tauri/target/release/bundle/macos/latest.json', 'w'))
+          print(f"latest.json generated for {version}")
+          PYEOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            src-tauri/target/release/bundle/macos/Eddy.app.tar.gz
+            src-tauri/target/release/bundle/macos/Eddy.app.tar.gz.sig
+            src-tauri/target/release/bundle/macos/latest.json
+          draft: false
+          prerelease: false

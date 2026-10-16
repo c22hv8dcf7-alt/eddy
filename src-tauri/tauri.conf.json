@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "height": 900,
+        "label": "main",
+        "minHeight": 700,
+        "minWidth": 1100,
+        "resizable": true,
+        "title": "Eddy",
+        "width": 1440
+      }
+    ]
+  },
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "targets": [
+      "dmg",
+      "app"
+    ]
+  },
+  "identifier": "com.eddy.counter",
+  "productName": "Eddy",
+  "version": "0.2.6",
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "endpoints": [
+        "https://github.com/c22hv8dcf7-alt/eddy/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEUzM0EyNDJGNDg5RDYwMzUKUldRMVlKMUlMeVE2NDFLTnI0NFdRY2VRWG85MC9Kc1NJL245K3d6OVFZeHlCLzh2bFc5Z0xvS2IK"
+    }
+  }
+}
