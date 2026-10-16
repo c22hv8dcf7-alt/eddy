@@ -9762,13 +9762,19 @@
     <script>
     "use strict";
     /* ---------- Update-available popup (desktop app only) ----------
-       The Rust backend checks for a new release on startup and emits
-       the `update-available` event with { version, notes }. In the web
-       preview there is no Tauri backend, so nothing ever shows and
-       nothing errors. */
+       The Rust backend checks for a new release on startup and stages
+       any pending update. The frontend polls for it once — 2 seconds
+       after the page has loaded, once the UI is ready — via the
+       `check_for_update` command, which returns { version, notes } or
+       null. (The old event-based approach fired before the frontend
+       was listening.) In the web preview there is no Tauri backend,
+       so the check is skipped silently: no errors, no modal. */
     (function () {
       var tauri = window.__TAURI__;
-      if (!tauri || !tauri.event || typeof tauri.event.listen !== "function") return;
+      if (!tauri) return;
+      var hasInvoke = (tauri.core && typeof tauri.core.invoke === "function") ||
+                      (typeof tauri.invoke === "function");
+      if (!hasInvoke) return;
       var overlay = document.getElementById("updateOverlay");
       var title = document.getElementById("updateTitle");
       var notesEl = document.getElementById("updateNotes");
@@ -9810,13 +9816,23 @@
         close();
       });
 
-      tauri.event.listen("update-available", function (ev) {
-        var payload = (ev && ev.payload) || {};
-        var version = typeof payload.version === "string" ? payload.version : "";
-        title.textContent = version ? "Eddy " + version + " is available" : "A new version of Eddy is available";
-        notesEl.textContent = typeof payload.notes === "string" ? payload.notes : "";
-        overlay.classList.remove("hidden");
-      });
+      /* One check per app launch, 2 seconds after load. */
+      var checked = false;
+      function checkOnce() {
+        if (checked) return;
+        checked = true;
+        var p = invoke("check_for_update");
+        if (!p || typeof p.then !== "function") return;
+        p.then(function (result) {
+          if (!result) return;
+          var version = typeof result.version === "string" ? result.version : "";
+          title.textContent = version ? "Eddy " + version + " is available" : "A new version of Eddy is available";
+          notesEl.textContent = typeof result.notes === "string" ? result.notes : "";
+          overlay.classList.remove("hidden");
+        }, function () { /* check failed — stay silent */ });
+      }
+      if (document.readyState === "complete") setTimeout(checkOnce, 2000);
+      else window.addEventListener("load", function () { setTimeout(checkOnce, 2000); });
     })();
     </script>
 
