@@ -780,6 +780,55 @@
         color:rgba(160,195,225,.55);opacity:0;animation:hintIn .9s ease 1.6s forwards}
       @keyframes hintIn{to{opacity:1}}
       @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+
+      /* ---------- Mobile field use: phones in the 375–430px range ----------
+         One-thumb operation at the creek: nothing scrolls sideways,
+         the step flow's Back/Next buttons are thumb-sized, the Ask
+         Eddy chat and the dialogs go full-screen, and form text is
+         16px so iOS doesn't auto-zoom when a field takes focus.    */
+      @media (max-width:560px){
+        html,body{overflow-x:hidden}
+        .topbar{gap:8px;padding:8px 10px}
+        .brand-name{font-size:1.18rem}
+        .steps-wrap{padding:10px 10px 0}
+        .step{flex:1 1 42%;min-height:44px;padding:7px 10px}
+        .steps-next{font-size:.9rem}
+        .sample-strip{padding:10px 10px 0;gap:8px}
+        .panels{padding:10px;gap:10px}
+        .panel{padding:13px}
+        .view-scroll{padding:12px}
+        .btn{min-height:48px}
+        .step-nav{gap:8px;margin-top:14px}
+        .step-nav .btn{min-width:0;min-height:52px;font-size:1rem}
+        .modebar .btn{min-height:48px}
+        .photobar .btn{min-height:44px}
+        .zoom-ctl button{width:44px;height:44px;font-size:1.15rem}
+        .chat-panel{width:100vw;border-left:none}
+        .chat-x{width:44px;height:44px}
+        .chat-composer{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+        .chat-attachbtn{width:44px;height:44px}
+        .chat-inputrow textarea{min-height:48px}
+        .chat-send{min-height:48px}
+        .ref-grid{grid-template-columns:repeat(2,1fr)}
+        .update-card{padding:18px}
+        .update-card .btn-row{flex-direction:column}
+        .update-card .btn-row .btn{min-width:0}
+        .update-notes{max-height:32dvh}
+        .confirm-card{padding:18px}
+        .rep-metrics{grid-template-columns:repeat(2,1fr)}
+        .report-page{padding:20px 16px 32px}
+        .group-thumbs img{width:62px;height:62px}
+        .alertbar{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+        input[type="text"],input[type="date"],input[type="password"],select,textarea{font-size:16px}
+      }
+      /* Coarse pointers (touchscreens): bigger dots to aim at and
+         taller dot chips — the photo tap itself already runs on
+         pointerdown, so no hover is ever required to count.       */
+      @media (pointer:coarse){
+        .dot{width:30px;height:30px;margin:-15px 0 0 -15px;font-size:12px}
+        .dot-chip{min-height:44px;padding:9px 14px}
+        .cal-dot{width:30px;height:30px;margin:-15px 0 0 -15px}
+      }
     </style>
   </head>
   <body>
@@ -1031,8 +1080,13 @@
                 <div class="drop" id="dropZone">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   <p class="big">Take or choose a tray photo</p>
-                  <p class="small">On a phone this opens your camera. The photo is processed on this device only — it is never uploaded.</p>
-                  <input type="file" id="photoInput" accept="image/*" capture="environment" aria-label="Take or choose a tray photo" />
+                  <p class="small">The photo is processed on this device only — it is never uploaded.</p>
+                  <input type="file" id="photoInput" accept="image/*" aria-label="Choose a tray photo" />
+                  <button type="button" class="btn btn-primary" id="takePhotoBtn" style="margin-top:12px">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Take Photo
+                  </button>
+                  <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" aria-label="Take a tray photo with the camera" />
                 </div>
 
                 <div style="margin-top:10px">
@@ -2039,6 +2093,11 @@
       rd.readAsDataURL(f);
     }
     $("photoInput").addEventListener("change", function (e) { handleFile(e.target.files[0]); });
+    /* Take Photo: a dedicated capture input opens the phone camera
+       directly; the shot flows through the same handleFile pipeline
+       (downscale, masking, counting) as a chosen photo.           */
+    $("cameraInput").addEventListener("change", function (e) { handleFile(e.target.files[0]); e.target.value = ""; });
+    $("takePhotoBtn").addEventListener("click", function () { $("cameraInput").click(); });
     var dz = $("dropZone");
     ["dragenter", "dragover"].forEach(function (ev) {
       dz.addEventListener(ev, function (e) { e.preventDefault(); dz.style.borderColor = "var(--teal)"; });
@@ -3801,6 +3860,7 @@
         row.appendChild(feedHint);
         row._feedEl = feedHint;
         row.addEventListener("mouseenter", function () { highlightGroup(row); });
+        row.addEventListener("click", function () { highlightGroup(row); });
         row.addEventListener("mouseleave", clearGroupFocus);
         row.addEventListener("focusin", function () { highlightGroup(row); });
         row.addEventListener("focusout", clearGroupFocus);
