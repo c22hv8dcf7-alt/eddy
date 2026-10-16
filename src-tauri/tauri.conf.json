@@ -14,7 +14,8 @@
         "title": "Eddy",
         "width": 1440
       }
-    ]
+    ],
+    "withGlobalTauri": true
   },
   "build": {
     "beforeBuildCommand": "",
