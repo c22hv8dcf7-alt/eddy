@@ -22,6 +22,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
       :root{
         color-scheme: dark;
@@ -672,6 +674,47 @@
         .grid2{grid-template-columns:1fr}
         .total-badge{align-items:flex-start}
       }
+      /* ---------- Sites map + pin picker ---------- */
+      .site-row{display:flex;gap:6px;align-items:stretch}
+      .site-row input{flex:1;min-width:0}
+      .site-row .btn{flex:none}
+      .pin-chip{display:flex;align-items:center;gap:6px;margin-top:3px;font-family:"IBM Plex Mono",monospace;
+        font-size:.74rem;color:var(--amber-text)}
+      .pin-chip button{background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink-2);
+        width:24px;height:24px;line-height:1;font-size:.95rem;cursor:pointer;flex:none;padding:0}
+      .pin-chip button:hover{color:var(--ink);border-color:var(--line-strong)}
+      .leaflet-map{height:440px;border-radius:10px;border:1px solid var(--line-strong);background:#0b1c2c;z-index:0}
+      .picker-map{height:320px}
+      .picker-card{max-width:660px;max-height:calc(100dvh - 32px);overflow-y:auto}
+      .geo-results{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+      .geo-results:empty{display:none}
+      .geo-result{text-align:left;background:var(--panel-3);border:1px solid var(--line);color:var(--ink);
+        border-radius:8px;padding:9px 11px;font-size:.88rem;line-height:1.35;cursor:pointer;width:100%;font-family:inherit}
+      .geo-result:hover{border-color:var(--amber-line)}
+      .eddy-pin-wrap{background:none;border:none}
+      .eddy-pin{display:block;width:18px;height:18px;border-radius:50%;background:var(--amber);
+        border:3px solid #0d2137;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+      .leaflet-popup-content-wrapper{background:var(--panel-2);color:var(--ink);border-radius:10px;
+        border:1px solid var(--line-strong);box-shadow:var(--shadow)}
+      .leaflet-popup-content{font-family:inherit;font-size:.9rem;line-height:1.5;margin:12px 14px}
+      .leaflet-popup-content strong{font-family:"Archivo",sans-serif}
+      .leaflet-popup-tip{background:var(--panel-2);border:1px solid var(--line-strong)}
+      .leaflet-bar a{background:var(--panel-2);color:var(--ink);border-color:var(--line)}
+      .leaflet-bar a:hover{background:var(--panel-3)}
+      .leaflet-control-attribution{background:rgba(10,22,40,.78) !important;color:var(--ink-3);font-size:.62rem}
+      .leaflet-control-attribution a{color:var(--ink-2)}
+      .sites-col{max-width:1120px}
+      .sites-layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:start}
+      .sites-layout .session-list{margin-top:0;max-height:440px;overflow-y:auto}
+      .site-item{cursor:pointer;width:100%;text-align:left;font-family:inherit;color:var(--ink)}
+      .site-item:hover{border-color:var(--amber-line)}
+      .site-item .coords{font-family:"IBM Plex Mono",monospace;font-size:.76rem;color:var(--amber-text)}
+      @media (max-width:760px){
+        .sites-layout{grid-template-columns:1fr}
+        .leaflet-map{height:320px}
+        .sites-layout .session-list{max-height:none}
+      }
+
       /* ---------- Ask Eddy chat ---------- */
       .chat-scrim{position:fixed;inset:0;background:var(--scrim);z-index:290}
       .chat-panel{position:fixed;top:0;right:0;height:100dvh;width:min(408px,100vw);z-index:300;
@@ -1063,7 +1106,11 @@
           </div>
           <div class="tf grow">
             <label for="site">Site / location</label>
-            <input type="text" id="site" placeholder="e.g. Quittapahilla Creek, riffle 2" autocomplete="off" />
+            <div class="site-row">
+              <input type="text" id="site" placeholder="e.g. Quittapahilla Creek, riffle 2" autocomplete="off" />
+              <button type="button" class="btn btn-ghost btn-small" id="pinSiteBtn" title="Drop a map pin for this site">Pin on map</button>
+            </div>
+            <p class="pin-chip hidden" id="pinChip"><span id="pinChipTxt"></span><button type="button" id="pinClearBtn" aria-label="Remove the pinned location from this sample">×</button></p>
           </div>
         </div>
         <div class="total-badge" title="Organisms tallied in the current sample">
@@ -1164,6 +1211,10 @@
           <button type="button" class="rail-btn" data-view="library">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
             Library
+          </button>
+          <button type="button" class="rail-btn" data-view="sites">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.7-7-11a7 7 0 0 1 14 0c0 5.3-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+            Sites
           </button>
           <button type="button" class="rail-btn" data-view="graphs">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 20h18"/><path d="M6 20v-6"/><path d="M12 20V5"/><path d="M18 20v-9"/></svg>
@@ -1499,7 +1550,7 @@
                 <p class="card-sub">Every finished sample is saved here on this device — photo, dots, tally and all — so you can reopen it later and check what was counted. <strong>Keeps your last 100 samples on this device</strong>; older ones are dropped as new ones arrive.</p>
                 <div class="backup-panel" id="backupPanel">
                   <h3>Back up &amp; restore — thesis-data insurance</h3>
-                  <p class="hint" style="margin-top:4px">One backup file holds everything: all samples (photos, tallies, dates, sites, IDs, AI suggestions and ruler calibrations), your settings, and the site counters. <strong>Your API key is not included in backups.</strong> Keep a copy somewhere safe — restoring it brings the whole library back.</p>
+                  <p class="hint" style="margin-top:4px">One backup file holds everything: all samples (photos, tallies, dates, sites, map pins, IDs, AI suggestions and ruler calibrations), your settings, and the site counters. <strong>Your API key is not included in backups.</strong> Keep a copy somewhere safe — restoring it brings the whole library back.</p>
                   <div class="btn-row" style="margin-top:12px">
                     <button type="button" class="btn btn-primary" id="backupBtn">Back up library</button>
                     <button type="button" class="btn btn-ghost" id="restoreBtn">Restore from backup…</button>
@@ -1548,6 +1599,22 @@
                     <button type="button" class="btn btn-primary" id="libReportBtn">Report — print / save as PDF</button>
                   </div>
                   <p class="hint" style="margin-top:8px">Read-only — reopening a sample doesn't change the Datasheet sheet. To count it again, take a fresh photo on the Workbench.</p>
+                </div>
+              </div>
+            </div></div>
+          </section>
+
+          <!-- ============ VIEW: SITES ============ -->
+          <section class="view" id="view-sites" aria-labelledby="h-sites">
+            <div class="view-scroll"><div class="page-col sites-col">
+              <div class="card">
+                <div class="card-head"><span class="num">S</span><h2 id="h-sites">Sites</h2></div>
+                <p class="card-sub">Every finished sample you pinned while counting, on one map — your riffles along the creek at a glance. Tap a pin for the sample's scores, or tap a site in the list to fly to it. Pins are set with the <strong>Pin on map</strong> button beside the Site / location field; the site name on its own still works without one.</p>
+                <p class="status hidden" id="sitesOfflineNote" role="status">Map needs internet — your pinned sites are listed below.</p>
+                <div class="empty" id="sitesEmpty">No pinned sites yet — finish a sample after pinning its location and it will show up here.</div>
+                <div class="sites-layout hidden" id="sitesLayout">
+                  <div id="sitesMap" class="leaflet-map" role="application" aria-label="Map of pinned sampling sites"></div>
+                  <div class="session-list" id="sitesList"></div>
                 </div>
               </div>
             </div></div>
@@ -1736,6 +1803,27 @@
         <div class="btn-row" style="margin-top:16px">
           <button type="button" class="btn btn-ghost" id="confirmCancel">Cancel</button>
           <button type="button" class="btn btn-primary" id="confirmOk">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MAP PIN PICKER ============ -->
+    <div id="pinOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+      <div class="confirm-card picker-card">
+        <h3 id="pinTitle">Pin this site on the map</h3>
+        <p>Search for a place, or tap the map where you sampled. The coordinates are saved with the sample and show up in the Sites view — the site name still works on its own, the pin is optional.</p>
+        <div class="site-row" style="margin-top:12px">
+          <input type="text" id="pinSearch" placeholder="Search — e.g. Quittapahilla Creek, Annville PA" autocomplete="off" aria-label="Search for a place" />
+          <button type="button" class="btn btn-ghost btn-small" id="pinSearchBtn">Search</button>
+        </div>
+        <p class="status" id="pinSearchStatus" role="status" aria-live="polite"></p>
+        <div class="geo-results" id="pinResults"></div>
+        <div id="pinMap" class="leaflet-map picker-map" style="margin-top:10px" role="application" aria-label="Map — tap to drop the pin"></div>
+        <p class="hint" id="pinCoords" style="margin-top:8px">No pin yet — tap the map to drop one.</p>
+        <div class="btn-row" style="margin-top:14px">
+          <button type="button" class="btn btn-ghost" id="pinRemoveBtn">Remove pin</button>
+          <button type="button" class="btn btn-ghost" id="pinCancelBtn">Cancel</button>
+          <button type="button" class="btn btn-primary" id="pinUseBtn" disabled>Use this spot</button>
         </div>
       </div>
     </div>
@@ -6112,7 +6200,7 @@
        key-walking and exporting live in the main script above;
        nothing here touches detection.                            */
     (function () {
-      var VIEW_IDS = { workbench: "view-workbench", key: "keyCard", sheet: "view-sheet", library: "view-library", graphs: "view-graphs", train: "view-train", reference: "view-reference" };
+      var VIEW_IDS = { workbench: "view-workbench", key: "keyCard", sheet: "view-sheet", library: "view-library", sites: "view-sites", graphs: "view-graphs", train: "view-train", reference: "view-reference" };
       function showView(name) {
         Object.keys(VIEW_IDS).forEach(function (k) {
           var el = document.getElementById(VIEW_IDS[k]);
@@ -7324,6 +7412,8 @@
             key: "s" + Date.now() + "-" + Math.floor(Math.random() * 1e6),
             savedAt: Date.now(),
             date: snap.date, site: snap.site, sampleId: snap.sampleId, notes: snap.notes,
+            lat: typeof snap.lat === "number" ? snap.lat : null,
+            lng: typeof snap.lng === "number" ? snap.lng : null,
             photo: thumb, imgW: snap.imgW, imgH: snap.imgH,
             dets: snap.dets, pxPerMm: snap.pxPerMm, rows: snap.rows,
             chat: snap.chat || []
@@ -7489,6 +7579,8 @@
           before: workbook.length,
           snap: {
             date: $("sampleDate").value || "", site: $("site").value.trim(),
+            lat: window.eddyPinGet ? window.eddyPinGet().lat : null,
+            lng: window.eddyPinGet ? window.eddyPinGet().lng : null,
             sampleId: sidInp.value.trim(), notes: $("notes").value.trim(),
             photo: photoDataUrl, imgW: imgW, imgH: imgH,
             dets: dets.map(function (d) { return { x: d.x, y: d.y }; }),
@@ -9019,6 +9111,8 @@
         return {
           v: 1, savedAt: Date.now(),
           date: $("sampleDate").value, site: $("site").value,
+          lat: window.eddyPinGet ? window.eddyPinGet().lat : null,
+          lng: window.eddyPinGet ? window.eddyPinGet().lng : null,
           sampleId: $("sampleId").value, notes: $("notes").value,
           photo: "", photoName: photoFileName, imgW: imgW, imgH: imgH,
           dets: dets.map(function (d) {
@@ -9037,6 +9131,7 @@
         if (st.photo) return true;
         if (st.dets && st.dets.length) return true;
         if (st.cal) return true;
+        if (st.lat != null) return true;
         if ((st.site || "").trim() || (st.sampleId || "").trim() || (st.notes || "").trim()) return true;
         return (st.rows || []).some(function (r) { return (parseInt(r.count, 10) || 0) > 0; });
       }
@@ -9183,6 +9278,7 @@
         if (d.date) $("sampleDate").value = d.date;
         $("site").value = d.site || "";
         $("site").dispatchEvent(new Event("input", { bubbles: true }));
+        if (window.eddyPinSet) window.eddyPinSet(d.lat, d.lng);
         $("sampleId").value = d.sampleId || "";
         $("notes").value = d.notes || "";
         if (!d.photo) { buildDraftRows(d); return; }
@@ -10051,6 +10147,262 @@
       }
       if (document.readyState === "complete") setTimeout(checkOnce, 2000);
       else window.addEventListener("load", function () { setTimeout(checkOnce, 2000); });
+    })();
+    </script>
+    <script>
+    "use strict";
+    /* ---------------- Eddy sites: map pins + Sites view ----------------
+       The pin for the sample on the bench lives here; the finish
+       hook, the autosave draft and the library record all read it
+       through window.eddyPinGet / eddyPinSet. Coordinates ride
+       inside the sample record itself, so library backups carry
+       them too. Maps are Leaflet on CartoDB dark tiles; without
+       internet the Sites view falls back to the list alone.      */
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      var DARK_TILES = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+      var TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      var HOME = [40.3319, -76.5147]; /* Quittapahilla Creek at Annville, PA */
+      function mapReady() { return typeof window.L !== "undefined" && navigator.onLine; }
+      function pinIcon() {
+        return L.divIcon({ className: "eddy-pin-wrap", html: '<span class="eddy-pin"></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
+      }
+      function nudgeDraft() {
+        /* The autosave draft listens for field input — a pin
+           change counts as one, so a resumed draft keeps its pin. */
+        var s = $("site");
+        if (s) s.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+
+      /* ---------- Pin state for the sample on the bench ---------- */
+      var pin = { lat: null, lng: null };
+      function syncChip() {
+        var chip = $("pinChip");
+        if (!chip) return;
+        if (pin.lat == null || pin.lng == null) { chip.classList.add("hidden"); return; }
+        chip.classList.remove("hidden");
+        $("pinChipTxt").textContent = "Pinned · " + pin.lat.toFixed(5) + ", " + pin.lng.toFixed(5);
+      }
+      window.eddyPinGet = function () { return { lat: pin.lat, lng: pin.lng }; };
+      window.eddyPinSet = function (lat, lng) {
+        var ok = typeof lat === "number" && typeof lng === "number" && isFinite(lat) && isFinite(lng);
+        pin.lat = ok ? lat : null;
+        pin.lng = ok ? lng : null;
+        syncChip();
+      };
+      syncChip();
+      var pinClearBtn = $("pinClearBtn");
+      if (pinClearBtn) pinClearBtn.addEventListener("click", function () {
+        window.eddyPinSet(null, null);
+        nudgeDraft();
+      });
+
+      /* ---------- Map pin picker ---------- */
+      var overlay = $("pinOverlay"), pickerMap = null, pickerMarker = null, pickerPin = null;
+      function syncPickerLabel() {
+        $("pinCoords").textContent = pickerPin
+          ? "Pin: " + pickerPin.lat.toFixed(5) + ", " + pickerPin.lng.toFixed(5)
+          : "No pin yet — tap the map to drop one.";
+        $("pinUseBtn").disabled = !pickerPin;
+      }
+      function setPickerPin(lat, lng, zoom) {
+        pickerPin = { lat: lat, lng: lng };
+        if (pickerMap) {
+          if (!pickerMarker) pickerMarker = L.marker([lat, lng], { icon: pinIcon() }).addTo(pickerMap);
+          else pickerMarker.setLatLng([lat, lng]);
+          if (zoom) pickerMap.setView([lat, lng], zoom);
+        }
+        syncPickerLabel();
+      }
+      function openPicker() {
+        overlay.classList.remove("hidden");
+        $("pinResults").innerHTML = "";
+        var st = $("pinSearchStatus");
+        st.textContent = ""; st.className = "status";
+        pickerPin = pin.lat != null ? { lat: pin.lat, lng: pin.lng } : null;
+        if (!mapReady()) {
+          $("pinMap").classList.add("hidden");
+          st.textContent = "Map needs internet — connect to drop a pin. The sample still saves fine without one.";
+          st.className = "status bad";
+          syncPickerLabel();
+          return;
+        }
+        $("pinMap").classList.remove("hidden");
+        setTimeout(function () {
+          if (!pickerMap) {
+            pickerMap = L.map("pinMap").setView(pickerPin ? [pickerPin.lat, pickerPin.lng] : HOME, pickerPin ? 14 : 12);
+            L.tileLayer(DARK_TILES, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(pickerMap);
+            pickerMap.on("click", function (e) { setPickerPin(e.latlng.lat, e.latlng.lng, 0); });
+          }
+          pickerMap.invalidateSize();
+          if (pickerPin) {
+            setPickerPin(pickerPin.lat, pickerPin.lng, 0);
+            pickerMap.setView([pickerPin.lat, pickerPin.lng], Math.max(pickerMap.getZoom(), 13));
+          } else {
+            if (pickerMarker) { pickerMap.removeLayer(pickerMarker); pickerMarker = null; }
+            pickerMap.setView(HOME, 12);
+          }
+          syncPickerLabel();
+        }, 0);
+      }
+      function closePicker() { overlay.classList.add("hidden"); }
+      $("pinSiteBtn").addEventListener("click", openPicker);
+      $("pinCancelBtn").addEventListener("click", closePicker);
+      overlay.addEventListener("click", function (e) { if (e.target === overlay) closePicker(); });
+      $("pinRemoveBtn").addEventListener("click", function () {
+        window.eddyPinSet(null, null);
+        nudgeDraft();
+        closePicker();
+      });
+      $("pinUseBtn").addEventListener("click", function () {
+        if (!pickerPin) return;
+        window.eddyPinSet(pickerPin.lat, pickerPin.lng);
+        nudgeDraft();
+        closePicker();
+      });
+
+      /* ---------- Place search (Nominatim, no key) ---------- */
+      function setSearchStatus(msg, cls) {
+        var el = $("pinSearchStatus");
+        el.textContent = msg;
+        el.className = "status" + (cls ? " " + cls : "");
+      }
+      function doSearch() {
+        var q = $("pinSearch").value.trim();
+        if (!q) { setSearchStatus("Type a place name first — a creek, a town, a park.", "bad"); return; }
+        if (!navigator.onLine) { setSearchStatus("Search needs internet.", "bad"); return; }
+        setSearchStatus("Searching…", "");
+        $("pinResults").innerHTML = "";
+        fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=" + encodeURIComponent(q), { headers: { "Accept": "application/json" } })
+          .then(function (r) { if (!r.ok) throw new Error("search failed"); return r.json(); })
+          .then(function (results) {
+            if (!results || !results.length) {
+              setSearchStatus("No places matched that search — try adding the town or state.", "bad");
+              return;
+            }
+            setSearchStatus("", "");
+            var box = $("pinResults");
+            results.forEach(function (r) {
+              var b = document.createElement("button");
+              b.type = "button";
+              b.className = "geo-result";
+              b.textContent = r.display_name;
+              b.addEventListener("click", function () {
+                setPickerPin(parseFloat(r.lat), parseFloat(r.lon), 14);
+                box.innerHTML = "";
+              });
+              box.appendChild(b);
+            });
+          })
+          .catch(function () {
+            setSearchStatus("Search didn't go through — check your connection, or just tap the map.", "bad");
+          });
+      }
+      $("pinSearchBtn").addEventListener("click", doSearch);
+      $("pinSearch").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); doSearch(); }
+      });
+
+      /* ---------- Sites view ---------- */
+      var sitesMap = null, sitesLayer = null, sitesMarkers = {};
+      function popupHtml(s) {
+        var idx = window.eddyIndices ? window.eddyIndices(s.rows || []) : null;
+        var html = "<strong>" + esc(s.sampleId || "Sample") + "</strong>";
+        if (s.site) html += "<br>" + esc(s.site);
+        if (s.date) html += "<br>" + esc(s.date);
+        if (idx && !idx.empty) {
+          html += "<br>EPT richness " + (idx.eptRich == null ? "—" : idx.eptRich) +
+            " · HBI " + (idx.hbi == null ? "—" : idx.hbi.toFixed(2)) +
+            "<br>" + idx.total + " individuals · " + (idx.pctEpt == null ? "—" : idx.pctEpt.toFixed(1) + "%") + " EPT";
+        }
+        return html;
+      }
+      function renderSites() {
+        if (!window.eddyLib) return;
+        window.eddyLib.all().then(function (samples) {
+          var pinned = (samples || []).filter(function (s) {
+            return typeof s.lat === "number" && typeof s.lng === "number" && isFinite(s.lat) && isFinite(s.lng);
+          }).sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
+          var emptyEl = $("sitesEmpty"), layout = $("sitesLayout"), note = $("sitesOfflineNote"),
+              listEl = $("sitesList"), mapEl = $("sitesMap");
+          sitesMarkers = {};
+          if (!pinned.length) {
+            emptyEl.classList.remove("hidden");
+            layout.classList.add("hidden");
+            note.classList.add("hidden");
+            return;
+          }
+          emptyEl.classList.add("hidden");
+          layout.classList.remove("hidden");
+          listEl.innerHTML = "";
+          pinned.forEach(function (s) {
+            var item = document.createElement("div");
+            item.className = "session-item site-item";
+            item.setAttribute("role", "button");
+            item.setAttribute("tabindex", "0");
+            var grow = document.createElement("div");
+            grow.className = "grow";
+            var sid = document.createElement("div");
+            sid.className = "sid";
+            sid.textContent = s.sampleId || "Sample";
+            var meta = document.createElement("div");
+            meta.className = "meta";
+            meta.textContent = (s.site ? s.site + " · " : "") + (s.date || "");
+            var coords = document.createElement("div");
+            coords.className = "coords";
+            coords.textContent = s.lat.toFixed(5) + ", " + s.lng.toFixed(5);
+            grow.appendChild(sid);
+            grow.appendChild(meta);
+            grow.appendChild(coords);
+            item.appendChild(grow);
+            var go = function () {
+              var m = sitesMarkers[s.key];
+              if (sitesMap && m) {
+                sitesMap.flyTo([s.lat, s.lng], Math.max(sitesMap.getZoom(), 14), { duration: 0.6 });
+                setTimeout(function () { m.openPopup(); }, 650);
+              }
+            };
+            item.addEventListener("click", go);
+            item.addEventListener("keydown", function (e) {
+              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
+            });
+            listEl.appendChild(item);
+          });
+          if (!mapReady()) {
+            note.classList.remove("hidden");
+            mapEl.classList.add("hidden");
+            return;
+          }
+          note.classList.add("hidden");
+          mapEl.classList.remove("hidden");
+          if (!sitesMap) {
+            sitesMap = L.map("sitesMap");
+            L.tileLayer(DARK_TILES, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(sitesMap);
+            sitesLayer = L.layerGroup().addTo(sitesMap);
+          }
+          sitesLayer.clearLayers();
+          var bounds = [];
+          pinned.forEach(function (s) {
+            var m = L.marker([s.lat, s.lng], { icon: pinIcon() }).bindPopup(popupHtml(s));
+            m.addTo(sitesLayer);
+            sitesMarkers[s.key] = m;
+            bounds.push([s.lat, s.lng]);
+          });
+          setTimeout(function () {
+            if (!sitesMap) return;
+            sitesMap.invalidateSize();
+            if (bounds.length === 1) sitesMap.setView(bounds[0], 14);
+            else sitesMap.fitBounds(bounds, { padding: [34, 34] });
+          }, 0);
+        }).catch(function () { /* library unavailable — leave the view as it is */ });
+      }
+      window.eddyRenderSites = renderSites;
+      var sitesBtn = document.querySelector('.rail-btn[data-view="sites"]');
+      if (sitesBtn) sitesBtn.addEventListener("click", renderSites);
     })();
     </script>
 
