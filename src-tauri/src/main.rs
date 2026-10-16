@@ -1,7 +1,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri_plugin_updater::UpdaterExt;
-use tauri::Emitter;
+
+#[tauri::command]
+async fn check_for_update(handle: tauri::AppHandle) -> Result<Option<serde_json::Value>, String> {
+    let updater = handle.updater().map_err(|e| format!("updater failed: {e}"))?;
+    match updater.check().await.map_err(|e| format!("check failed: {e}"))? {
+        Some(update) => Ok(Some(serde_json::json!({
+            "version": update.version,
+            "notes": update.body.unwrap_or_default(),
+        }))),
+        None => Ok(None),
+    }
+}
 
 #[tauri::command]
 async fn install_pending_update(handle: tauri::AppHandle) -> Result<(), String> {
@@ -27,27 +38,11 @@ fn dismiss_update() {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![install_pending_update, dismiss_update])
-        .setup(|app| {
-            let handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                if let Ok(updater) = handle.updater() {
-                    match updater.check().await {
-                        Ok(Some(update)) => {
-                            let version = update.version.clone();
-                            let notes = update.body.clone().unwrap_or_default();
-                            let _ = handle.emit("update-available", serde_json::json!({
-                                "version": version,
-                                "notes": notes,
-                            }));
-                        }
-                        Ok(None) => {},
-                        Err(e) => eprintln!("update check failed: {e}"),
-                    }
-                }
-            });
-            Ok(())
-        })
+        .invoke_handler(tauri::generate_handler![
+            check_for_update,
+            install_pending_update,
+            dismiss_update
+        ])
         .run(tauri::generate_context!())
         .expect("error while running Eddy");
 }
