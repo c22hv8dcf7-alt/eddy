@@ -9881,7 +9881,12 @@
       function checkOnce() {
         if (checked) return;
         checked = true;
-        var p = invoke("check_for_update");
+        var p;
+        try {
+          p = invoke("check_for_update");
+        } catch (e) {
+          return;
+        }
         if (!p || typeof p.then !== "function") return;
         p.then(function (result) {
           if (!result) return;
@@ -9889,7 +9894,9 @@
           title.textContent = version ? "Eddy " + version + " is available" : "A new version of Eddy is available";
           notesEl.textContent = typeof result.notes === "string" ? result.notes : "";
           overlay.classList.remove("hidden");
-        }, function () { /* check failed — stay silent */ });
+        }, function () {
+          /* check failed — modal stays silent */
+        });
       }
       if (document.readyState === "complete") setTimeout(checkOnce, 2000);
       else window.addEventListener("load", function () { setTimeout(checkOnce, 2000); });
