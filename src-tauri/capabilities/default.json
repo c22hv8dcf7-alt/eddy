@@ -3,7 +3,8 @@
   "description": "Capability for the main window",
   "identifier": "default",
   "permissions": [
-    "updater:default"
+    "updater:default",
+    "dialog:default"
   ],
   "windows": [
     "main"
