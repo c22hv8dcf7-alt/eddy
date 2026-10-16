@@ -636,6 +636,8 @@
         padding:12px 14px;font-size:.9rem;line-height:1.55;color:#a8bfd4;
         white-space:pre-wrap;overflow-wrap:break-word}
       .update-notes:empty{display:none}
+      .update-error{margin-top:12px;font-size:.85rem;line-height:1.5;color:#ff8a7a;
+        white-space:pre-wrap;overflow-wrap:break-word}
       .update-card .btn-row{margin-top:18px}
       .update-later{background:rgba(18,48,73,.6);color:#a8bfd4;border-color:#2f5d80}
       .update-later:hover{color:#eaf2f9;border-color:#7a5a17}
@@ -738,7 +740,7 @@
       .chat-foot{font-size:.72rem;color:var(--ink-3);margin-top:7px;line-height:1.4}
       .chat-saved{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}
       .chat-saved .chat-msg{max-width:100%;margin-bottom:8px}
-      /* ---------- Launch splash: underwater scene ---------- */
+      /* ---------- Launch splash: Stonefly Emergence ---------- */
       .splash{position:fixed;inset:0;z-index:1000;overflow:hidden;cursor:pointer;
         background:radial-gradient(130% 95% at 50% -12%, #1d4f73 0%, rgba(29,79,115,0) 55%),linear-gradient(180deg, #16405e 0%, #123049 30%, #0d2137 63%, #0a1628 100%);
         transition:opacity .65s ease}
@@ -749,30 +751,19 @@
         filter:blur(7px);transform-origin:top center;
         animation:raySway 11s ease-in-out infinite alternate}
       @keyframes raySway{from{transform:rotate(calc(var(--r) - 2.2deg))}to{transform:rotate(calc(var(--r) + 2.2deg))}}
-      .sil{position:absolute;line-height:0;pointer-events:none;will-change:transform}
-      .sil-deep{opacity:.45;filter:blur(2px)}
-      .sil-far{opacity:.6;filter:blur(1.1px)}
-      .sil-mid{opacity:.82;filter:blur(.4px)}
-      .sil-svg{width:100%;height:auto;display:block;overflow:visible}
-      .sil-svg .b{fill:#0a1c2c;stroke:rgba(150,200,235,.13);stroke-width:1}
-      .sil-svg .l{fill:none;stroke:#0d2236;stroke-width:3;stroke-linecap:round}
-      @keyframes driftR{from{transform:translate(0,0) rotate(-1deg)}to{transform:translate(62px,-10px) rotate(1.2deg)}}
-      @keyframes driftL{from{transform:translate(0,0) rotate(1deg)}to{transform:translate(-54px,9px) rotate(-1.2deg)}}
-      .splash-motes{position:absolute;inset:0;overflow:hidden;pointer-events:none}
-      .splash-motes i{position:absolute;border-radius:50%;background:rgba(190,220,245,.75);
-        opacity:.5;animation:moteRise linear infinite}
-      @keyframes moteRise{0%{transform:translate(0,0);opacity:0}12%{opacity:.75}85%{opacity:.45}100%{transform:translate(2.5vw,-92vh);opacity:0}}
-      .splash-bed{position:absolute;left:0;right:0;bottom:0;height:17%;pointer-events:none;
-        background:linear-gradient(to top, rgba(1,4,8,.88), rgba(1,4,8,0))}
-      .splash-bed i{position:absolute;border-radius:50%;background:#010509;filter:blur(12px)}
-      .splash-logo{position:absolute;left:50%;top:50%;text-align:center;pointer-events:none;
-        opacity:0;transform:translate(-50%,-46%);transition:opacity 1s ease,transform 1s ease}
-      .splash-logo.show{opacity:1;transform:translate(-50%,-50%)}
-      .splash-mark{width:66px;height:66px;border-radius:16px;background:var(--amber);
-        display:inline-flex;align-items:center;justify-content:center;
-        box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 12px 34px rgba(0,0,0,.45)}
+      .splash-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+      .splash-fly{position:absolute;opacity:0;pointer-events:none;overflow:visible;
+        transition:opacity 1.1s ease}
+      .splash-fly.show{opacity:1;animation:flyPulse 2.8s ease-in-out 1s infinite}
+      @keyframes flyPulse{
+        0%,100%{filter:drop-shadow(0 0 9px rgba(242,168,29,.4)) drop-shadow(0 0 26px rgba(242,168,29,.14))}
+        50%{filter:drop-shadow(0 0 17px rgba(242,168,29,.7)) drop-shadow(0 0 44px rgba(242,168,29,.26))}}
+      .splash-title{position:absolute;left:0;right:0;text-align:center;pointer-events:none;
+        opacity:0;transform:translateY(10px);transition:opacity .9s ease,transform .9s ease}
+      .splash-title.show{opacity:1;transform:translateY(0)}
       .splash-word{font-family:"Archivo",ui-sans-system,sans-serif;font-weight:800;
-        font-size:2.35rem;letter-spacing:.38em;padding-left:.38em;margin-top:17px;color:#eaf2f9;line-height:1}
+        font-size:2.35rem;letter-spacing:.38em;padding-left:.38em;color:#f2a81d;line-height:1;
+        text-shadow:0 0 24px rgba(242,168,29,.35)}
       .splash-sub{font-size:.7rem;font-weight:700;letter-spacing:.24em;padding-left:.24em;
         text-transform:uppercase;color:#8fb0c9;margin-top:8px}
       .splash-hint{position:absolute;left:0;right:0;bottom:22px;text-align:center;
@@ -832,31 +823,55 @@
     </style>
   </head>
   <body>
-    <!-- ============ LAUNCH SPLASH ============ -->
+        <!-- ============ LAUNCH SPLASH: STONEFLY EMERGENCE ============ -->
     <div class="splash" id="splash" aria-hidden="true">
       <div class="splash-rays">
         <i style="left:13%;width:170px;--r:9deg"></i>
         <i style="left:44%;width:120px;--r:12deg;animation-duration:13s"></i>
         <i style="left:70%;width:200px;--r:8deg;animation-duration:15s"></i>
       </div>
-      <div class="sil sil-mid" style="top:14%;left:5%;width:min(240px,40vw);animation:driftR 13s ease-in-out infinite alternate">
-        <svg viewBox="0 0 220 90" class="sil-svg"><path class="l" style="stroke-width:2.6" d="M45 41 Q22 30 7 11"/><path class="l" style="stroke-width:2.6" d="M45 49 Q22 60 7 79"/><path class="l" style="stroke-width:2.4" d="M155 42 Q186 34 215 19"/><path class="l" style="stroke-width:2.4" d="M155 48 Q186 56 215 71"/><path class="l" d="M64 51 L52 67 L39 72"/><path class="l" d="M84 53 L76 70 L64 76"/><path class="l" d="M104 53 L100 70 L90 77"/><path class="l" d="M64 39 L52 23 L39 18"/><path class="l" d="M84 37 L76 20 L64 14"/><path class="l" d="M104 37 L100 20 L90 13"/><path class="b" d="M40 45 Q58 34 96 35 Q138 36 159 45 Q138 54 96 55 Q58 56 40 45 Z"/><ellipse class="b" cx="43" cy="45" rx="8" ry="7"/></svg>
-      </div>
-      <div class="sil sil-far" style="top:25%;right:3%;width:min(275px,46vw);animation:driftL 16s ease-in-out infinite alternate">
-        <svg viewBox="0 0 240 90" class="sil-svg"><path class="l" style="stroke-width:4.4" d="M58 39 Q40 33 31 20"/><path class="l" style="stroke-width:4.4" d="M58 51 Q40 57 31 70"/><path class="l" style="stroke-width:2.4" d="M96 36 l-5 -10 M110 35 l-5 -10 M124 35 l-4 -10 M138 36 l-4 -10 M152 37 l-3 -9 M166 38 l-3 -9 M180 40 l-2 -8"/><path class="l" style="stroke-width:2.4" d="M96 54 l-5 10 M110 55 l-5 10 M124 55 l-4 10 M138 54 l-4 10 M152 53 l-3 9 M166 52 l-3 9 M180 50 l-2 8"/><path class="l" style="stroke-width:3.4" d="M72 38 L63 24 M86 36 L79 22 M99 36 L94 23"/><path class="l" style="stroke-width:3.4" d="M72 52 L63 66 M86 54 L79 68 M99 54 L94 67"/><path class="b" d="M54 45 Q90 33 142 36 Q186 38 211 44 Q213 45 211 46 Q186 52 142 54 Q90 57 54 45 Z"/><ellipse class="b" cx="61" cy="45" rx="10" ry="8.5"/></svg>
-      </div>
-      <div class="sil sil-deep" style="top:60%;right:9%;width:min(200px,36vw);animation:driftL 12s ease-in-out infinite alternate">
-        <svg viewBox="0 0 220 90" class="sil-svg"><path class="l" style="stroke-width:2.2" d="M46 42 Q29 33 17 22"/><path class="l" style="stroke-width:2.2" d="M46 48 Q29 57 17 68"/><path class="l" style="stroke-width:2" d="M154 43 Q186 37 216 30"/><path class="l" style="stroke-width:2" d="M155 45 Q188 45 218 45"/><path class="l" style="stroke-width:2" d="M154 47 Q186 53 216 60"/><path class="l" style="stroke-width:2" d="M100 40 q2 -7 6 -9 M110 40 q2 -7 6 -9 M120 40 q2 -7 6 -9 M130 41 q2 -6 6 -8 M140 41 q2 -6 5 -8"/><path class="l" style="stroke-width:2.6" d="M66 50 L56 64 L45 68 M86 51 L80 66 L70 71 M104 51 L100 65 L92 70"/><path class="l" style="stroke-width:2.6" d="M66 40 L56 26 L45 22 M86 39 L80 24 L70 19 M104 39 L100 25 L92 20"/><path class="b" d="M42 45 Q66 37 108 39 Q140 40 157 45 Q140 50 108 51 Q66 53 42 45 Z"/><ellipse class="b" cx="45" cy="45" rx="7" ry="6"/></svg>
-      </div>
-      <div class="sil sil-mid" style="top:75%;left:7%;width:min(215px,38vw);animation:driftR 15s ease-in-out infinite alternate">
-        <svg viewBox="0 0 220 90" class="sil-svg"><path class="l" d="M82 53 L72 68 L60 72 M92 55 L86 70 L76 75 M100 55 L98 69"/><path class="b" d="M86 33 Q140 24 196 36 Q209 39 210 45 Q209 51 196 54 Q140 66 86 57 Q76 45 86 33 Z"/><path class="l" style="stroke-width:2" d="M118 30 Q112 45 118 60 M146 28 Q140 45 146 62 M174 31 Q168 45 174 59"/><ellipse class="b" cx="78" cy="45" rx="9" ry="8"/><path class="l" style="stroke-width:2.2" d="M72 40 Q60 34 54 26 M72 50 Q60 56 54 64"/></svg>
-      </div>
-      <div class="splash-motes" id="splashMotes"></div>
-      <div class="splash-bed"><i style="left:-4%;bottom:-46px;width:46%;height:90px"></i><i style="right:-6%;bottom:-52px;width:52%;height:100px"></i></div>
-      <div class="splash-logo" id="splashLogo">
-        <span class="splash-mark">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#221503" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 3v13"/><path d="M12 6C9.5 4.5 6.5 4 4 5c1.8 1.2 2.6 3 2.8 5.2"/><path d="M12 6c2.5-1.5 5.5-2 8-1-1.8 1.2-2.6 3-2.8 5.2"/><path d="M11 16l-3.2 5M13 16l3.2 5M12 16v5.4"/></svg>
-        </span>
+      <canvas class="splash-canvas" id="splashCanvas"></canvas>
+      <svg class="splash-fly" id="splashFly" viewBox="0 0 240 340" aria-hidden="true">
+        <defs>
+          <linearGradient id="splashGold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f7c948"/>
+            <stop offset=".55" stop-color="#e9a81c"/>
+            <stop offset="1" stop-color="#c07f0e"/>
+          </linearGradient>
+        </defs>
+        <g fill="none" stroke="#dda017" stroke-linecap="round">
+          <path class="fly-line" data-w="3.5" d="M113 32 C98 15 76 7 52 10"/>
+          <path class="fly-line" data-w="3.5" d="M127 32 C142 15 164 7 188 10"/>
+          <path class="fly-line" data-w="5.5" d="M93 80 L63 62 L35 67"/>
+          <path class="fly-line" data-w="5.5" d="M147 80 L177 62 L205 67"/>
+          <path class="fly-line" data-w="5.5" d="M88 100 L55 95 L26 108"/>
+          <path class="fly-line" data-w="5.5" d="M152 100 L185 95 L214 108"/>
+          <path class="fly-line" data-w="5.5" d="M93 117 L61 130 L37 155"/>
+          <path class="fly-line" data-w="5.5" d="M147 117 L179 130 L203 155"/>
+          <path class="fly-line" data-w="3.5" d="M113 276 C105 295 95 309 81 317"/>
+          <path class="fly-line" data-w="3.5" d="M127 276 C135 295 145 309 159 317"/>
+        </g>
+        <g fill="url(#splashGold)">
+          <path class="fly-fill" d="M120 24 C133 24 141 33 141 44 C141 55 133 62 120 62 C107 62 99 55 99 44 C99 33 107 24 120 24 Z"/>
+          <path class="fly-fill" d="M120 56 C143 56 156 71 156 93 C156 114 141 127 120 127 C99 127 84 114 84 93 C84 71 97 56 120 56 Z"/>
+          <path class="fly-fill" d="M103 76 C90 91 85 118 92 144 C94 153 103 153 106 143 C111 118 111 93 103 76 Z"/>
+          <path class="fly-fill" d="M137 76 C150 91 155 118 148 144 C146 153 137 153 134 143 C129 118 129 93 137 76 Z"/>
+          <path class="fly-fill" d="M120 118 C139 118 150 129 150 143 C150 157 137 166 120 166 C103 166 90 157 90 143 C90 129 101 118 120 118 Z"/>
+          <path class="fly-fill" d="M120 158 C137 158 147 168 147 181 C147 194 135 202 120 202 C105 202 93 194 93 181 C93 168 103 158 120 158 Z"/>
+          <path class="fly-fill" d="M120 194 C134 194 143 203 143 214 C143 226 133 233 120 233 C107 233 97 226 97 214 C97 203 106 194 120 194 Z"/>
+          <path class="fly-fill" d="M120 226 C131 226 139 233 139 243 C139 253 131 259 120 259 C109 259 101 253 101 243 C101 233 109 226 120 226 Z"/>
+          <path class="fly-fill" d="M120 252 C129 252 135 258 135 266 C135 274 128 279 120 279 C112 279 105 274 105 266 C105 258 111 252 120 252 Z"/>
+        </g>
+        <g fill="none" stroke="rgba(9,21,38,.35)" stroke-width="2" stroke-linecap="round">
+          <path d="M95 160 C105 166 135 166 145 160"/>
+          <path d="M98 196 C107 201 133 201 142 196"/>
+          <path d="M102 228 C109 232 131 232 138 228"/>
+          <path d="M106 254 C112 257 128 257 134 254"/>
+        </g>
+        <circle cx="108" cy="40" r="3.4" fill="rgba(9,21,38,.55)"/>
+        <circle cx="132" cy="40" r="3.4" fill="rgba(9,21,38,.55)"/>
+      </svg>
+      <div class="splash-title" id="splashTitle">
         <div class="splash-word">EDDY</div>
         <div class="splash-sub">Macroinvertebrate Counter</div>
       </div>
@@ -864,48 +879,167 @@
     </div>
     <script>
     "use strict";
-    /* ---------------- Launch splash ----------------
-       Five seconds over a dark reach of the creek: silhouettes
-       drift at depth, sediment motes rise, the Eddy mark surfaces
-       at three seconds, and the whole scene fades to the workbench
-       at five — or at once on a click / tap / Escape. Pure CSS
-       animation; this script only scatters the motes and runs the
-       clock. A hard fallback dismisses it whatever happens.     */
+    /* ---------------- Launch splash: Stonefly Emergence ----------------
+       Deep water and light rays from the surface, and the Eddy
+       stonefly assembling itself out of drifting gold motes.
+       Points sampled from the nymph silhouette become particle
+       targets: each mote starts scattered at the edges of the
+       scene and eases home over about two seconds. Once the
+       nymph is whole, the crisp gold mark fades in over the
+       motes with a slow breathing glow, EDDY surfaces beneath
+       it, and the scene fades to the workbench at five seconds —
+       or at once on a click / tap / Escape.                       */
     (function () {
       var splash = document.getElementById("splash");
       if (!splash) return;
-      var logo = document.getElementById("splashLogo");
-      var motes = document.getElementById("splashMotes");
-      if (motes) {
-        for (var i = 0; i < 26; i++) {
-          var m = document.createElement("i");
-          var size = (2 + Math.random() * 3).toFixed(1);
-          m.style.width = size + "px";
-          m.style.height = size + "px";
-          m.style.left = (Math.random() * 100).toFixed(2) + "%";
-          m.style.bottom = (Math.random() * 55).toFixed(1) + "vh";
-          m.style.animationDuration = (7 + Math.random() * 8).toFixed(1) + "s";
-          m.style.animationDelay = (-Math.random() * 10).toFixed(1) + "s";
-          motes.appendChild(m);
-        }
-      }
-      var done = false, tLogo = 0, tOut = 0;
+      var fly = document.getElementById("splashFly");
+      var title = document.getElementById("splashTitle");
+      var canvas = document.getElementById("splashCanvas");
+      var done = false, raf = 0, tFly = 0, tTitle = 0, tOut = 0;
       function dismiss() {
         if (done) return;
         done = true;
-        clearTimeout(tLogo); clearTimeout(tOut);
+        clearTimeout(tFly); clearTimeout(tTitle); clearTimeout(tOut);
+        if (raf) cancelAnimationFrame(raf);
         splash.classList.add("splash-done");
         setTimeout(function () {
           if (splash.parentNode) splash.parentNode.removeChild(splash);
-        }, 750);
+        }, 700);
       }
-      tLogo = setTimeout(function () { if (logo) logo.classList.add("show"); }, 3000);
-      tOut = setTimeout(dismiss, 5000);
-      setTimeout(dismiss, 8000);
       splash.addEventListener("click", dismiss);
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") dismiss(); });
+      setTimeout(dismiss, 8000); /* hard fallback, whatever happens */
+
+      /* Geometry: the nymph rides a little above centre so the
+         wordmark has room to surface underneath it. */
+      var W = splash.clientWidth || window.innerWidth || 360;
+      var H = splash.clientHeight || window.innerHeight || 480;
+      var flyH = Math.min(H * 0.42, 470);
+      var flyW = flyH * 240 / 340;
+      var cx = W / 2, cy = H * 0.42;
+      if (fly) {
+        fly.style.left = (cx - flyW / 2) + "px";
+        fly.style.top = (cy - flyH / 2) + "px";
+        fly.style.width = flyW + "px";
+        fly.style.height = flyH + "px";
+      }
+      if (title) title.style.top = (cy + flyH / 2 + 22) + "px";
+
+      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduced || !canvas || !canvas.getContext) {
+        if (fly) fly.classList.add("show");
+        if (title) title.classList.add("show");
+        tOut = setTimeout(dismiss, 1800);
+        return;
+      }
+
+      /* Sample the silhouette: paint the mark's own paths onto an
+         offscreen canvas and keep a grid of the lit points. */
+      function samplePoints() {
+        if (!fly) return [];
+        try {
+          var S = 2, off = document.createElement("canvas");
+          off.width = 240 * S; off.height = 340 * S;
+          var o = off.getContext("2d");
+          o.scale(S, S);
+          o.fillStyle = "#fff"; o.strokeStyle = "#fff";
+          o.lineCap = "round"; o.lineJoin = "round";
+          var shapes = fly.querySelectorAll(".fly-fill, .fly-line");
+          for (var i = 0; i < shapes.length; i++) {
+            var path = new Path2D(shapes[i].getAttribute("d"));
+            if (shapes[i].classList.contains("fly-line")) {
+              o.lineWidth = parseFloat(shapes[i].getAttribute("data-w")) || 4;
+              o.stroke(path);
+            } else o.fill(path);
+          }
+          var img = o.getImageData(0, 0, off.width, off.height).data;
+          var parts = [], step = 11;
+          for (var y = 5; y < off.height; y += step) {
+            for (var x = 5; x < off.width; x += step) {
+              var jx = x + (Math.random() * 6 - 3), jy = y + (Math.random() * 6 - 3);
+              var xi = Math.round(jx), yi = Math.round(jy);
+              if (xi < 0 || yi < 0 || xi >= off.width || yi >= off.height) continue;
+              if (img[(yi * off.width + xi) * 4 + 3] < 110) continue;
+              if (Math.random() < 0.08) continue;
+              var side = Math.floor(Math.random() * 4), sx = 0, sy = 0;
+              if (side === 0) { sx = Math.random() * W; sy = -24 - Math.random() * 70; }
+              else if (side === 1) { sx = Math.random() * W; sy = H + 24 + Math.random() * 70; }
+              else if (side === 2) { sx = -24 - Math.random() * 70; sy = Math.random() * H; }
+              else { sx = W + 24 + Math.random() * 70; sy = Math.random() * H; }
+              parts.push({
+                sx: sx, sy: sy,
+                tx: cx + (jx / S - 120) * (flyW / 240),
+                ty: cy + (jy / S - 170) * (flyH / 340),
+                delay: Math.random() * 0.45,
+                dur: 1.35 + Math.random() * 0.6,
+                r: 1.5 + Math.random() * 1.6,
+                ph: Math.random() * Math.PI * 2
+              });
+            }
+          }
+          return parts;
+        } catch (e) { return []; }
+      }
+
+      var parts = samplePoints();
+      var ctx = canvas.getContext("2d");
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      ctx.scale(dpr, dpr);
+      /* One pre-rendered glow sprite, stamped for every mote. */
+      var sprite = document.createElement("canvas");
+      sprite.width = 32; sprite.height = 32;
+      var sc = sprite.getContext("2d");
+      var grad = sc.createRadialGradient(16, 16, 0, 16, 16, 16);
+      grad.addColorStop(0, "rgba(255,240,196,1)");
+      grad.addColorStop(0.35, "rgba(247,201,72,.85)");
+      grad.addColorStop(1, "rgba(242,168,29,0)");
+      sc.fillStyle = grad; sc.fillRect(0, 0, 32, 32);
+
+      var start = null, formed = false, fadeStart = 0;
+      function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+      function frame(now) {
+        if (done) return;
+        if (!start) start = now;
+        var t = (now - start) / 1000;
+        ctx.clearRect(0, 0, W, H);
+        var halo = formed ? 0.11 + 0.05 * (0.5 + 0.5 * Math.sin((t - 2.4) * 2.2)) : 0.045;
+        var hg = ctx.createRadialGradient(cx, cy, 0, cx, cy, flyH * 0.72);
+        hg.addColorStop(0, "rgba(242,168,29," + halo.toFixed(3) + ")");
+        hg.addColorStop(1, "rgba(242,168,29,0)");
+        ctx.fillStyle = hg;
+        ctx.fillRect(cx - flyH * 0.72, cy - flyH * 0.72, flyH * 1.44, flyH * 1.44);
+        var dim = formed ? Math.max(0.34, 1 - (now - fadeStart) / 1100 * 0.66) : 1;
+        for (var i = 0; i < parts.length; i++) {
+          var p = parts[i];
+          var lt = (t - p.delay) / p.dur;
+          if (lt < 0) continue;
+          if (lt > 1) lt = 1;
+          var e = easeOut(lt);
+          var x = p.sx + (p.tx - p.sx) * e;
+          var y = p.sy + (p.ty - p.sy) * e;
+          if (lt >= 1) {
+            x += Math.sin(t * 1.7 + p.ph) * 0.7;
+            y += Math.cos(t * 1.4 + p.ph) * 0.7;
+          }
+          var tw = 0.78 + 0.22 * Math.sin(t * 2.3 + p.ph);
+          ctx.globalAlpha = Math.max(0, Math.min(1, lt * 1.6)) * tw * dim;
+          var s = p.r * 4.4;
+          ctx.drawImage(sprite, x - s / 2, y - s / 2, s, s);
+        }
+        ctx.globalAlpha = 1;
+        raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+      tFly = setTimeout(function () {
+        formed = true; fadeStart = performance.now();
+        if (fly) fly.classList.add("show");
+      }, 2400);
+      tTitle = setTimeout(function () { if (title) title.classList.add("show"); }, 2750);
+      tOut = setTimeout(dismiss, 5000);
     })();
     </script>
+
     <div class="app">
       <div id="engineBar" class="alertbar top hidden" role="alert">
         <span>Eddy's counting engine couldn't load — connect to the internet once, then it works offline.</span>
@@ -1616,6 +1750,7 @@
           <button type="button" class="btn update-later" id="updateLaterBtn">Later</button>
           <button type="button" class="btn btn-primary" id="updateInstallBtn">Install &amp; Restart</button>
         </div>
+        <p id="updateError" class="update-error hidden" role="alert"></p>
       </div>
     </div>
 
@@ -9840,6 +9975,7 @@
       var notesEl = document.getElementById("updateNotes");
       var installBtn = document.getElementById("updateInstallBtn");
       var laterBtn = document.getElementById("updateLaterBtn");
+      var errorEl = document.getElementById("updateError");
       if (!overlay || !title || !notesEl || !installBtn || !laterBtn) return;
       var installing = false;
 
@@ -9851,23 +9987,38 @@
         return null;
       }
       function close() { overlay.classList.add("hidden"); }
-      function settleInstall() {
+      function hideError() {
+        if (!errorEl) return;
+        errorEl.textContent = "";
+        errorEl.classList.add("hidden");
+      }
+      function showError(err) {
+        if (!errorEl) return;
+        var msg = "";
+        if (err != null) msg = (typeof err === "string") ? err : (err.message || String(err));
+        errorEl.textContent = "Install failed: " + (msg || "unknown error");
+        errorEl.classList.remove("hidden");
+      }
+      function settleInstall(err) {
         installing = false;
         installBtn.disabled = false;
         laterBtn.disabled = false;
         installBtn.textContent = "Install & Restart";
+        if (err !== undefined) showError(err);
       }
 
       installBtn.addEventListener("click", function () {
         if (installing) return;
         installing = true;
+        hideError();
         installBtn.disabled = true;
         laterBtn.disabled = true;
         installBtn.textContent = "Installing…";
         var p = invoke("install_pending_update");
         /* The app restarts on success, so this only runs if the install
-           failed or never started — restore the button either way. */
-        if (p && typeof p.then === "function") p.then(settleInstall, settleInstall);
+           failed or never started — restore the button either way, and
+           show the backend's error message when the install rejected. */
+        if (p && typeof p.then === "function") p.then(function () { settleInstall(); }, function (err) { settleInstall(err); });
         else setTimeout(settleInstall, 4000);
       });
       laterBtn.addEventListener("click", function () {
