@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri_plugin_updater::UpdaterExt;
+use tauri::Emitter;
 
 #[tauri::command]
 async fn install_pending_update(handle: tauri::AppHandle) -> Result<(), String> {
