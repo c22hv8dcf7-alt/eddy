@@ -75,5 +75,6 @@ jobs:
             src-tauri/target/release/bundle/macos/Eddy.app.tar.gz
             src-tauri/target/release/bundle/macos/Eddy.app.tar.gz.sig
             src-tauri/target/release/bundle/macos/latest.json
+            src-tauri/target/release/bundle/dmg/*.dmg
           draft: false
           prerelease: false
