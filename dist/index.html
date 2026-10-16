@@ -623,6 +623,24 @@
       .alertbar-x{margin-left:auto;background:none;border:none;color:var(--ink);font-size:1.35rem;line-height:1;
         min-width:40px;min-height:40px;cursor:pointer;font-family:inherit}
 
+      /* ---------- Update-available dialog ---------- */
+      #updateOverlay{z-index:1100}
+      .update-card{width:100%;max-width:460px;border-radius:14px;padding:22px;
+        background:linear-gradient(165deg,#0a1628 0%,#0d2137 42%,#123049 100%);
+        border:1px solid #2f5d80;color:#eaf2f9;box-shadow:0 18px 48px rgba(0,0,0,.55)}
+      .update-card h3{font-size:1.18rem;color:#eaf2f9}
+      .update-kicker{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+        color:#f2a81d;margin-bottom:6px}
+      .update-notes{margin-top:14px;max-height:230px;overflow-y:auto;scrollbar-width:thin;
+        background:rgba(4,14,26,.55);border:1px solid #1e425f;border-radius:10px;
+        padding:12px 14px;font-size:.9rem;line-height:1.55;color:#a8bfd4;
+        white-space:pre-wrap;overflow-wrap:break-word}
+      .update-notes:empty{display:none}
+      .update-card .btn-row{margin-top:18px}
+      .update-later{background:rgba(18,48,73,.6);color:#a8bfd4;border-color:#2f5d80}
+      .update-later:hover{color:#eaf2f9;border-color:#7a5a17}
+      .update-later:disabled{opacity:.55;cursor:not-allowed}
+
       /* ---------- Responsive ---------- */
       @media (max-width:1240px){.panels{grid-template-columns:minmax(0,1fr) 380px}}
       @media (max-width:980px){
@@ -1530,6 +1548,19 @@
         <div class="btn-row" style="margin-top:16px">
           <button type="button" class="btn btn-ghost" id="confirmCancel">Cancel</button>
           <button type="button" class="btn btn-primary" id="confirmOk">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ UPDATE AVAILABLE DIALOG ============ -->
+    <div id="updateOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
+      <div class="update-card">
+        <p class="update-kicker">Software update</p>
+        <h3 id="updateTitle">A new version of Eddy is available</h3>
+        <div id="updateNotes" class="update-notes"></div>
+        <div class="btn-row">
+          <button type="button" class="btn update-later" id="updateLaterBtn">Later</button>
+          <button type="button" class="btn btn-primary" id="updateInstallBtn">Install &amp; Restart</button>
         </div>
       </div>
     </div>
@@ -9654,6 +9685,66 @@
     })();
     </script>
 
+    <script>
+    "use strict";
+    /* ---------- Update-available popup (desktop app only) ----------
+       The Rust backend checks for a new release on startup and emits
+       the `update-available` event with { version, notes }. In the web
+       preview there is no Tauri backend, so nothing ever shows and
+       nothing errors. */
+    (function () {
+      var tauri = window.__TAURI__;
+      if (!tauri || !tauri.event || typeof tauri.event.listen !== "function") return;
+      var overlay = document.getElementById("updateOverlay");
+      var title = document.getElementById("updateTitle");
+      var notesEl = document.getElementById("updateNotes");
+      var installBtn = document.getElementById("updateInstallBtn");
+      var laterBtn = document.getElementById("updateLaterBtn");
+      if (!overlay || !title || !notesEl || !installBtn || !laterBtn) return;
+      var installing = false;
+
+      function invoke(cmd) {
+        try {
+          if (tauri.core && typeof tauri.core.invoke === "function") return tauri.core.invoke(cmd);
+          if (tauri.invoke && typeof tauri.invoke === "function") return tauri.invoke(cmd);
+        } catch (e) { /* command missing — stay silent */ }
+        return null;
+      }
+      function close() { overlay.classList.add("hidden"); }
+      function settleInstall() {
+        installing = false;
+        installBtn.disabled = false;
+        laterBtn.disabled = false;
+        installBtn.textContent = "Install & Restart";
+      }
+
+      installBtn.addEventListener("click", function () {
+        if (installing) return;
+        installing = true;
+        installBtn.disabled = true;
+        laterBtn.disabled = true;
+        installBtn.textContent = "Installing…";
+        var p = invoke("install_pending_update");
+        /* The app restarts on success, so this only runs if the install
+           failed or never started — restore the button either way. */
+        if (p && typeof p.then === "function") p.then(settleInstall, settleInstall);
+        else setTimeout(settleInstall, 4000);
+      });
+      laterBtn.addEventListener("click", function () {
+        if (installing) return;
+        invoke("dismiss_update");
+        close();
+      });
+
+      tauri.event.listen("update-available", function (ev) {
+        var payload = (ev && ev.payload) || {};
+        var version = typeof payload.version === "string" ? payload.version : "";
+        title.textContent = version ? "Eddy " + version + " is available" : "A new version of Eddy is available";
+        notesEl.textContent = typeof payload.notes === "string" ? payload.notes : "";
+        overlay.classList.remove("hidden");
+      });
+    })();
+    </script>
 
   </body>
 </html>
