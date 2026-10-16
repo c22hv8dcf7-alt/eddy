@@ -8,12 +8,18 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                // Check quietly in the background on startup.
-                // With "dialog": true in tauri.conf.json, Tauri shows its built-in
-                // "update available" prompt when check() finds a newer version.
                 if let Ok(updater) = handle.updater() {
                     match updater.check().await {
-                        Ok(Some(_)) => {},
+                        Ok(Some(update)) => {
+                            // Download and install the update, then restart.
+                            match update.download_and_install(|_, _| {}, || {}).await {
+                                Ok(_) => {
+                                    eprintln!("update installed, restarting");
+                                    handle.restart();
+                                }
+                                Err(e) => eprintln!("update install failed: {e}"),
+                            }
+                        }
                         Ok(None) => {},
                         Err(e) => eprintln!("update check failed: {e}"),
                     }
