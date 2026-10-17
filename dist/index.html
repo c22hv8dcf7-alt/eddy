@@ -1026,10 +1026,13 @@
        Un-arrived dots ghost at 15% opacity on their targets
        so the emerging shape reads from the first frame. The
        main bundle drives the real stages through
-       window.__eddyBoot.setStage(n) / .finish(); a 1.5 s
-       floor keeps the screen from flashing by on fast
-       devices, and a 5 s ceiling hands off to the workbench
-       even if the model is still loading — the Count header's
+       window.__eddyBoot.setStage(n) / .finish(); the fade
+       never starts until every dot has locked into place:
+       a 1.5 s floor keeps the screen from flashing by on
+       fast devices, the completed stonefly then holds for
+       400 ms on "Ready", and a 5 s hard ceiling hands off
+       to the workbench even if dots or the model lag — the
+       Count header's
        "AI model loading…" badge covers the rest. Warm starts
        within the same tab session (sessionStorage flag) skip
        the screen entirely. Purely cosmetic: the app underneath
@@ -1095,6 +1098,7 @@
         { s: 3, pts: [[136,116],[164,116],[150,156],[150,216],[150,276]] }
       ];
       var dots = [];
+      var lockedCount = 0, allLockedAt = 0, dismissQueued = false;
       var progress = 0, progressTarget = STAGES[0].pct;
       var nextDot = 0, lastLaunch = 0, flyRaf = 0;
       function buildDots() {
@@ -1133,9 +1137,20 @@
         d.el.classList.add("flying");
         d.el.style.opacity = "1";
         d.el.style.transform = "translate(0px,0px)";
-        var lock = function () {
+        var lock = function (e) {
+          /* Only the transform transition means the dot has
+             actually arrived; opacity finishes 300 ms sooner. */
+          if (e && e.propertyName && e.propertyName !== "transform") return;
+          if (d.locked) return;
+          d.locked = true;
           d.el.removeEventListener("transitionend", lock);
           d.el.classList.add("locked");
+          lockedCount++;
+          if (lockedCount === dots.length) {
+            allLockedAt = Date.now();
+            if (statusEl) statusEl.textContent = STAGES[3].label;
+            maybeDismiss();
+          }
         };
         d.el.addEventListener("transitionend", lock);
         setTimeout(lock, 750); /* fallback if transitionend is missed */
@@ -1218,12 +1233,27 @@
           if (bootEl.parentNode) bootEl.parentNode.removeChild(bootEl);
         }, 340);
       }
+      /* Fade only once the app has finished AND every dot has
+         locked: no earlier than the 1.5 s floor, and only after
+         a 400 ms hold on the completed stonefly ("Ready").    */
+      function maybeDismiss() {
+        if (done || dismissQueued || !finishQueued) return;
+        if (lockedCount < dots.length) return;
+        dismissQueued = true;
+        var earliest = Math.max(t0 + 1500, allLockedAt + 400);
+        var delay = Math.max(0, earliest - Date.now());
+        delay = Math.min(delay, Math.max(0, t0 + 5000 - Date.now()));
+        later(dismiss, delay);
+      }
       function finish() {
         if (done || finishQueued) return;
         finishQueued = true;
-        applyStage(3);
-        var wait = Math.max(0, 1500 - (Date.now() - t0));
-        later(dismiss, wait + 300);
+        /* Drive the final dots in, but hold the "Ready" label
+           until the last one locks — it belongs to the 400 ms
+           hold on the completed stonefly. */
+        stage = 3;
+        progressTarget = STAGES[3].pct;
+        maybeDismiss();
       }
       window.__eddyBoot = {
         active: true,
@@ -1231,8 +1261,8 @@
         finish: finish
       };
       later(finish, 5000); /* ceiling: hand off even if the model lags */
-      /* Absolute fallback: never trap anyone behind this screen. */
-      setTimeout(function () { if (!done) dismiss(); }, 6500);
+      /* Hard ceiling: fade at 5 s even if dots are still flying. */
+      setTimeout(function () { if (!done) dismiss(); }, 5000);
     })();
     </script>
 
