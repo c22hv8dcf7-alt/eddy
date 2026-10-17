@@ -39,7 +39,7 @@
   },
   "identifier": "com.eddy.counter",
   "productName": "Eddy",
-  "version": "0.2.33",
+  "version": "0.2.34",
   "plugins": {
     "updater": {
       "active": true,
