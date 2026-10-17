@@ -928,18 +928,25 @@
         font-size:2.3rem;letter-spacing:.02em;color:#f5f9fc;line-height:1}
       .boot-sub{font-size:.78rem;font-weight:600;letter-spacing:.22em;padding-left:.22em;
         text-transform:uppercase;color:#8b98a5;margin-top:10px}
-      /* Dot-assembly stonefly: ~66 amber dots fly in from the
-         screen edges and lock into the nymph silhouette — the
-         insect itself is the progress indicator. Ghost dots at
-         15% opacity preview each target until its dot arrives. */
+      /* Dot morph: amber dots fly in from the screen edges and
+         lock into a stonefly nymph silhouette, hold, then the
+         same dots rearrange — a position morph, colour shifting
+         amber to light blue — into a mayfly nymph. Ghost dots
+         at 15% opacity preview each stonefly target until its
+         dot arrives. */
       .boot-fly{position:absolute;inset:0;pointer-events:none}
-      .boot-dot{position:absolute;border-radius:50%;background:#f2a81d;opacity:.15;
-        box-shadow:0 0 6px rgba(242,168,29,.45);will-change:transform,opacity}
+      .boot-dot{position:absolute;border-radius:50%;background:#f5a623;opacity:.15;
+        box-shadow:0 0 6px rgba(245,166,35,.45);will-change:transform,opacity}
       .boot-dot.flying{transition:transform .6s cubic-bezier(.215,.61,.355,1),opacity .3s ease}
       .boot-dot.locked{animation:bootDotPulse .2s ease}
+      .boot-dot.mayfly{background:#7dd3fc;box-shadow:0 0 6px rgba(125,211,252,.5)}
       @keyframes bootDotPulse{0%{scale:1}50%{scale:1.35}100%{scale:1}}
       .boot-foot{position:relative;width:min(300px,72vw);text-align:center;margin-top:auto;
         padding-bottom:calc(46px + env(safe-area-inset-bottom,0px))}
+      .boot-insect{font-size:.8rem;font-weight:700;letter-spacing:.3em;padding-left:.3em;
+        text-transform:uppercase;color:#f5a623;min-height:1.3em;margin-bottom:6px;
+        transition:color .85s ease}
+      .boot-insect.mayfly{color:#7dd3fc}
       .boot-status{font-size:.85rem;color:#a8bfd4;min-height:1.3em}
       @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
 
@@ -1009,34 +1016,31 @@
         <div class="boot-sub">Macroinvertebrate Counter</div>
       </div>
       <div class="boot-foot">
-        <div class="boot-status" id="bootStatus">Waking Eddy…</div>
+        <div class="boot-insect" id="bootInsect">Stonefly Nymph</div>
+        <div class="boot-status" id="bootStatus">assembling…</div>
       </div>
     </div>
     <script>
     "use strict";
     /* ---------------- Boot loading screen ----------------
-       A short, honest startup sequence on cold launches only:
-       ~66 tiny amber dots fly in from the edges of the screen
-       and lock into the silhouette of a stonefly nymph over
-       drifting current motes and slow wave lines, while the
-       app parses its reference library and warms the AI
-       detection model. The insect IS the progress indicator:
-       body segments assemble first, then legs and head, then
-       antennae, cerci and gills, with final accents at Ready.
-       Un-arrived dots ghost at 15% opacity on their targets
-       so the emerging shape reads from the first frame. The
-       main bundle drives the real stages through
-       window.__eddyBoot.setStage(n) / .finish(); the fade
-       never starts until every dot has locked into place:
-       a 1.5 s floor keeps the screen from flashing by on
-       fast devices, the completed stonefly then holds for
-       400 ms on "Ready", and a 5 s hard ceiling hands off
-       to the workbench even if dots or the model lag — the
-       Count header's
-       "AI model loading…" badge covers the rest. Warm starts
-       within the same tab session (sessionStorage flag) skip
-       the screen entirely. Purely cosmetic: the app underneath
-       is live the moment the fade starts.                   */
+       A short, honest startup sequence on cold launches only.
+       Amber dots fly in from the edges of the screen and lock
+       into the silhouette of a stonefly nymph over drifting
+       current motes and slow wave lines, while the app parses
+       its reference library and warms the AI detection model.
+       The completed stonefly holds, then the same dots morph
+       — rearranging position, colour shifting amber to light
+       blue — into a mayfly nymph: slimmer body, longer
+       antennae, three cerci, abdominal gill dots. The screen
+       fades only once the mayfly is complete and the bundle
+       has signalled ready: a 1.5 s floor keeps the screen
+       from flashing by on fast devices, and a 5 s hard
+       ceiling hands off to the workbench even if the model
+       lags — the Count header's "AI model loading…" badge
+       covers the rest. Warm starts within the same tab
+       session (sessionStorage flag) skip the screen entirely.
+       Purely cosmetic: the app underneath is live the moment
+       the fade starts.                                    */
     (function () {
       var noop = { active: false, setStage: function () {}, finish: function () {} };
       var bootEl = document.getElementById("bootScreen");
@@ -1052,10 +1056,13 @@
         return;
       }
       var statusEl = document.getElementById("bootStatus");
+      var insectEl = document.getElementById("bootInsect");
       var flyEl = document.getElementById("bootFly");
-      /* Stage boundaries match the silhouette's anatomy:
-         0–30% body segments, 30–60% legs + head,
-         60–90% antennae + cerci + gills, 90–100% accents. */
+      /* Load stages reported by the main bundle through
+         window.__eddyBoot.setStage(n) / .finish(). They gate
+         the dismissal only — the visible status line narrates
+         the dot morph itself ("assembling…", "morphing…",
+         "ready"), so the screen stays clean. */
       var STAGES = [
         { label: "Waking Eddy…", pct: 30 },
         { label: "Loading reference library…", pct: 60 },
@@ -1066,61 +1073,78 @@
       var t0 = Date.now();
       var timers = [];
       function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-      function applyStage(i) {
-        stage = i;
-        if (statusEl) statusEl.textContent = STAGES[i].label;
-        progressTarget = STAGES[i].pct;
-      }
+      function applyStage(i) { stage = i; }
+      function setStatus(txt) { if (statusEl) statusEl.textContent = txt; }
 
-      /* ---------- Dot-assembly stonefly ----------
-         Target points in a 300×360 design space (head at the
-         top, cerci at the rear), grouped in assembly order.
-         Each dot spawns at a random point on a screen edge
-         and eases out to its target; a lock-in pulse marks
-         arrival. Launch order follows loading progress, with
-         a ~20 ms stagger between launches.               */
-      var FLY_PARTS = [
-        /* body: thorax rows, then abdomen segments (4 px) */
-        { s: 4, pts: [[139,108],[150,108],[161,108],[141,124],[150,124],[159,124],
-          [144,142],[156,142],[145,160],[155,160],[145,178],[155,178],
-          [146,196],[154,196],[146,214],[154,214],[147,232],[153,232],
-          [147,250],[153,250],[148,268],[152,268]] },
-        /* head cluster (3.5 px) + six legs, three a side (3 px) */
-        { s: 3.5, pts: [[150,80],[141,86],[159,86],[145,94],[155,94]] },
-        { s: 3, pts: [[124,104],[109,97],[95,88],[176,104],[191,97],[205,88],
-          [122,128],[106,131],[91,136],[178,128],[194,131],[209,136],
-          [124,152],[108,161],[94,172],[176,152],[192,161],[206,172]] },
-        /* gill tufts (2.5 px), antennae (2.5 px), cerci (2.5 px) */
-        { s: 2.5, pts: [[131,98],[169,98],[128,116],[172,116],
-          [136,64],[127,49],[119,35],[112,22],[164,64],[173,49],[181,35],[188,22],
-          [143,300],[136,313],[130,326],[157,300],[164,313],[170,326]] },
-        /* final accents: wing pads + abdomen spine (3 px) */
-        { s: 3, pts: [[136,116],[164,116],[150,156],[150,216],[150,276]] }
+      /* ---------- Dot morph: stonefly → mayfly ----------
+         Target points [x, y, radius] in a 300×220 design
+         space (head at the top, cerci at the rear). The two
+         lists are index-aligned — body, head, antennae, legs,
+         cerci, gill tufts — so dot i flies in to STONEFLY[i],
+         then morphs to MAYFLY[i]. The mayfly needs six more
+         dots than the stonefly (second antenna pair, centre
+         cercus, lower gills): EXTRA dots park on top of a
+         stonefly neighbour during phase 1 and slide out to
+         their mayfly targets during the morph.             */
+      var STONEFLY = [
+        [150,100,3.5],[150,90,3.7],[150,80,3.9],[150,70,4.1],[150,60,4.3],[150,50,4.5],
+        [150,110,3.3],[150,120,3.1],[150,130,2.9],[150,140,2.7],
+        [150,38,5.5],
+        [140,28,2],[135,22,1.7],[160,28,2],[165,22,1.7],
+        [135,55,2.8],[125,60,2.5],[115,65,2.2],[135,75,2.8],[125,82,2.5],[115,89,2.2],
+        [135,95,2.8],[127,103,2.5],[119,111,2.2],
+        [165,55,2.8],[175,60,2.5],[185,65,2.2],[165,75,2.8],[175,82,2.5],[185,89,2.2],
+        [165,95,2.8],[173,103,2.5],[181,111,2.2],
+        [145,150,2],[140,158,1.7],[155,150,2],[160,158,1.7],
+        [138,65,1.7],[138,85,1.7],[162,65,1.7],[162,85,1.7]
+      ];
+      var MAYFLY = [
+        [150,105,3],[150,95,3.3],[150,85,3.5],[150,75,3.7],[150,65,3.9],[150,55,4.1],
+        [150,115,2.8],[150,125,2.6],[150,135,2.4],[150,145,2.2],
+        [150,42,4.5],
+        [138,30,1.7],[130,22,1.5],[162,30,1.7],[170,22,1.5],
+        [135,60,2.5],[126,66,2.3],[117,72,2],[135,80,2.5],[127,87,2.3],[119,94,2],
+        [135,100,2.5],[128,108,2.3],[121,116,2],
+        [165,60,2.5],[174,66,2.3],[183,72,2],[165,80,2.5],[173,87,2.3],[181,94,2],
+        [165,100,2.5],[172,108,2.3],[179,116,2],
+        [142,155,1.8],[138,163,1.6],[158,155,1.8],[162,163,1.6],
+        [140,70,1.5],[140,90,1.5],[160,70,1.5],[160,90,1.5]
+      ];
+      /* [park point on the stonefly, mayfly target] */
+      var EXTRA = [
+        [[140,28,2],[132,32,1.4]],
+        [[160,28,2],[168,32,1.4]],
+        [[145,150,2],[150,156,1.8]],
+        [[155,150,2],[150,164,1.6]],
+        [[138,65,1.7],[140,110,1.5]],
+        [[162,85,1.7],[160,110,1.5]]
       ];
       var dots = [];
       var lockedCount = 0, allLockedAt = 0, dismissQueued = false;
-      var progress = 0, progressTarget = STAGES[0].pct;
-      var nextDot = 0, lastLaunch = 0, flyRaf = 0;
+      var morphStarted = false, morphDoneAt = 0, readyAt = 0;
       function buildDots() {
         if (!flyEl) return;
         var W = bootEl.clientWidth || window.innerWidth || 360;
         var H = bootEl.clientHeight || window.innerHeight || 480;
-        var sc = Math.min((W * 0.92) / 150, (H * 0.55) / 350, 2.2);
-        var cx = W / 2, cy = H * 0.55;
-        for (var p = 0; p < FLY_PARTS.length; p++) {
-          var part = FLY_PARTS[p];
-          for (var k = 0; k < part.pts.length; k++) {
-            var el = document.createElement("div");
-            el.className = "boot-dot";
-            var sz = Math.max(2, Math.round(part.s * Math.min(sc, 1.6) * 2) / 2);
-            el.style.width = sz + "px"; el.style.height = sz + "px";
-            el.style.left = (cx + (part.pts[k][0] - 150) * sc - sz / 2) + "px";
-            el.style.top = (cy + (part.pts[k][1] - 176) * sc - sz / 2) + "px";
-            flyEl.appendChild(el);
-            dots.push({ el: el, tx: cx + (part.pts[k][0] - 150) * sc,
-              ty: cy + (part.pts[k][1] - 176) * sc, flown: false });
-          }
+        /* Design space is 300×220; the figure's points span
+           x 115–185, y 22–164 (centre ≈ 150, 93). */
+        var sc = Math.min((H * 0.42) / 142, (W * 0.6) / 70, 2);
+        var cx = W / 2, cy = H * 0.5;
+        function addDot(sp, mp) {
+          var el = document.createElement("div");
+          el.className = "boot-dot";
+          var sz = Math.max(3, Math.round(sp[2] * sc * 1.8 * 2) / 2);
+          el.style.width = sz + "px"; el.style.height = sz + "px";
+          var tx = cx + (sp[0] - 150) * sc, ty = cy + (sp[1] - 93) * sc;
+          el.style.left = (tx - sz / 2) + "px";
+          el.style.top = (ty - sz / 2) + "px";
+          flyEl.appendChild(el);
+          dots.push({ el: el, tx: tx, ty: ty,
+            mx: cx + (mp[0] - 150) * sc, my: cy + (mp[1] - 93) * sc,
+            flown: false, locked: false });
         }
+        for (var i = 0; i < STONEFLY.length; i++) addDot(STONEFLY[i], MAYFLY[i]);
+        for (var j = 0; j < EXTRA.length; j++) addDot(EXTRA[j][0], EXTRA[j][1]);
       }
       function launchDot(d) {
         var W = bootEl.clientWidth || window.innerWidth || 360;
@@ -1131,15 +1155,17 @@
         else if (edge === 1) { sx = W + 8; sy = Math.random() * H; }
         else if (edge === 2) { sx = Math.random() * W; sy = H + 8; }
         else { sx = -8; sy = Math.random() * H; }
+        var dur = 650 + Math.round(Math.random() * 250); /* 650–900 ms */
         d.flown = true;
         d.el.style.transform = "translate(" + (sx - d.tx) + "px," + (sy - d.ty) + "px)";
         void d.el.offsetWidth; /* settle at spawn before the flight */
         d.el.classList.add("flying");
+        d.el.style.transition = "transform " + dur + "ms cubic-bezier(.215,.61,.355,1), opacity .3s ease";
         d.el.style.opacity = "1";
         d.el.style.transform = "translate(0px,0px)";
         var lock = function (e) {
           /* Only the transform transition means the dot has
-             actually arrived; opacity finishes 300 ms sooner. */
+             actually arrived; opacity finishes sooner. */
           if (e && e.propertyName && e.propertyName !== "transform") return;
           if (d.locked) return;
           d.locked = true;
@@ -1148,30 +1174,55 @@
           lockedCount++;
           if (lockedCount === dots.length) {
             allLockedAt = Date.now();
-            if (statusEl) statusEl.textContent = STAGES[3].label;
-            maybeDismiss();
+            setStatus("stonefly complete");
+            later(startMorph, 900); /* hold the finished stonefly */
           }
         };
         d.el.addEventListener("transitionend", lock);
-        setTimeout(lock, 750); /* fallback if transitionend is missed */
+        later(lock, dur + 90); /* fallback if transitionend is missed */
       }
-      function flyFrame(now) {
-        if (done) return;
-        /* Ease progress toward the current stage's target. */
-        var rate = finishQueued ? 110 : 60;
-        if (progress < progressTarget) {
-          progress = Math.min(progressTarget, progress + rate / 60);
+      /* ---------- Phase 2: the morph ----------
+         The same dots slide from their stonefly targets to
+         their mayfly targets over 850 ms with a rippling
+         ~18 ms per-dot stagger, fill shifting amber → light
+         blue as they go. A position morph, not a fade.     */
+      var MORPH_MS = 850, MORPH_STAGGER = 18;
+      function startMorph() {
+        if (done || morphStarted) return;
+        morphStarted = true;
+        setStatus("morphing…");
+        if (insectEl) { insectEl.textContent = "Mayfly Nymph"; insectEl.classList.add("mayfly"); }
+        for (var i = 0; i < dots.length; i++) {
+          var d = dots[i];
+          d.el.style.transition = "transform " + MORPH_MS + "ms cubic-bezier(.45,0,.25,1), " +
+            "background-color " + MORPH_MS + "ms ease, box-shadow " + MORPH_MS + "ms ease, opacity .3s ease";
+          d.el.style.transitionDelay = ((i % 24) * MORPH_STAGGER) + "ms";
         }
-        while (nextDot < dots.length &&
-               (nextDot + 0.5) / dots.length * 100 <= progress &&
-               now - lastLaunch >= 20) {
-          launchDot(dots[nextDot]);
-          nextDot++; lastLaunch = now;
+        void flyEl.offsetWidth; /* settle the new transition spec */
+        for (var j = 0; j < dots.length; j++) {
+          var m = dots[j];
+          m.el.classList.add("mayfly");
+          m.el.style.transform = "translate(" + (m.mx - m.tx) + "px," + (m.my - m.ty) + "px)";
         }
-        flyRaf = requestAnimationFrame(flyFrame);
+        later(function () {
+          morphDoneAt = Date.now();
+          setStatus("mayfly complete");
+          later(function () {
+            readyAt = Date.now();
+            setStatus("ready");
+            maybeDismiss();
+          }, 220);
+        }, MORPH_MS + 23 * MORPH_STAGGER + 40);
       }
       buildDots();
-      flyRaf = requestAnimationFrame(flyFrame);
+      setStatus("assembling…");
+      /* Fly-in: one launch every ~28 ms, each dot easing out
+         from a random screen edge to its stonefly target.   */
+      for (var n = 0; n < dots.length; n++) {
+        (function (d, idx) {
+          later(function () { if (!done) launchDot(d); }, idx * 28);
+        })(dots[n], n);
+      }
 
       applyStage(0);
       /* Cosmetic advance so the sequence reads even before the
@@ -1214,7 +1265,7 @@
             if (p.y < -6) { p.y = H + 6; }
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = p.amber ? "rgba(242,168,29,.35)" : "rgba(150,195,230,.28)";
+            ctx.fillStyle = p.amber ? "rgba(245,166,35,.35)" : "rgba(150,195,230,.28)";
             ctx.fill();
           }
           raf = requestAnimationFrame(frame);
@@ -1227,20 +1278,20 @@
         done = true;
         for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]);
         if (raf) cancelAnimationFrame(raf);
-        if (flyRaf) cancelAnimationFrame(flyRaf);
         bootEl.classList.add("boot-done");
         setTimeout(function () {
           if (bootEl.parentNode) bootEl.parentNode.removeChild(bootEl);
         }, 340);
       }
-      /* Fade only once the app has finished AND every dot has
-         locked: no earlier than the 1.5 s floor, and only after
-         a 400 ms hold on the completed stonefly ("Ready").    */
+      /* Fade only once the app has finished AND the mayfly
+         morph has completed and held briefly on "ready": no
+         earlier than the 1.5 s floor, and the 5 s hard
+         ceiling below still hands off if anything lags.     */
       function maybeDismiss() {
         if (done || dismissQueued || !finishQueued) return;
-        if (lockedCount < dots.length) return;
+        if (!morphDoneAt || !readyAt) return;
         dismissQueued = true;
-        var earliest = Math.max(t0 + 1500, allLockedAt + 400);
+        var earliest = Math.max(t0 + 1500, readyAt + 400);
         var delay = Math.max(0, earliest - Date.now());
         delay = Math.min(delay, Math.max(0, t0 + 5000 - Date.now()));
         later(dismiss, delay);
@@ -1248,11 +1299,7 @@
       function finish() {
         if (done || finishQueued) return;
         finishQueued = true;
-        /* Drive the final dots in, but hold the "Ready" label
-           until the last one locks — it belongs to the 400 ms
-           hold on the completed stonefly. */
         stage = 3;
-        progressTarget = STAGES[3].pct;
         maybeDismiss();
       }
       window.__eddyBoot = {
