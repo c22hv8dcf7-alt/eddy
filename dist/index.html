@@ -446,6 +446,20 @@
       .tol-s .tdot{background:var(--teal)}
       .tol-m .tdot{background:var(--amber)}
       .tol-t .tdot{background:var(--red)}
+      /* ---------- Invasive species ---------- */
+      .inv-badge{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;
+        font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:700;letter-spacing:.06em;
+        padding:2px 8px;border-radius:999px;background:var(--red-bg);color:var(--red);
+        border:1px solid var(--red)}
+      .ref-card .inv-badge{margin-top:6px}
+      .tally-row .inv-badge{margin:8px 0 0}
+      .inv-watch{margin-top:14px;border:1px solid var(--amber-line);background:var(--amber-soft);
+        border-radius:10px;padding:12px 14px}
+      .inv-watch h3{font-size:.95rem;margin:0 0 6px}
+      .inv-watch p{margin:0 0 8px;color:var(--ink-2);font-size:.88rem;line-height:1.45}
+      .inv-watch ul{margin:0;padding-left:18px}
+      .inv-watch li{margin:5px 0;font-size:.9rem;line-height:1.4}
+      .inv-watch .inv-badge{margin-right:7px;vertical-align:1px}
       .ref-detail-head{margin:14px 0 4px}
       .ref-detail-head h3{font-size:1.25rem}
       .ref-detail-meta{color:var(--ink-2);font-size:.92rem;margin-top:3px}
@@ -1655,7 +1669,7 @@
             <div class="view-scroll"><div class="page-col">
               <div class="card">
                 <div class="card-head"><span class="num">T</span><h2 id="h-trends">Trends</h2></div>
-                <p class="card-sub">How your water-quality scores move across every saved sample, oldest to newest — EPT richness, the share of EPT individuals, and the Hilsenhoff Biotic Index. Drawn from the samples stored on this device, so the charts work offline.</p>
+                <p class="card-sub">How your water-quality scores move across every saved sample, oldest to newest — EPT richness, the share of EPT individuals, the Hilsenhoff Biotic Index, and total invasive individuals. Drawn from the samples stored on this device, so the charts work offline.</p>
                 <div class="empty" id="trendsEmpty">Save at least 2 samples to see trends</div>
                 <div id="trendsBody" class="hidden">
                   <div class="graph-block trend-chart">
@@ -1669,6 +1683,10 @@
                   <div class="graph-block trend-chart">
                     <div class="graph-head"><h3>Hilsenhoff Biotic Index</h3></div>
                     <div id="trendChartHbi"></div>
+                  </div>
+                  <div class="graph-block trend-chart">
+                    <div class="graph-head"><h3>Invasive individuals</h3></div>
+                    <div id="trendChartInv"></div>
                   </div>
                 </div>
               </div>
@@ -1766,6 +1784,15 @@
                   </div>
                   <div class="ref-grid" id="refGrid"></div>
                   <p class="hint hidden" id="refNoMatch" style="margin-top:10px">No taxon matches that filter.</p>
+                  <div class="inv-watch">
+                    <h3>Invasive species — not yet in library, watch for these</h3>
+                    <p>Three high-priority invasives have no reference photos yet, so Eddy can't pre-name them from a tray. If you find one, tally it by family — the row carries the INVASIVE tag, Ask Eddy flags it in the first read, and Trends tracks the counts.</p>
+                    <ul>
+                      <li><span class="inv-badge">INVASIVE</span><strong>New Zealand mudsnail</strong> — <em>Potamopyrgus antipodarum</em>, family Hydrobiidae. A tiny (3–6&nbsp;mm) operculate snail; tally under Snail · Hydrobiidae.</li>
+                      <li><span class="inv-badge">INVASIVE</span><strong>Asian clam</strong> — <em>Corbicula fluminea</em>, family Corbiculidae. A small ridged bivalve; tally under Clam / mussel · Corbiculidae.</li>
+                      <li><span class="inv-badge">INVASIVE</span><strong>Zebra mussel</strong> — <em>Dreissena polymorpha</em>, family Dreissenidae. A small striped bivalve that clusters on hard surfaces; tally under Clam / mussel · Dreissenidae.</li>
+                    </ul>
+                  </div>
                 </div>
                 <div id="refDetail" class="hidden">
                   <button type="button" class="btn btn-ghost btn-small" id="refBackBtn">← All 50 taxa</button>
@@ -1954,7 +1981,7 @@
     <script>
     "use strict";
     /* ---------------- Taxa (same list as the lab version) ---------------- */
-    var TAXA = [{"common":"Mayfly nymph","families":["Baetidae","Heptageniidae","Ephemerellidae","Ephemeridae","Isonychiidae","Leptophlebiidae","Caenidae","Ephemeroptera (order)","other/unidentified"]},{"common":"Stonefly nymph","families":["Perlidae","Perlodidae","Capniidae","Leuctridae","Plecoptera (order)","other/unidentified"]},{"common":"Caddisfly larva","families":["Hydropsychidae","Philopotamidae","Limnephilidae","Hydroptilidae","Glossosomatidae","Brachycentridae","Trichoptera (order)","other/unidentified"]},{"common":"Midge larva","families":["Chironomidae","Dixidae","Diptera (order)","other/unidentified"]},{"common":"Midge pupa","families":["Chironomidae","Diptera (order)","other/unidentified"]},{"common":"Black fly larva","families":["Simuliidae","other/unidentified"]},{"common":"Crane fly larva","families":["Tipulidae","other/unidentified"]},{"common":"Soldier fly larva","families":["Stratiomyidae","other/unidentified"]},{"common":"Rat-tailed maggot larva","families":["Syrphidae","other/unidentified"]},{"common":"Water snipe fly larva","families":["Syrphidae","Athericidae","other/unidentified"]},{"common":"Horsefly larva","families":["Tabanidae","other/unidentified"]},{"common":"Alderfly larva","families":["Sialidae","other/unidentified"]},{"common":"Hellgrammite","families":["Corydalidae","other/unidentified"]},{"common":"Damselfly nymph","families":["Coenagrionidae","Calopterygidae","Odonata — Zygoptera","other/unidentified"]},{"common":"Dragonfly nymph","families":["Gomphidae","Libellulidae","Aeshnidae","Odonata — Anisoptera","other/unidentified"]},{"common":"Aquatic moth larva","families":["Crambidae","other/unidentified"]},{"common":"Water penny","families":["Psephenidae","other/unidentified"]},{"common":"Riffle beetle","families":["Elmidae","other/unidentified"]},{"common":"Water beetle","families":["Dytiscidae","Hydrophilidae","Gyrinidae","Haliplidae","other/unidentified"]},{"common":"True bug","families":["Belostomatidae","Corixidae","Notonectidae","Nepidae","Gerridae","Veliidae","other/unidentified"]},{"common":"Scud","families":["Gammaridae","other/unidentified"]},{"common":"Isopod (sowbug)","families":["Asellidae","other/unidentified"]},{"common":"Water mite","families":["Hydrachnidae","other/unidentified"]},{"common":"Fishing spider","families":["Pisauridae (Dolomedes)","other/unidentified"]},{"common":"Aquatic worm","families":["Oligochaeta","Naididae (Tubifex)","other/unidentified"]},{"common":"Leech","families":["Hirudinea","other/unidentified"]},{"common":"Planaria (flatworm)","families":["Dugesiidae","Planariidae","other/unidentified"]},{"common":"Horsehair worm","families":["Gordioidea (order)","other/unidentified"]},{"common":"Snail","families":["Physidae","Planorbidae","Lymnaeidae","Viviparidae","Ancylidae","other/unidentified"]},{"common":"Clam / mussel","families":["Sphaeriidae","Unionidae","other/unidentified"]},{"common":"Crayfish","families":["Cambaridae","Astacidae","other/unidentified"]},{"common":"Copepod","families":["Copepoda","other/unidentified"]},{"common":"Ostracod (seed shrimp)","families":["Ostracoda","other/unidentified"]},{"common":"Daphnia (water flea)","families":["Daphniidae","Cladocera (order)","other/unidentified"]},{"common":"Other","families":["other/unidentified"]}];
+    var TAXA = [{"common":"Mayfly nymph","families":["Baetidae","Heptageniidae","Ephemerellidae","Ephemeridae","Isonychiidae","Leptophlebiidae","Caenidae","Ephemeroptera (order)","other/unidentified"]},{"common":"Stonefly nymph","families":["Perlidae","Perlodidae","Capniidae","Leuctridae","Plecoptera (order)","other/unidentified"]},{"common":"Caddisfly larva","families":["Hydropsychidae","Philopotamidae","Limnephilidae","Hydroptilidae","Glossosomatidae","Brachycentridae","Trichoptera (order)","other/unidentified"]},{"common":"Midge larva","families":["Chironomidae","Dixidae","Diptera (order)","other/unidentified"]},{"common":"Midge pupa","families":["Chironomidae","Diptera (order)","other/unidentified"]},{"common":"Black fly larva","families":["Simuliidae","other/unidentified"]},{"common":"Crane fly larva","families":["Tipulidae","other/unidentified"]},{"common":"Soldier fly larva","families":["Stratiomyidae","other/unidentified"]},{"common":"Rat-tailed maggot larva","families":["Syrphidae","other/unidentified"]},{"common":"Water snipe fly larva","families":["Syrphidae","Athericidae","other/unidentified"]},{"common":"Horsefly larva","families":["Tabanidae","other/unidentified"]},{"common":"Alderfly larva","families":["Sialidae","other/unidentified"]},{"common":"Hellgrammite","families":["Corydalidae","other/unidentified"]},{"common":"Damselfly nymph","families":["Coenagrionidae","Calopterygidae","Odonata — Zygoptera","other/unidentified"]},{"common":"Dragonfly nymph","families":["Gomphidae","Libellulidae","Aeshnidae","Odonata — Anisoptera","other/unidentified"]},{"common":"Aquatic moth larva","families":["Crambidae","other/unidentified"]},{"common":"Water penny","families":["Psephenidae","other/unidentified"]},{"common":"Riffle beetle","families":["Elmidae","other/unidentified"]},{"common":"Water beetle","families":["Dytiscidae","Hydrophilidae","Gyrinidae","Haliplidae","other/unidentified"]},{"common":"True bug","families":["Belostomatidae","Corixidae","Notonectidae","Nepidae","Gerridae","Veliidae","other/unidentified"]},{"common":"Scud","families":["Gammaridae","other/unidentified"]},{"common":"Isopod (sowbug)","families":["Asellidae","other/unidentified"]},{"common":"Water mite","families":["Hydrachnidae","other/unidentified"]},{"common":"Fishing spider","families":["Pisauridae (Dolomedes)","other/unidentified"]},{"common":"Aquatic worm","families":["Oligochaeta","Naididae (Tubifex)","other/unidentified"]},{"common":"Leech","families":["Hirudinea","other/unidentified"]},{"common":"Planaria (flatworm)","families":["Dugesiidae","Planariidae","other/unidentified"]},{"common":"Horsehair worm","families":["Gordioidea (order)","other/unidentified"]},{"common":"Snail","families":["Physidae","Planorbidae","Lymnaeidae","Viviparidae","Ancylidae","Hydrobiidae","other/unidentified"]},{"common":"Clam / mussel","families":["Sphaeriidae","Unionidae","Corbiculidae","Dreissenidae","other/unidentified"]},{"common":"Crayfish","families":["Cambaridae","Astacidae","other/unidentified"]},{"common":"Copepod","families":["Copepoda","other/unidentified"]},{"common":"Ostracod (seed shrimp)","families":["Ostracoda","other/unidentified"]},{"common":"Daphnia (water flea)","families":["Daphniidae","Cladocera (order)","other/unidentified"]},{"common":"Other","families":["other/unidentified"]}];
     var EPT = { "Mayfly nymph": 1, "Stonefly nymph": 1, "Caddisfly larva": 1 };
     /* Datasheet columns, matching the lab's 2025 sheet format
        (Phylum | Class | Order | Family | Feed Type | Tolerance
@@ -2062,9 +2089,11 @@
       "Lymnaeidae": { p: "Mollusca", c: "Gastropoda", o: "Basommatophora", f: "Scraper", t: "6", src: "ref" },
       "Viviparidae": { p: "Mollusca", c: "Gastropoda", o: "Architaenioglossa", f: "Scraper", t: "", src: "ref" },
       "Ancylidae": { p: "Mollusca", c: "Gastropoda", o: "Basommatophora", f: "Scraper", t: "", src: "ref" },
+      "Hydrobiidae": { p: "Mollusca", c: "Gastropoda", o: "Littorinimorpha", f: "Grazer/Scraper", t: "6", src: "ref" },
       "Sphaeriidae": { p: "Mollusca", c: "Bivalvia", o: "Veneroida", f: "Collector-Filterer", t: "8", src: "ref" },
       "Unionidae": { p: "Mollusca", c: "Bivalvia", o: "Unionoida", f: "Collector-Filterer", t: "6", src: "ref" },
       "Corbiculidae": { p: "Mollusca", c: "Bivalvia", o: "Veneroida", f: "Collector", t: "6", src: "sheet+" },
+      "Dreissenidae": { p: "Mollusca", c: "Bivalvia", o: "Myida", f: "Collector-Filterer", t: "6", src: "ref" },
       "Cambaridae": { p: "Arthropoda", c: "Crustacea", o: "Decapoda", f: "Shredder", t: "6", src: "sheet" },
       "Astacidae": { p: "Arthropoda", c: "Crustacea", o: "Decapoda", f: "Shredder", t: "6", src: "ref" },
       "Copepoda": { p: "Arthropoda", c: "Crustacea", o: "Copepoda", f: "Collector-Gatherer", t: "", src: "ref" },
@@ -2079,6 +2108,45 @@
        always included and pre-selected.                        */
     var FEED_TYPES = ["Shredder", "Collector", "Collector-Gatherer", "Collector-Filterer", "Scraper", "Grazer/Scraper", "Predator", "Filterer", "Piercer-Herbivore"];
     function refFor(family) { return REF[family] || null; }
+
+    /* ---------------- Invasive taxa ----------------
+       Three high-priority invasive / non-native taxa Eddy
+       watches for. The flag is a static property of the taxon:
+       a tally row, reference entry or saved sample row counts
+       as one of these when its family matches, or when its
+       name carries the common or scientific name (imported
+       datasheets name rows freely). None of the three has
+       reference photos yet, so none is among the 50 library
+       taxa — the Reference browser lists them as "not yet in
+       library — watch for", and a row keyed to the family
+       still earns the INVASIVE badge, the First-read callout
+       and a line on the Trends chart. The note is what Ask
+       Eddy says about the find in the auto-analysis.        */
+    var INVASIVE_TAXA = [
+      { common: "New Zealand mudsnail", sci: "Potamopyrgus antipodarum", family: "Hydrobiidae",
+        tallyAs: "Snail · Hydrobiidae",
+        nameRe: /potamopyrgus|mudsnail|mud snail|new zealand/i,
+        note: "New Zealand mudsnails are parthenogenetic and can build to densities that blanket stable substrate and outcompete native grazers — a modest first count is worth recording precisely, because next season's count is the comparison that will matter." },
+      { common: "Asian clam", sci: "Corbicula fluminea", family: "Corbiculidae",
+        tallyAs: "Clam / mussel · Corbiculidae",
+        nameRe: /corbicula|asian clam/i,
+        note: "Asian clams settle into dense filter-feeding beds that can crowd out native mussels and redirect the food base — a handful in one sample is an early foothold; hundreds means they are established." },
+      { common: "Zebra mussel", sci: "Dreissena polymorpha", family: "Dreissenidae",
+        tallyAs: "Clam / mussel · Dreissenidae",
+        nameRe: /dreissena|zebra mussel|quagga/i,
+        note: "Zebra mussels cement themselves to any hard surface and filter hard enough to restructure the food web from the bottom up — even a single confirmed shell belongs in the site record and is worth reporting." }
+    ];
+    function invasiveFor(name, family) {
+      var fam = String(family || "").trim().toLowerCase();
+      var nm = String(name || "");
+      for (var i = 0; i < INVASIVE_TAXA.length; i++) {
+        var t = INVASIVE_TAXA[i];
+        if (fam && fam === t.family.toLowerCase()) return t;
+        if (t.nameRe.test(nm) || t.nameRe.test(fam)) return t;
+      }
+      return null;
+    }
+    window.eddyInvasiveFor = invasiveFor;
 
     /* ---------------- State ---------------- */
     var dets = [];            // [{x,y,r}] in analysis-image pixels
@@ -4128,6 +4196,7 @@
       } else {
         box.classList.add("hidden");
       }
+      document.querySelectorAll(".tally-row").forEach(function (r) { if (r._syncInv) r._syncInv(); });
       renderSession();
       scheduleAutoSave();
       refreshFlowUI();
@@ -4333,7 +4402,20 @@
       input.addEventListener("input", updateCheck);
       stepper.appendChild(minus); stepper.appendChild(input); stepper.appendChild(plus);
       r2.appendChild(rm); r2.appendChild(stepper);
-      row.appendChild(r1); row.appendChild(famNote); row.appendChild(rFeed); row.appendChild(refNote); row.appendChild(r2);
+      var invBadge = document.createElement("p");
+      invBadge.className = "inv-badge hidden";
+      invBadge.setAttribute("role", "note");
+      function syncInv() {
+        var inv = invasiveFor(common.value, fam.value);
+        if (inv) {
+          invBadge.textContent = "INVASIVE — " + inv.common + " (" + inv.sci + ")";
+          invBadge.classList.remove("hidden");
+        } else {
+          invBadge.classList.add("hidden");
+        }
+      }
+      row._syncInv = syncInv;
+      row.appendChild(r1); row.appendChild(invBadge); row.appendChild(famNote); row.appendChild(rFeed); row.appendChild(refNote); row.appendChild(r2);
       var actions = document.createElement("div"); actions.className = "row-actions";
       var keyBtn = document.createElement("button");
       keyBtn.type = "button"; keyBtn.className = "btn btn-ghost row-key-btn"; keyBtn.textContent = "Identify with key ↓";
@@ -6448,6 +6530,12 @@
         var nm = document.createElement("span"); nm.className = "rc-name"; nm.textContent = t.name;
         var fm = document.createElement("span"); fm.className = "rc-fam"; fm.textContent = t.fam + " · " + t.ord;
         body.appendChild(nm); body.appendChild(fm); body.appendChild(makeTolChip(t));
+        var invT = window.eddyInvasiveFor ? window.eddyInvasiveFor(t.name, t.fam) : null;
+        if (invT) {
+          var ib = document.createElement("span"); ib.className = "inv-badge"; ib.textContent = "INVASIVE";
+          body.appendChild(ib);
+          card.setAttribute("aria-label", t.name + " — " + t.fam + ", order " + t.ord + ", tolerance " + refTolText(t) + ". Invasive species. View reference photos.");
+        }
         card.appendChild(body);
         card.addEventListener("click", function () { openRefDetail(t); });
         refGrid.appendChild(card);
@@ -6471,6 +6559,13 @@
       var refLightboxCap = document.getElementById("refLightboxCap");
       function openRefDetail(t) {
         document.getElementById("refDetailName").textContent = t.name;
+        var dInv = window.eddyInvasiveFor ? window.eddyInvasiveFor(t.name, t.fam) : null;
+        if (dInv) {
+          var dName = document.getElementById("refDetailName");
+          var db = document.createElement("span"); db.className = "inv-badge"; db.textContent = "INVASIVE";
+          db.style.marginLeft = "10px"; db.style.verticalAlign = "3px";
+          dName.appendChild(db);
+        }
         document.getElementById("refDetailMeta").textContent = "Family " + t.fam + " · Order " + t.ord;
         var chip = document.getElementById("refDetailTol");
         chip.className = "tol-chip " + refTolClass(t);
@@ -9831,6 +9926,20 @@
         } else {
           s.push("No Hilsenhoff score yet — none of the named taxa carry a tolerance value in the reference table." + eptBit);
         }
+        var invHits = [];
+        if (window.eddyInvasiveFor) {
+          idx.taxa.forEach(function (t) {
+            var inv = window.eddyInvasiveFor(t.name, t.family);
+            if (inv) invHits.push({ inv: inv, count: t.count });
+          });
+        }
+        if (invHits.length) {
+          var invList = invHits.map(function (h) {
+            return h.inv.common + " (" + h.inv.sci + ") — " + h.count + (h.count === 1 ? " individual" : " individuals");
+          }).join("; ");
+          s.push("One thing to flag before anything else: invasive species in this tally — " + invList + ".");
+          invHits.slice(0, 2).forEach(function (h) { s.push(h.inv.note); });
+        }
         var top = null;
         idx.taxa.forEach(function (t) { if (!top || t.count > top.count) top = t; });
         var topShare = top ? Math.round(100 * top.count / idx.total) : 0;
@@ -10802,8 +10911,9 @@
     <script>
     "use strict";
     /* ---------------- Trends view ----------------
-       Line charts of EPT richness, %EPT and the Hilsenhoff
-       Biotic Index across every saved sample in the library,
+       Line charts of EPT richness, %EPT, the Hilsenhoff
+       Biotic Index and total invasive individuals across
+       every saved sample in the library,
        ordered by sample date. Plain SVG built from
        window.eddyLib + window.eddyIndices — all data already
        lives on this device, so the charts work offline.     */
@@ -10822,7 +10932,15 @@
           fmt: function (v) { return (Math.round(v * 10) / 10) + "%"; } },
         { el: "trendChartHbi", title: "Hilsenhoff Biotic Index", max: 10,
           get: function (idx) { return idx.hbi; },
-          fmt: function (v) { return v.toFixed(2); } }
+          fmt: function (v) { return v.toFixed(2); } },
+        { el: "trendChartInv", title: "Invasive individuals", max: null,
+          get: function (idx) {
+            if (!window.eddyInvasiveFor) return 0;
+            return idx.taxa.reduce(function (a, t) {
+              return window.eddyInvasiveFor(t.name, t.family) ? a + t.count : a;
+            }, 0);
+          },
+          fmt: function (v) { return String(Math.round(v)); } }
       ];
       function niceMax(v) {
         if (v <= 5) return Math.max(1, Math.ceil(v));
