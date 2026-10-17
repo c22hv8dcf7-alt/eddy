@@ -592,6 +592,16 @@
       .graph-head h3{font-size:.95rem}
       .graph-head .btn{margin-left:auto;flex:none}
       .graph-block canvas{display:block}
+      /* ---------- Trends view (SVG line charts) ---------- */
+      .trend-chart{margin-top:14px}
+      .trend-svg{width:100%;height:auto;display:block}
+      .trend-svg .t-grid{stroke:var(--line);stroke-width:1}
+      .trend-svg .t-axis{stroke:var(--line-strong);stroke-width:1}
+      .trend-svg .t-line{fill:none;stroke:var(--amber);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+      .trend-svg .t-dot{fill:var(--panel-2);stroke:var(--amber);stroke-width:2.5}
+      .trend-svg .t-lab{fill:var(--ink-2);font-size:11px;font-family:"IBM Plex Mono",monospace}
+      .trend-svg .t-xlab{fill:var(--ink-2);font-size:11.5px}
+      .trend-svg .t-nodata{fill:var(--ink-2);font-size:13px}
       .graph-legend{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:10px;font-size:.88rem;color:var(--ink-2)}
       .graph-legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
       .trend-wrap{position:relative}
@@ -644,6 +654,20 @@
       .update-later{background:rgba(18,48,73,.6);color:#a8bfd4;border-color:#2f5d80}
       .update-later:hover{color:#eaf2f9;border-color:#7a5a17}
       .update-later:disabled{opacity:.55;cursor:not-allowed}
+      /* Updater progress ring — Apple-style, shown while the update downloads */
+      .update-progress{margin-top:18px;display:flex;flex-direction:column;align-items:center;text-align:center}
+      .update-ring-wrap{position:relative;width:120px;height:120px;flex:none}
+      .update-ring{width:120px;height:120px;transform:rotate(-90deg)}
+      .update-ring .ring-track{fill:none;stroke:rgba(168,191,212,.22);stroke-width:7}
+      .update-ring .ring-fill{fill:none;stroke:#f2a81d;stroke-width:7;stroke-linecap:round;
+        stroke-dasharray:326.73;stroke-dashoffset:326.73;transition:stroke-dashoffset .35s ease}
+      .update-progress.indeterminate .update-ring{animation:updateRingSpin 1.15s linear infinite}
+      .update-progress.indeterminate .ring-fill{stroke-dasharray:82 244.73;stroke-dashoffset:0;transition:none}
+      @keyframes updateRingSpin{to{transform:rotate(270deg)}}
+      .update-ring-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+      .update-ring-icon svg{width:40px;height:auto;filter:grayscale(1);opacity:.72}
+      .update-pct{margin-top:12px;font-family:"IBM Plex Mono",monospace;font-size:1.3rem;font-weight:600;color:#eaf2f9}
+      .update-status{margin-top:3px;font-size:.85rem;color:#a8bfd4}
 
       /* ---------- Responsive ---------- */
       @media (max-width:1240px){.panels{grid-template-columns:minmax(0,1fr) 380px}}
@@ -684,6 +708,8 @@
         width:24px;height:24px;line-height:1;font-size:.95rem;cursor:pointer;flex:none;padding:0}
       .pin-chip button:hover{color:var(--ink);border-color:var(--line-strong)}
       .leaflet-map{height:440px;border-radius:10px;border:1px solid var(--line-strong);background:#0b1c2c;z-index:0}
+      /* Free OSM tiles, darkened to match the app's dark theme (both maps) */
+      .leaflet-tile-pane .leaflet-tile{filter:invert(90%) hue-rotate(180deg) brightness(0.9) contrast(0.9)}
       .picker-map{height:320px}
       .picker-card{max-width:660px;max-height:calc(100dvh - 32px);overflow-y:auto}
       .geo-results{display:flex;flex-direction:column;gap:5px;margin-top:8px}
@@ -1216,6 +1242,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.7-7-11a7 7 0 0 1 14 0c0 5.3-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
             Sites
           </button>
+          <button type="button" class="rail-btn" data-view="trends">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M4 15l5-5 4 3 7-8"/><circle cx="9" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="13" cy="13" r="1.3" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="1.3" fill="currentColor" stroke="none"/></svg>
+            Trends
+          </button>
           <button type="button" class="rail-btn" data-view="graphs">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 20h18"/><path d="M6 20v-6"/><path d="M12 20V5"/><path d="M18 20v-9"/></svg>
             Graphs
@@ -1620,6 +1650,31 @@
             </div></div>
           </section>
 
+          <!-- ============ VIEW: TRENDS ============ -->
+          <section class="view" id="view-trends" aria-labelledby="h-trends">
+            <div class="view-scroll"><div class="page-col">
+              <div class="card">
+                <div class="card-head"><span class="num">T</span><h2 id="h-trends">Trends</h2></div>
+                <p class="card-sub">How your water-quality scores move across every saved sample, oldest to newest — EPT richness, the share of EPT individuals, and the Hilsenhoff Biotic Index. Drawn from the samples stored on this device, so the charts work offline.</p>
+                <div class="empty" id="trendsEmpty">Save at least 2 samples to see trends</div>
+                <div id="trendsBody" class="hidden">
+                  <div class="graph-block trend-chart">
+                    <div class="graph-head"><h3>EPT richness</h3></div>
+                    <div id="trendChartEpt"></div>
+                  </div>
+                  <div class="graph-block trend-chart">
+                    <div class="graph-head"><h3>%EPT</h3></div>
+                    <div id="trendChartPct"></div>
+                  </div>
+                  <div class="graph-block trend-chart">
+                    <div class="graph-head"><h3>Hilsenhoff Biotic Index</h3></div>
+                    <div id="trendChartHbi"></div>
+                  </div>
+                </div>
+              </div>
+            </div></div>
+          </section>
+
           <!-- ============ VIEW: GRAPHS ============ -->
           <section class="view" id="view-graphs" aria-labelledby="h-graphs">
             <div class="view-scroll"><div class="page-col">
@@ -1834,9 +1889,48 @@
         <p class="update-kicker">Software update</p>
         <h3 id="updateTitle">A new version of Eddy is available</h3>
         <div id="updateNotes" class="update-notes"></div>
-        <div class="btn-row">
+        <div class="btn-row" id="updateBtnRow">
           <button type="button" class="btn update-later" id="updateLaterBtn">Later</button>
           <button type="button" class="btn btn-primary" id="updateInstallBtn">Install &amp; Restart</button>
+        </div>
+        <div id="updateProgress" class="update-progress hidden" role="status" aria-label="Update download progress">
+          <div class="update-ring-wrap">
+            <svg class="update-ring" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+              <circle class="ring-fill" id="updateRingFill" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <div class="update-ring-icon">
+              <svg viewBox="0 0 240 340" aria-hidden="true">
+                <g fill="none" stroke="#7d92a8" stroke-linecap="round">
+                  <path stroke-width="3.5" d="M113 32 C98 15 76 7 52 10"/>
+                  <path stroke-width="3.5" d="M127 32 C142 15 164 7 188 10"/>
+                  <path stroke-width="5.5" d="M93 80 L63 62 L35 67"/>
+                  <path stroke-width="5.5" d="M147 80 L177 62 L205 67"/>
+                  <path stroke-width="5.5" d="M88 100 L55 95 L26 108"/>
+                  <path stroke-width="5.5" d="M152 100 L185 95 L214 108"/>
+                  <path stroke-width="5.5" d="M93 117 L61 130 L37 155"/>
+                  <path stroke-width="5.5" d="M147 117 L179 130 L203 155"/>
+                  <path stroke-width="3.5" d="M113 276 C105 295 95 309 81 317"/>
+                  <path stroke-width="3.5" d="M127 276 C135 295 145 309 159 317"/>
+                </g>
+                <g fill="#93a7bb">
+                  <path d="M120 24 C133 24 141 33 141 44 C141 55 133 62 120 62 C107 62 99 55 99 44 C99 33 107 24 120 24 Z"/>
+                  <path d="M120 56 C143 56 156 71 156 93 C156 114 141 127 120 127 C99 127 84 114 84 93 C84 71 97 56 120 56 Z"/>
+                  <path d="M103 76 C90 91 85 118 92 144 C94 153 103 153 106 143 C111 118 111 93 103 76 Z"/>
+                  <path d="M137 76 C150 91 155 118 148 144 C146 153 137 153 134 143 C129 118 129 93 137 76 Z"/>
+                  <path d="M120 118 C139 118 150 129 150 143 C150 157 137 166 120 166 C103 166 90 157 90 143 C90 129 101 118 120 118 Z"/>
+                  <path d="M120 158 C137 158 147 168 147 181 C147 194 135 202 120 202 C105 202 93 194 93 181 C93 168 103 158 120 158 Z"/>
+                  <path d="M120 194 C134 194 143 203 143 214 C143 226 133 233 120 233 C107 233 97 226 97 214 C97 203 106 194 120 194 Z"/>
+                  <path d="M120 226 C131 226 139 233 139 243 C139 253 131 259 120 259 C109 259 101 253 101 243 C101 233 109 226 120 226 Z"/>
+                  <path d="M120 252 C129 252 135 258 135 266 C135 274 128 279 120 279 C112 279 105 274 105 266 C105 258 111 252 120 252 Z"/>
+                </g>
+                <circle cx="108" cy="40" r="3.4" fill="rgba(9,21,38,.55)"/>
+                <circle cx="132" cy="40" r="3.4" fill="rgba(9,21,38,.55)"/>
+              </svg>
+            </div>
+          </div>
+          <p class="update-pct" id="updatePct">0%</p>
+          <p class="update-status" id="updateStatus">Downloading update…</p>
         </div>
         <p id="updateError" class="update-error hidden" role="alert"></p>
       </div>
@@ -6200,7 +6294,7 @@
        key-walking and exporting live in the main script above;
        nothing here touches detection.                            */
     (function () {
-      var VIEW_IDS = { workbench: "view-workbench", key: "keyCard", sheet: "view-sheet", library: "view-library", sites: "view-sites", graphs: "view-graphs", train: "view-train", reference: "view-reference" };
+      var VIEW_IDS = { workbench: "view-workbench", key: "keyCard", sheet: "view-sheet", library: "view-library", sites: "view-sites", trends: "view-trends", graphs: "view-graphs", train: "view-train", reference: "view-reference" };
       function showView(name) {
         Object.keys(VIEW_IDS).forEach(function (k) {
           var el = document.getElementById(VIEW_IDS[k]);
@@ -9430,7 +9524,7 @@
           <button type="submit" class="btn btn-primary chat-send" id="chatSend">Send</button>
         </div>
         <input type="file" id="chatFile" accept="image/*" class="hidden" aria-hidden="true" tabindex="-1" />
-        <p class="chat-foot" id="chatFoot">Eddy sees this sample's groups, counts and indices. Photos are sent only when you attach one or name a dot or group.</p>
+        <p class="chat-foot" id="chatFoot">Eddy opens with a first read of each sample and can compare against your saved samples. Photos are sent only when you attach one or name a dot or group.</p>
       </form>
     </aside>
 
@@ -9517,10 +9611,13 @@
         "YOUR EXPERTISE: freshwater benthic macroinvertebrate identification; bioassessment — the Hilsenhoff Biotic Index (the count-weighted mean of taxon tolerance values on the 0–10 scale, lower = cleaner water; readings: 3.50 or below Excellent, 4.50 Very Good, 5.50 Good, 6.50 Fair, 7.50 Fairly Poor, 8.50 Poor, above that Very Poor); EPT richness and %EPT; sampling practice; and this app.",
         "THE APP: The user photographs a sorting tray; the app auto-counts the organisms and marks each with a numbered dot. 'Group identical organisms' clusters look-alikes into lettered groups by size, body shape, texture and colour — strict grouping (the default) requires a match on essentially every trait. Each group is one datasheet row: naming the group (common name + family) tallies it, and feeding group and tolerance fill in from the reference table. A group marked 'Reference match' was pre-named from the built-in reference library; names the user taught the app override it, and 'Adjust members' moves a specimen between groups when the grouping errs. 'Identify with key' walks a dichotomous key; 'Identify with AI' sends group close-ups to a vision model for a suggestion the user accepts or changes. The ruler tool calibrates sizes in mm. Finished samples save to the Library with indices and a printable report; Export writes the Excel datasheet in the lab's 2025 format (CSV too). Counting, the library and reports work offline; you and AI identification need internet and the user's API key from Settings.",
         "HOW YOU ANSWER:",
-        "- Identifications: give your best suggestion as common name, family, and confidence (high / medium / low), naming the visible traits behind it — cerci and tail count, gill position, wing pads, case material, body form. If the evidence is thin, say what would settle it. Never invent certainty.",
+        "- Identifications: give your best suggestion as common name, family, and confidence (high / medium / low), naming the visible traits behind it — cerci and tail count, gill position, wing pads, case material, body form. Never invent certainty.",
+        "- Photo ID discipline: confidence is earned by visible features. When a photo is blurry, distant, or missing the feature that decides between candidates, say plainly that you are uncertain, name the candidates you cannot separate, and ask ONE specific clarifying question — a closer shot of a named structure, or a check the user can make at the bench (flattened side-to-side or top-to-bottom? two tails or three?) — and say why that feature settles it. A precise question beats a confident guess, every time.",
         "- Explanations: work from the sample data in the context block below — the actual groups, counts, families, tolerances and indices — and show the arithmetic when asked about a score. If the sample has no data yet, say so plainly.",
+        "- Comparisons: when a PAST SAMPLES block is included below, answer from those figures and quote them exactly — EPT richness, %EPT, HBI, total count, dates. If the block says the library is empty, or no block is included, say plainly that there are no saved samples in front of you to compare against. Never invent a past sample or a number.",
         "- App help: answer from the workflow above, step by step where it helps.",
         "- Keep it tight: short paragraphs or a few bullets, no filler, no exclamation marks. You are a colleague at the bench, not a lecturer and never a mascot.",
+        "DECISIVE FEATURES (what separates the look-alikes): two tails and no abdominal gills = stonefly nymph; three tails with plate-like or feathery gills along the abdomen = mayfly nymph. A mayfly flattened like a wafer, wide head, eyes on top = Heptageniidae; a streamlined swimmer with long antennae = Baetidae. A caddis larva's case is often the family clue — sand grains, leaf pieces, hollow sticks — and a caseless, curved larva with hard plates on all three thoracic segments points to Hydropsychidae. Thin and worm-like with no jointed legs: clear segmentation with no head capsule or prolegs = Oligochaeta; a distinct head and fleshy prolegs = Chironomidae. Flattened side-to-side and curled into a C = scud (Gammaridae); flattened top-to-bottom = aquatic isopod (Asellidae). Lateral filaments along the abdomen ending in hooked prolegs = hellgrammite (Corydalidae); the same plan ending in a single tail filament = alderfly (Sialidae).",
         "REFERENCE LIBRARY — the 50 taxa built into the app (family, order, pollution tolerance 0–10; 0 = most sensitive; a range where families differ):",
         TAXA_LINES.join("\n")
       ].join("\n");
@@ -9537,14 +9634,23 @@
 
       /* ----- Sample persistence hooks (used by the draft + library modules) ----- */
       window.eddyChatGet = function () {
-        return history.slice(-60).map(function (m) { return { r: m.r, t: m.t }; });
+        return history.slice(-60).map(function (m) {
+          var o = { r: m.r, t: m.t };
+          if (m.k === "auto" || m.k === "early") o.k = m.k;
+          return o;
+        });
       };
       window.eddyChatSet = function (arr) {
         restoreGuardUntil = Date.now() + 3000;
         history = (Array.isArray(arr) ? arr : []).filter(function (m) {
           return m && (m.r === "u" || m.r === "a") && typeof m.t === "string";
-        }).slice(-60);
+        }).slice(-60).map(function (m) {
+          var o = { r: m.r, t: m.t };
+          if (m.k === "auto" || m.k === "early") o.k = m.k;
+          return o;
+        });
         renderLog();
+        maybeAutoAnalyze();
       };
       function persist() {
         /* The draft module autosaves on document input events;
@@ -9643,6 +9749,208 @@
         }
         return lines.join("\n");
       }
+
+      /* ----- Proactive first read & library memory -----
+         The first read is composed here, on the device, from the
+         tally itself — no provider call — so it works offline and
+         before any key exists. It posts once per sample: the full
+         read is flagged k:"auto", the nothing-named-yet note
+         k:"early", and both ride along in the saved chat like any
+         other message. The library cache below feeds both the
+         same-site line in the first read and the PAST SAMPLES
+         block attached to comparison questions at send time.   */
+      var libCache = null;   // finished library records (local only)
+      function refreshLibCache() {
+        if (!window.eddyLib || !window.eddyLib.all) return;
+        window.eddyLib.all().then(function (recs) {
+          libCache = Array.isArray(recs) ? recs : [];
+        }).catch(function () { if (!libCache) libCache = []; });
+      }
+      refreshLibCache();
+      function siteKey(s) { return String(s || "").trim().toLowerCase(); }
+      function currentTally() {
+        var idxRows = [], groups = 0, unnamed = 0;
+        document.querySelectorAll(".tally-row").forEach(function (row) {
+          var sels = row.querySelectorAll("select");
+          if (sels.length < 2) return;
+          var cntEl = row.querySelector(".cnt");
+          var count = parseInt(cntEl ? cntEl.value : "0", 10) || 0;
+          if (row.classList.contains("group-row")) {
+            groups++;
+            if (!row._named) unnamed++;
+          }
+          if (count > 0) idxRows.push({ common: sels[0].value, family: sels[1].value, count: count });
+        });
+        var idx = (window.eddyIndices && idxRows.length) ? window.eddyIndices(idxRows) : null;
+        return { idx: idx, groups: groups, unnamed: unnamed, dotted: (window.dets || []).length, rows: idxRows.length };
+      }
+      var HBI_GLOSS = {
+        "Excellent": "no apparent organic pollution",
+        "Very Good": "possible slight organic pollution",
+        "Good": "some organic pollution probable",
+        "Fair": "fairly substantial organic pollution likely",
+        "Fairly Poor": "substantial organic pollution likely",
+        "Poor": "very substantial organic pollution likely",
+        "Very Poor": "severe organic pollution likely"
+      };
+      function isEpt(t) { return /ephemeroptera|plecoptera|trichoptera/i.test(t.order || ""); }
+      function sameSiteNote(idx, site, sid, date) {
+        if (!site || !libCache || !window.eddyIndices) return null;
+        var sk = siteKey(site), prev = null;
+        libCache.forEach(function (r) {
+          if (!r || !r.rows || siteKey(r.site) !== sk) return;
+          if (sid && r.sampleId === sid && (r.date || "") === (date || "")) return;
+          if (!prev || (r.savedAt || 0) > (prev.savedAt || 0)) prev = r;
+        });
+        if (!prev) return null;
+        var pi = window.eddyIndices(prev.rows);
+        if (!pi || pi.empty) return null;
+        var txt = "Against your last sample at this site (" + (prev.date || "date not recorded") +
+          (prev.sampleId ? ", " + prev.sampleId : "") + "): EPT richness " + pi.eptRich + " → " + idx.eptRich;
+        if (pi.hbi != null && idx.hbi != null) {
+          var dh = idx.hbi - pi.hbi;
+          txt += ", HBI " + pi.hbi.toFixed(2) + " → " + idx.hbi.toFixed(2) +
+            " (" + (Math.abs(dh) < 0.05 ? "essentially unchanged" : dh < 0 ? "a cleaner reading" : "a dirtier reading") + ")";
+        }
+        return txt + ".";
+      }
+      function composeAnalysis(d) {
+        var idx = d.idx, s = [];
+        var site = val("site"), sid = val("sampleId"), date = val("sampleDate");
+        var head = "First read";
+        if (site) head += " — " + site;
+        var paren = [sid, date].filter(Boolean).join(", ");
+        if (paren) head += " (" + paren + ")";
+        s.push(head + ": " + idx.total + (idx.total === 1 ? " organism" : " organisms") +
+          " across " + idx.richness + (idx.richness === 1 ? " taxon" : " taxa") + " tallied.");
+        var eptBit = " EPT richness " + idx.eptRich + ", with EPT individuals at " +
+          (idx.pctEpt == null ? "—" : idx.pctEpt.toFixed(1)) + "% of the count.";
+        if (idx.hbi != null) {
+          var w = hbiWord(idx.hbi);
+          s.push("Hilsenhoff " + idx.hbi.toFixed(2) + " — " + w + " on the standard scale (" + HBI_GLOSS[w] + ")." + eptBit);
+        } else {
+          s.push("No Hilsenhoff score yet — none of the named taxa carry a tolerance value in the reference table." + eptBit);
+        }
+        var top = null;
+        idx.taxa.forEach(function (t) { if (!top || t.count > top.count) top = t; });
+        var topShare = top ? Math.round(100 * top.count / idx.total) : 0;
+        if (top && idx.richness > 1 && topShare >= 30) {
+          var line = top.name + " carries the tray at " + topShare + "% of the count";
+          if (typeof top.tol === "number" && top.tol >= 6) line += " — and at tolerance " + top.tol + " it is built for degraded water, so the sensitive taxa read as filtered out rather than merely outnumbered";
+          else if (isEpt(top)) line += " — an EPT taxon doing the heavy lifting, which is the direction you want the weight to fall";
+          s.push(line + ".");
+        }
+        var notes = [];
+        var hasStone = idx.taxa.some(function (t) { return /plecoptera/i.test(t.order || ""); });
+        if (idx.eptRich === 0) notes.push("No EPT taxa in the tally at all — in a riffle sample, that absence is the loudest signal on the tray.");
+        else if (!hasStone) notes.push("Mayflies or caddisflies are present but there are no stoneflies — the most sensitive order is missing, and that absence is data.");
+        if (top && typeof top.tol === "number" && top.tol >= 6 && topShare >= 20 && topShare < 30) {
+          notes.push(top.name + " — tolerance " + top.tol + " — is already " + topShare + "% of the count. Worth watching; tolerant taxa creep before they take over.");
+        }
+        if (idx.single) notes.push("A single taxon is carrying the whole score — treat the reading as provisional until something else turns up.");
+        if (idx.excluded > 0) notes.push(idx.excluded + (idx.excluded === 1 ? " taxon carries" : " taxa carry") + " no tolerance value and drop out of the HBI entirely — the score is computed without them.");
+        if (d.unnamed > 0) notes.push(d.unnamed + (d.unnamed === 1 ? " group is" : " groups are") + " still unnamed — the indices above take the dropdowns as they stand, so expect the read to move once each group is keyed out and confirmed.");
+        var zeroTol = null;
+        idx.taxa.forEach(function (t) { if (!zeroTol && t.tol === 0) zeroTol = t; });
+        if (zeroTol) notes.push(zeroTol.name + " sits at tolerance 0 — it does not persist where water quality slips, so its presence argues the site is in decent shape.");
+        else if (idx.pctEpt != null && idx.pctEpt >= 50 && idx.eptRich > 0) notes.push("EPT individuals are the majority of the count — a sensitive-taxa assemblage, not a tolerant one.");
+        notes.slice(0, 2).forEach(function (n) { s.push(n); });
+        var cs = sameSiteNote(idx, site, sid, date);
+        if (cs) s.push(cs);
+        if (s.length > 6) s = s.slice(0, 6);
+        return s.join(" ");
+      }
+      function composeEarlyNote(d) {
+        var bits = [];
+        if (d.dotted) bits.push(d.dotted + (d.dotted === 1 ? " organism" : " organisms") + " dotted");
+        if (d.groups) bits.push(d.groups + (d.groups === 1 ? " group" : " groups") + " formed");
+        var what = bits.length ? bits.join(", ") : "a tally underway";
+        return "First read: " + what + ", but nothing is named yet — so EPT richness and the Hilsenhoff index have nothing to bite on. Name the groups, biggest first, and I'll give you the full read.";
+      }
+      function maybeAutoAnalyze() {
+        if (sending) return;
+        if (history.some(function (m) { return m.k === "auto"; })) return;
+        var d = currentTally();
+        var idx = d.idx;
+        var named = !!(idx && !idx.empty && idx.taxa.some(function (t) { return t.name && t.name !== "Unknown"; }));
+        if (named) {
+          history.push({ r: "a", t: composeAnalysis(d), k: "auto" });
+          renderLog(); persist();
+          return;
+        }
+        if ((d.dotted > 0 || d.groups > 0 || d.rows > 0) &&
+            !history.some(function (m) { return m.k === "early"; })) {
+          history.push({ r: "a", t: composeEarlyNote(d), k: "early" });
+          renderLog(); persist();
+        }
+      }
+      var analyzeTimer = null;
+      function scheduleAnalyze() {
+        if (analyzeTimer) return;
+        analyzeTimer = setTimeout(function () { analyzeTimer = null; maybeAutoAnalyze(); }, 900);
+      }
+      document.addEventListener("change", scheduleAnalyze);
+      document.addEventListener("input", scheduleAnalyze);
+      document.addEventListener("click", scheduleAnalyze);
+
+      /* ----- Cross-sample memory: the PAST SAMPLES block ----- */
+      function wantsComparison(text) {
+        var t = (text || "").toLowerCase();
+        if (!t) return false;
+        if (/compar|previous|earlier|last (sample|one|time|visit|season)|trend|past samples?|other samples?|history of|gone (up|down)|going (up|down)|than (last|before)|since (last|i last)/.test(t)) return true;
+        if (libCache && libCache.length) {
+          return libCache.some(function (r) {
+            var s = siteKey(r.site);
+            return s.length >= 4 && t.indexOf(s) >= 0;
+          });
+        }
+        return false;
+      }
+      function pastSamplesBlock(text) {
+        if (!libCache) { refreshLibCache(); return null; }
+        if (!window.eddyIndices) return null;
+        var cur = { site: val("site"), id: val("sampleId"), date: val("sampleDate") };
+        var recs = libCache.filter(function (r) {
+          if (!r || !r.rows || !r.rows.length) return false;
+          return !(cur.id && r.sampleId === cur.id && (r.date || "") === cur.date && siteKey(r.site) === siteKey(cur.site));
+        }).sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
+        if (!recs.length) {
+          return "PAST SAMPLES: the library on this device holds no other finished samples. If the user asks about past samples or comparisons, say plainly that nothing is saved yet — do not invent one.";
+        }
+        var t = (text || "").toLowerCase();
+        var siteNames = {};
+        recs.forEach(function (r) { if (r.site) siteNames[siteKey(r.site)] = r.site; });
+        var focus = null;
+        Object.keys(siteNames).forEach(function (k) { if (!focus && k && t.indexOf(k) >= 0) focus = k; });
+        if (!focus && cur.site && siteNames[siteKey(cur.site)]) focus = siteKey(cur.site);
+        var chosen = (focus ? recs.filter(function (r) { return siteKey(r.site) === focus; }) : recs).slice(0, 5);
+        var lines = ["PAST SAMPLES FROM THE LIBRARY (saved on this device — quote these figures exactly; never invent a sample, a date or a number that is not listed here):"];
+        var idxByKey = {};
+        chosen.forEach(function (r) {
+          var ix = window.eddyIndices(r.rows);
+          idxByKey[r.key || ""] = ix;
+          if (!ix || ix.empty) return;
+          lines.push("- " + (r.sampleId || "Sample") + " · " + (r.site || "site not recorded") + " · " +
+            (r.date || "date not recorded") + " · " + ix.total + " organisms · taxa richness " + ix.richness +
+            " · EPT richness " + ix.eptRich + " · %EPT " + (ix.pctEpt == null ? "—" : ix.pctEpt.toFixed(1)) +
+            " · HBI " + (ix.hbi == null ? "not computable" : ix.hbi.toFixed(2) + " (" + hbiWord(ix.hbi) + ")"));
+        });
+        if (focus && chosen.length >= 2) {
+          var epts = [], hbis = [];
+          chosen.slice().reverse().forEach(function (r) {
+            var ix = idxByKey[r.key || ""];
+            if (!ix || ix.empty) return;
+            epts.push(ix.eptRich);
+            hbis.push(ix.hbi == null ? "—" : ix.hbi.toFixed(2));
+          });
+          if (epts.length >= 2) {
+            lines.push("Trend at " + (siteNames[focus] || focus) + ", oldest to newest: EPT richness " +
+              epts.join(" → ") + "; HBI " + hbis.join(" → ") + ".");
+          }
+        }
+        return lines.length > 1 ? lines.join("\n") : null;
+      }
+      var PHOTO_PROTOCOL = "[Photo ID protocol: if the decisive features are not clearly visible in this photo, say you are uncertain, name the candidates you cannot separate, and ask one specific clarifying question — what to photograph closer or check at the bench, and why that feature decides it — instead of committing to a single identification.]";
 
       /* ----- Close-up crops (same recipe as AI identification) ----- */
       function cropB64(dt) {
@@ -9817,7 +10125,7 @@
         renderChips();
       }
       function renderChips() {
-        var show = panelOpen && !history.length && !!aiConfig().key;
+        var show = panelOpen && !!aiConfig().key && history.every(function (m) { return m.k === "auto" || m.k === "early"; });
         chipsHost.classList.toggle("hidden", !show);
         if (!show) { chipsHost.innerHTML = ""; return; }
         chipsHost.innerHTML = "";
@@ -9864,9 +10172,11 @@
         sending = true; setBusy(true);
         var outgoing = userText || "What is this organism? Give me your best identification — common name, family, confidence, and the traits you are reading.";
         if (ref && ref.note) outgoing += "\n" + ref.note;
+        if (img) outgoing += "\n" + PHOTO_PROTOCOL;
         var turns = history.slice(-17).map(function (m) { return { r: m.r, t: m.t }; });
         turns[turns.length - 1] = { r: "u", t: outgoing, img: img || undefined };
-        var system = PERSONA + "\n\n" + buildContext();
+        var pastBlock = wantsComparison(userText) ? pastSamplesBlock(userText) : null;
+        var system = PERSONA + "\n\n" + buildContext() + (pastBlock ? "\n\n" + pastBlock : "");
         var call = cfg.prov === "google" ? chatGoogle : cfg.prov === "anthropic" ? chatAnthropic : chatOpenAI;
         netWrap(call(cfg, system, turns)).then(function (reply) {
           reply = (reply || "").trim();
@@ -9952,6 +10262,8 @@
           panel.classList.remove("chat-closed");
           refreshKeyState();
           renderLog();
+          refreshLibCache();
+          maybeAutoAnalyze();
           setTimeout(function () { if (panelOpen) input.focus(); }, 80);
         } else {
           panel.classList.add("chat-closed");
@@ -9994,6 +10306,7 @@
           if (!window.photoDataUrl && !hasTally && history.length) {
             history = []; renderLog(); persist();
           }
+          refreshLibCache();
         }, 150);
       });
       /* A new tray photo starts a new sample — except when the photo
@@ -10075,6 +10388,82 @@
       if (!overlay || !title || !notesEl || !installBtn || !laterBtn) return;
       var installing = false;
 
+      /* ---------- Install progress ring ----------
+         While the update downloads, the modal swaps its buttons
+         for the Apple-style ring: dimmed stonefly in the middle,
+         an amber arc that fills with the download, percentage
+         below. Progress arrives as Tauri events from the updater
+         (payloads may carry a percent, downloaded/total bytes, or
+         the updater plugin's Started/Progress chunks); until the
+         first event lands — or if the backend emits none — the
+         ring sweeps indeterminately so it never sits frozen. */
+      var progressEl = document.getElementById("updateProgress");
+      var ringFill = document.getElementById("updateRingFill");
+      var pctEl = document.getElementById("updatePct");
+      var statusEl = document.getElementById("updateStatus");
+      var btnRow = document.getElementById("updateBtnRow");
+      var RING_C = 326.73; /* circumference of the r=52 ring */
+      var unlistenProgress = [];
+      var dlDone = 0, dlTotal = 0;
+      function setProgress(pct) {
+        if (!progressEl) return;
+        if (pct == null || !isFinite(pct)) {
+          progressEl.classList.add("indeterminate");
+          if (pctEl) pctEl.textContent = "…";
+          if (statusEl) statusEl.textContent = "Downloading update…";
+          return;
+        }
+        progressEl.classList.remove("indeterminate");
+        pct = Math.max(0, Math.min(100, pct));
+        if (ringFill) ringFill.style.strokeDashoffset = String(RING_C * (1 - pct / 100));
+        if (pctEl) pctEl.textContent = Math.round(pct) + "%";
+        if (statusEl) statusEl.textContent = pct >= 100 ? "Installing…" : "Downloading update…";
+      }
+      function onProgress(payload) {
+        if (payload == null) return;
+        if (typeof payload === "number") { setProgress(payload <= 1 ? payload * 100 : payload); return; }
+        if (typeof payload.percent === "number") { setProgress(payload.percent <= 1 ? payload.percent * 100 : payload.percent); return; }
+        if (typeof payload.downloaded === "number" && typeof payload.total === "number" && payload.total > 0) {
+          setProgress(100 * payload.downloaded / payload.total); return;
+        }
+        var data = payload.data || payload;
+        if (payload.event === "Started" && typeof data.contentLength === "number") { dlTotal = data.contentLength; dlDone = 0; return; }
+        if (typeof data.chunkLength === "number") {
+          if (typeof data.contentLength === "number" && data.contentLength > 0) dlTotal = data.contentLength;
+          dlDone += data.chunkLength;
+          if (dlTotal > 0) setProgress(100 * dlDone / dlTotal);
+        }
+      }
+      function listenProgress() {
+        if (!tauri.event || typeof tauri.event.listen !== "function") return;
+        ["update-progress", "update_progress", "download-progress"].forEach(function (name) {
+          try {
+            var r = tauri.event.listen(name, function (ev) { onProgress(ev && ev.payload); });
+            if (r && typeof r.then === "function") r.then(function (u) {
+              if (typeof u === "function") unlistenProgress.push(u);
+            }, function () { /* event channel unavailable */ });
+          } catch (e) { /* no event bus — the ring stays indeterminate */ }
+        });
+      }
+      function showProgress() {
+        if (!progressEl) return;
+        dlDone = 0; dlTotal = 0;
+        notesEl.style.display = "none";
+        if (btnRow) btnRow.style.display = "none";
+        progressEl.classList.remove("hidden");
+        setProgress(null);
+        listenProgress();
+      }
+      function hideProgress() {
+        unlistenProgress.forEach(function (u) { try { u(); } catch (e) { /* already gone */ } });
+        unlistenProgress = [];
+        if (!progressEl) return;
+        progressEl.classList.add("hidden");
+        progressEl.classList.remove("indeterminate");
+        notesEl.style.display = "";
+        if (btnRow) btnRow.style.display = "";
+      }
+
       function invoke(cmd) {
         try {
           if (tauri.core && typeof tauri.core.invoke === "function") return tauri.core.invoke(cmd);
@@ -10097,6 +10486,7 @@
       }
       function settleInstall(err) {
         installing = false;
+        hideProgress();
         installBtn.disabled = false;
         laterBtn.disabled = false;
         installBtn.textContent = "Install & Restart";
@@ -10110,11 +10500,15 @@
         installBtn.disabled = true;
         laterBtn.disabled = true;
         installBtn.textContent = "Installing…";
+        showProgress();
         var p = invoke("install_pending_update");
         /* The app restarts on success, so this only runs if the install
            failed or never started — restore the button either way, and
            show the backend's error message when the install rejected. */
-        if (p && typeof p.then === "function") p.then(function () { settleInstall(); }, function (err) { settleInstall(err); });
+        if (p && typeof p.then === "function") p.then(function () {
+          setProgress(100);
+          setTimeout(function () { settleInstall(); }, 500);
+        }, function (err) { settleInstall(err); });
         else setTimeout(settleInstall, 4000);
       });
       laterBtn.addEventListener("click", function () {
@@ -10403,6 +10797,120 @@
       window.eddyRenderSites = renderSites;
       var sitesBtn = document.querySelector('.rail-btn[data-view="sites"]');
       if (sitesBtn) sitesBtn.addEventListener("click", renderSites);
+    })();
+    </script>
+    <script>
+    "use strict";
+    /* ---------------- Trends view ----------------
+       Line charts of EPT richness, %EPT and the Hilsenhoff
+       Biotic Index across every saved sample in the library,
+       ordered by sample date. Plain SVG built from
+       window.eddyLib + window.eddyIndices — all data already
+       lives on this device, so the charts work offline.     */
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      var METRICS = [
+        { el: "trendChartEpt", title: "EPT richness", max: null,
+          get: function (idx) { return idx.eptRich; },
+          fmt: function (v) { return String(Math.round(v)); } },
+        { el: "trendChartPct", title: "%EPT", max: 100,
+          get: function (idx) { return idx.pctEpt; },
+          fmt: function (v) { return (Math.round(v * 10) / 10) + "%"; } },
+        { el: "trendChartHbi", title: "Hilsenhoff Biotic Index", max: 10,
+          get: function (idx) { return idx.hbi; },
+          fmt: function (v) { return v.toFixed(2); } }
+      ];
+      function niceMax(v) {
+        if (v <= 5) return Math.max(1, Math.ceil(v));
+        if (v <= 10) return Math.ceil(v);
+        return Math.ceil(v / 5) * 5;
+      }
+      function chartSvg(points, metric) {
+        var W = 680, H = 270, padL = 46, padR = 16, padT = 16;
+        var rotate = points.length > 6;
+        var padB = rotate ? 58 : 36;
+        var pw = W - padL - padR, ph = H - padT - padB;
+        var vals = points.map(function (p) { return p.value; })
+          .filter(function (v) { return v != null; });
+        var hi = metric.max != null ? metric.max
+          : niceMax(Math.max.apply(null, vals.concat([0])));
+        function X(i) { return padL + pw * (points.length === 1 ? 0.5 : i / (points.length - 1)); }
+        function Y(v) { return padT + ph - (v / hi) * ph; }
+        var axisY = padT + ph;
+        var out = ['<svg class="trend-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' +
+          esc(metric.title) + ' across saved samples">'];
+        for (var s = 0; s <= 4; s++) {
+          var tv = hi * s / 4, ty = Y(tv);
+          out.push('<line class="t-grid" x1="' + padL + '" y1="' + ty.toFixed(1) +
+            '" x2="' + (W - padR) + '" y2="' + ty.toFixed(1) + '"/>');
+          out.push('<text class="t-lab" x="' + (padL - 8) + '" y="' + (ty + 4).toFixed(1) +
+            '" text-anchor="end">' + esc(metric.fmt(tv)) + '</text>');
+        }
+        out.push('<line class="t-axis" x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + axisY + '"/>');
+        out.push('<line class="t-axis" x1="' + padL + '" y1="' + axisY + '" x2="' + (W - padR) + '" y2="' + axisY + '"/>');
+        var d = "", pen = false;
+        points.forEach(function (p, i) {
+          if (p.value == null) { pen = false; return; }
+          d += (pen ? " L" : "M") + X(i).toFixed(1) + " " + Y(p.value).toFixed(1) + " ";
+          pen = true;
+        });
+        if (d) out.push('<path class="t-line" d="' + d + '"/>');
+        points.forEach(function (p, i) {
+          var x = X(i);
+          if (p.value != null) {
+            out.push('<circle class="t-dot" cx="' + x.toFixed(1) + '" cy="' + Y(p.value).toFixed(1) +
+              '" r="4.5"><title>' + esc(p.label) + " — " + esc(metric.title) + " " +
+              esc(metric.fmt(p.value)) + '</title></circle>');
+          }
+          var lab = p.label.length > 12 ? p.label.slice(0, 11) + "…" : p.label;
+          if (rotate) {
+            out.push('<text class="t-xlab" x="' + x.toFixed(1) + '" y="' + (axisY + 12) +
+              '" text-anchor="end" transform="rotate(-32 ' + x.toFixed(1) + " " + (axisY + 12) + ')">' +
+              esc(lab) + '</text>');
+          } else {
+            out.push('<text class="t-xlab" x="' + x.toFixed(1) + '" y="' + (axisY + 20) +
+              '" text-anchor="middle">' + esc(lab) + '</text>');
+          }
+        });
+        if (!vals.length) {
+          out.push('<text class="t-nodata" x="' + (padL + pw / 2) + '" y="' + (padT + ph / 2) +
+            '" text-anchor="middle">No values yet for these samples</text>');
+        }
+        out.push('</svg>');
+        return out.join("");
+      }
+      function renderTrends() {
+        var empty = $("trendsEmpty"), body = $("trendsBody");
+        if (!empty || !body) return;
+        if (!window.eddyLib || !window.eddyIndices) {
+          empty.classList.remove("hidden"); body.classList.add("hidden");
+          return;
+        }
+        window.eddyLib.all().then(function (all) {
+          var recs = (all || []).slice().sort(function (a, b) {
+            var d = String(a.date || "").localeCompare(String(b.date || ""));
+            return d !== 0 ? d : (a.savedAt - b.savedAt);
+          });
+          if (recs.length < 2) {
+            empty.classList.remove("hidden"); body.classList.add("hidden");
+            return;
+          }
+          empty.classList.add("hidden"); body.classList.remove("hidden");
+          METRICS.forEach(function (m) {
+            var pts = recs.map(function (r) {
+              return { label: r.sampleId || "unspecified", value: m.get(window.eddyIndices(r.rows)) };
+            });
+            var el = $(m.el);
+            if (el) el.innerHTML = chartSvg(pts, m);
+          });
+        }).catch(function () { /* library unavailable — leave the view as it is */ });
+      }
+      var trendsBtn = document.querySelector('.rail-btn[data-view="trends"]');
+      if (trendsBtn) trendsBtn.addEventListener("click", renderTrends);
     })();
     </script>
 
