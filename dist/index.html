@@ -529,6 +529,68 @@
       .cal-mmrow .btn{width:auto;min-height:42px;padding:8px 14px;font-size:.9rem}
       .gsize{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--amber-text);font-size:.88rem}
 
+      /* ---------- QoL update: selection, quick assign, undo, templates, recent, zoom badge ---------- */
+      .dot.sel{box-shadow:0 0 0 3px var(--amber),0 0 0 6px rgba(0,0,0,.45),0 1px 4px rgba(0,0,0,.5);
+        transform:scale(1.3);z-index:4}
+      .top-fields .tf select{min-height:38px;padding:7px 10px;font-size:.95rem;width:100%}
+      .tf-tpl{flex:0 1 150px}
+      /* The extra Template field + Recent button squeeze the top
+         bar: let the fields wrap inside their own strip (Site
+         takes a full line) instead of clipping off the edge.   */
+      .top-fields{flex-wrap:wrap}
+      .top-fields .tf.grow{flex:1 1 200px}
+      @media (max-width:760px){
+        .recent-menu{left:0;right:auto}
+      }
+      .quickbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;
+        background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;line-height:1.3}
+      .quick-lab{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amber-text)}
+      .quick-chips{display:flex;gap:6px;flex-wrap:wrap}
+      .quick-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);
+        background:var(--panel-3);color:var(--ink);border-radius:999px;padding:4px 11px 4px 4px;
+        font-size:.82rem;font-family:inherit;cursor:pointer;min-height:34px}
+      .quick-chip:hover{border-color:var(--amber-line)}
+      .quick-chip .qk{font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:700;
+        background:var(--amber);color:var(--amber-ink);border-radius:999px;min-width:20px;height:20px;
+        display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+      .quick-hint{font-size:.8rem;color:var(--ink-2);flex-basis:100%}
+      .bulk-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:350;
+        display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel-2);
+        border:1.5px solid var(--amber-line);border-radius:12px;box-shadow:var(--shadow);
+        padding:10px 12px;max-width:min(620px,94vw)}
+      .bulk-bar .bulk-lab{font-weight:700;font-size:.9rem}
+      .bulk-bar select{max-width:210px;min-height:38px}
+      .recent-wrap{position:relative;flex:none}
+      .recent-menu{position:absolute;top:calc(100% + 6px);right:0;width:min(310px,86vw);
+        background:var(--panel-2);border:1px solid var(--line-strong);border-radius:11px;
+        box-shadow:var(--shadow);padding:6px;z-index:320}
+      .recent-item{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;
+        text-align:left;background:none;border:none;border-radius:8px;padding:9px 10px;color:var(--ink);
+        font-family:inherit;cursor:pointer;font-size:.92rem}
+      .recent-item:hover{background:var(--panel-3)}
+      .recent-item .rid{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .recent-item .rdt{color:var(--ink-2);font-size:.8rem;font-family:"IBM Plex Mono",monospace;flex:none}
+      .recent-empty{padding:10px;color:var(--ink-2);font-size:.88rem;line-height:1.45}
+      .zoom-badge{position:absolute;top:8px;right:8px;z-index:6;display:flex;align-items:center;gap:6px;
+        background:rgba(6,16,28,.8);border:1px solid var(--line-strong);border-radius:999px;
+        padding:3px 4px 3px 11px;line-height:1.2}
+      .zoom-badge span{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:#eaf2f9}
+      .zoom-badge button{border:none;background:var(--amber);color:var(--amber-ink);font-weight:700;
+        font-size:.75rem;border-radius:999px;padding:5px 10px;cursor:pointer;font-family:inherit;min-height:28px}
+      .sc-table{width:100%;border-collapse:collapse;margin-top:4px}
+      .sc-table td{padding:6px 4px;border-bottom:1px solid var(--line);font-size:.9rem;color:var(--ink-2);line-height:1.45}
+      .sc-table td:first-child{width:138px;color:var(--ink);white-space:nowrap}
+      .sc-table tr:last-child td{border-bottom:none}
+      kbd{font-family:"IBM Plex Mono",monospace;background:var(--panel-3);border:1px solid var(--line-strong);
+        border-radius:5px;padding:1px 6px;font-size:.8rem;color:var(--ink)}
+      .tpl-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+      .tpl-row:last-child{border-bottom:none}
+      .tpl-row .tinfo{flex:1;min-width:0}
+      .tpl-row .tname{font-weight:700;font-size:.9rem}
+      .tpl-row .tdet{color:var(--ink-2);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .tpl-row .btn{flex:none}
+      #undoBtn:disabled,#redoBtn:disabled{opacity:.42;cursor:default}
+
       /* ---------- Sample library ---------- */
       .lib-thumb{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--line-strong);flex:none;background:var(--photo-bg)}
       .lib-photo{position:relative;border-radius:10px;overflow:hidden;line-height:0;background:var(--photo-bg);border:1px solid var(--line)}
@@ -1144,6 +1206,12 @@
             <label for="sampleId">Sample ID</label>
             <input type="text" id="sampleId" placeholder="e.g. QUI-001" autocomplete="off" />
           </div>
+          <div class="tf tf-tpl">
+            <label for="tplSel">Template</label>
+            <select id="tplSel" aria-label="Sample template — fills Site and Notes">
+              <option value="">No template</option>
+            </select>
+          </div>
           <div class="tf grow">
             <label for="site">Site / location</label>
             <div class="site-row">
@@ -1156,6 +1224,10 @@
         <div class="total-badge" title="Organisms tallied in the current sample">
           <span class="tb-num" id="topTotal">0</span>
           <span class="tb-lab">Tallied</span>
+        </div>
+        <div class="recent-wrap">
+          <button type="button" class="btn btn-ghost" id="recentBtn" aria-haspopup="true" aria-expanded="false" aria-controls="recentMenu" title="Load one of your last 8 finished samples back into the workbench">Recent ▾</button>
+          <div class="recent-menu hidden" id="recentMenu" role="menu" aria-label="Recent samples"></div>
         </div>
         <div class="dock-info"><strong id="dockCount">0 samples</strong><span id="dockRows">0 rows ready</span></div>
         <div class="top-actions">
@@ -1224,6 +1296,17 @@
             <button type="button" class="btn btn-ghost" id="settingsWhatCounts">What counts as an organism?</button>
           </div>
           <p class="hint" style="margin-top:10px">Everything runs on this device — photos are never uploaded, and the sheet is written only to the file you link or download.</p>
+          <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
+            <h3>Sample templates</h3>
+            <p class="hint" style="margin-top:6px">A template saves the Site / location, Notes and Sample ID pattern you're using now, so a repeat visit starts filled in. Pick one from the Template dropdown beside Sample ID — it fills Site and Notes and leaves Sample ID blank for you to type.</p>
+            <label class="field-label" for="tplName">Template name</label>
+            <input type="text" id="tplName" placeholder="e.g. Quittapahilla riffle" autocomplete="off" />
+            <div style="margin-top:8px">
+              <button type="button" class="btn btn-ghost" id="tplSaveBtn">Save current as template</button>
+            </div>
+            <p class="hint" id="tplStatus" style="margin-top:6px" role="status"></p>
+            <div id="tplList" style="margin-top:6px"></div>
+          </div>
           <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
             <h3>About Eddy</h3>
             <p class="hint" style="margin-top:6px">Eddy is the exclusive property of Lee Vitaly Wyszynski. This software may not be used, copied, or distributed without his authorization.</p>
@@ -1351,7 +1434,7 @@
 
               <!-- STEP 2: COUNT -->
               <section class="panel step-pane" data-pane="2" aria-labelledby="h-count">
-                <div class="panel-head"><span class="ph-num">2</span><h2 id="h-count">Count</h2><span class="ph-note">numbered dots · tap to add or remove</span></div>
+                <div class="panel-head"><span class="ph-num">2</span><h2 id="h-count">Count</h2><span class="ph-note">numbered dots · tap to add or remove</span><button type="button" class="btn btn-ghost btn-small" id="shortcutsBtn" title="Keyboard shortcuts for counting">Shortcuts</button></div>
 
                 <div id="photoArea" class="hidden">
                   <div class="qbar hidden" id="qualityBanner" role="alert">
@@ -1363,6 +1446,7 @@
                   </div>
                   <div id="zoomView">
                     <div id="photoWrap"><img id="photoImg" alt="Your tray photo with numbered dots on each counted organism" /></div>
+                    <div class="zoom-badge" id="zoomBadge"><span id="zoomBadgeLvl">1.0×</span><button type="button" id="zoomBadgeReset" aria-label="Reset zoom to 100%">Reset</button></div>
                   </div>
                   <div class="photobar" role="group" aria-label="Photo tools">
                     <div class="zoom-ctl" role="group" aria-label="Zoom">
@@ -1371,6 +1455,8 @@
                       <button type="button" id="zoomInBtn" aria-label="Zoom in">+</button>
                     </div>
                     <button type="button" class="btn btn-ghost" id="zoomResetBtn">Reset view</button>
+                    <button type="button" class="btn btn-ghost" id="undoBtn" disabled title="Undo the last counting change (U)">↩ Undo</button>
+                    <button type="button" class="btn btn-ghost" id="redoBtn" disabled title="Redo the last undone change (Shift+U)">↪ Redo</button>
                     <button type="button" class="btn btn-ghost" id="overlayBtn" aria-pressed="true">Dots on</button>
                     <button type="button" class="btn btn-ghost" id="calToggleBtn" aria-pressed="false">Calibrate with ruler</button>
                     <span class="spacer"></span>
@@ -1396,6 +1482,11 @@
                     <button type="button" class="btn btn-ghost" id="modePan">Move / pan</button>
                   </div>
                   <p class="seg-note" id="tapHint">With <strong>Add missed</strong> on, tap the photo where an organism has no dot. With <strong>Remove false</strong> on, tap near a wrong dot to delete it. Scroll or use +/− to zoom; <strong>Move / pan</strong> drags the zoomed photo.</p>
+                  <div class="quickbar" id="quickBar">
+                    <span class="quick-lab">Quick assign</span>
+                    <div class="quick-chips" id="quickChips"></div>
+                    <span class="quick-hint">Click a dot to select it (Shift+click or long-press for several), then tap a taxon here or press its number key — the dots move into that taxon's group in the tally.</span>
+                  </div>
                   <details class="dotlist" id="dotListWrap">
                     <summary>Dot list — tap a number to remove that dot (keyboard-friendly alternative)</summary>
                     <div class="dot-chips" id="dotChips"></div>
@@ -1887,6 +1978,36 @@
           <button type="button" class="btn btn-primary" id="confirmOk">Confirm</button>
         </div>
       </div>
+    </div>
+
+    <!-- ============ SHORTCUTS DIALOG ============ -->
+    <div id="shortcutsOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+      <div class="confirm-card">
+        <h3 id="shortcutsTitle">Keyboard shortcuts — counting</h3>
+        <table class="sc-table">
+          <tr><td><kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd></td><td>Assign the selected dot(s) to that taxon in the Quick assign list (0 = the 10th)</td></tr>
+          <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Move the selection between numbered dots, in order</td></tr>
+          <tr><td><kbd>U</kbd></td><td>Undo the last counting change</td></tr>
+          <tr><td><kbd>Shift</kbd>+<kbd>U</kbd> or <kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Redo</td></tr>
+          <tr><td><kbd>Delete</kbd> / <kbd>⌫</kbd></td><td>Remove the selected dot(s)</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Clear the dot selection</td></tr>
+          <tr><td><kbd>Shift</kbd>+click</td><td>Add a dot to the selection (long-press on touch)</td></tr>
+          <tr><td>Scroll / pinch</td><td>Zoom the tray photo, 1×–4×, centred on the pointer</td></tr>
+          <tr><td>Drag (zoomed)</td><td>Pan the zoomed photo</td></tr>
+          <tr><td>Double-click</td><td>Reset the zoom to 1×</td></tr>
+        </table>
+        <div class="btn-row" style="margin-top:16px">
+          <button type="button" class="btn btn-primary" id="shortcutsClose">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ BULK ASSIGN BAR ============ -->
+    <div id="bulkBar" class="bulk-bar hidden" role="group" aria-label="Assign the selected dots to a taxon">
+      <span class="bulk-lab" id="bulkLabel">Assign 0 dots to:</span>
+      <select id="bulkTaxon" aria-label="Taxon for the selected dots"></select>
+      <button type="button" class="btn btn-primary btn-small" id="bulkAssignBtn">Assign</button>
+      <button type="button" class="btn btn-ghost btn-small" id="bulkClearBtn">Clear selection</button>
     </div>
 
     <!-- ============ MAP PIN PICKER ============ -->
@@ -6675,6 +6796,8 @@
       function applyZoom() {
         wrap.style.transform = "translate(" + pz.x + "px," + pz.y + "px) scale(" + pz.s + ")";
         document.getElementById("zoomLevel").textContent = Math.round(pz.s * 100) + "%";
+        var zb = document.getElementById("zoomBadgeLvl");
+        if (zb) zb.textContent = pz.s.toFixed(1) + "×";
       }
       function clampPan() {
         if (pz.s <= 1) { pz.x = 0; pz.y = 0; return; }
@@ -6698,6 +6821,18 @@
         zoomAt(view.clientWidth / 2, view.clientHeight / 2, 1 / 1.3);
       });
       document.getElementById("zoomResetBtn").addEventListener("click", resetZoom);
+      var zbReset = document.getElementById("zoomBadgeReset");
+      if (zbReset) zbReset.addEventListener("click", resetZoom);
+      view.addEventListener("dblclick", function (e) { e.preventDefault(); resetZoom(); });
+      /* Shared handle for the QoL layer: pinch zoom, drag-pan
+         while zoomed and the corner badge all drive the same
+         transform state from here.                            */
+      window.eddyZoomCtl = {
+        get: function () { return { s: pz.s, x: pz.x, y: pz.y }; },
+        zoomAt: zoomAt,
+        reset: resetZoom,
+        panBy: function (dx, dy) { pz.x += dx; pz.y += dy; clampPan(); applyZoom(); }
+      };
       view.addEventListener("wheel", function (e) {
         if (!document.getElementById("photoArea").classList.contains("hidden")) {
           e.preventDefault();
@@ -9511,6 +9646,8 @@
         img.src = d.photo;
       }
 
+      window.eddyRestoreDraft = restoreDraft;
+
       /* ---------- Offer the draft on load ---------- */
       var savedDraft = null;
       try { savedDraft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); } catch (e) { savedDraft = null; }
@@ -11029,6 +11166,691 @@
       }
       var trendsBtn = document.querySelector('.rail-btn[data-view="trends"]');
       if (trendsBtn) trendsBtn.addEventListener("click", renderTrends);
+    })();
+    </script>
+    <script>
+    "use strict";
+    /* ---------------- Eddy QoL update: keyboard shortcuts, undo/redo,
+       dot selection + bulk assign, sample templates, recent samples,
+       tray-zoom extras (pinch, drag-pan, double-click reset) --------
+       Layered over the existing workbench without touching the
+       counting pipeline. It drives the same globals everything
+       else uses (dets, group rows, addTallyRow, renderDots), so
+       the autosave draft — which watches the DOM — picks up every
+       change, including undo/redo restores, on its own.          */
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+      function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* session only */ } }
+      var wrap = $("photoWrap"), img = $("photoImg"), view = $("zoomView");
+      if (!wrap || !img || !view) return;
+      var QUICK = TAXA.slice(0, 10).map(function (t) { return t.common; });
+
+      /* ================= Dot selection ================= */
+      var sel = new Set();
+      var anchor = null;
+      function liveSel() {
+        sel.forEach(function (d) { if (dets.indexOf(d) < 0) sel.delete(d); });
+        if (anchor && dets.indexOf(anchor) < 0) anchor = null;
+        return sel;
+      }
+      function paintSel() {
+        liveSel();
+        wrap.querySelectorAll(".dot").forEach(function (el, i) {
+          el.classList.toggle("sel", sel.has(dets[i]));
+        });
+        var bar = $("bulkBar");
+        if (bar) {
+          if (sel.size >= 2) {
+            bar.classList.remove("hidden");
+            $("bulkLabel").textContent = "Assign " + sel.size + " dots to:";
+          } else bar.classList.add("hidden");
+        }
+      }
+      function setSel(list, anch) {
+        sel = new Set(list || []);
+        anchor = anch || (list && list.length ? list[list.length - 1] : null);
+        paintSel();
+      }
+      function clearSel() { if (!sel.size) return; sel.clear(); anchor = null; paintSel(); }
+      function toggleSel(d) { if (sel.has(d)) sel.delete(d); else sel.add(d); anchor = d; paintSel(); }
+      new MutationObserver(function () { paintSel(); }).observe(wrap, { childList: true });
+
+      /* ================= Assign dots to a taxon =================
+         Moves the given dets into the group row named for the
+         taxon, creating that group (next letter, tray order)
+         when none exists yet — the same membership machinery
+         Adjust members uses, so counts, close-ups, the sheet
+         and the autosave all follow.                          */
+      function assignToTaxon(detList, common) {
+        var list = (detList || []).filter(function (d) { return dets.indexOf(d) >= 0; });
+        if (!list.length || !common) return;
+        var affected = [];
+        groupRowList().forEach(function (r) {
+          var before = (r._members || []).length;
+          if (before) {
+            r._members = r._members.filter(function (m) { return list.indexOf(m) < 0; });
+            if (r._members.length !== before) affected.push(r);
+          }
+        });
+        var target = null;
+        groupRowList().forEach(function (r) {
+          if (!target && r._commonSel && r._commonSel.value === common) target = r;
+        });
+        if (!target) {
+          target = addTallyRow({ count: list.length, group: { letter: nextGroupLetter(), desc: describeMembers(list), members: list.slice() } });
+          var listEl = $("tallyList");
+          listEl.insertBefore(target, listEl.firstChild);
+          if (target._commonSel) {
+            target._commonSel.value = common;
+            target._commonSel.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          if (window.eddyMarkNamed) window.eddyMarkNamed(target);
+        } else {
+          target._members = liveMembers(target).concat(list).sort(byTrayOrder);
+        }
+        affected.forEach(function (r) { if (r !== target && (r._members || []).length) syncGroupRow(r); });
+        syncGroupRow(target);
+        settleGroupEdit(target);
+        groupedAt = dets.length;
+        $("groupStatus").textContent = "Assigned " + list.length + (list.length === 1 ? " dot" : " dots") + " to " + common + " — Group " + rowLetterOf(target) + " in the tally. Undo (U) reverses it.";
+        $("groupStatus").className = "status good";
+        paintSel();
+      }
+      function removeDet(d) {
+        var i = dets.indexOf(d);
+        if (i < 0) return;
+        dets.splice(i, 1);
+        renderDots(); updateCheck(); paintSel();
+      }
+      function deleteSelected() {
+        liveSel();
+        if (!sel.size) return;
+        var n = sel.size;
+        var drop = sel;
+        dets = dets.filter(function (d) { return !drop.has(d); });
+        sel.clear(); anchor = null;
+        renderDots(); updateCheck(); paintSel();
+        $("countStatus").textContent = "Removed " + n + (n === 1 ? " dot" : " dots") + " — Undo (U) brings them back.";
+        $("countStatus").className = "status";
+      }
+
+      /* ================= Undo / redo =================
+         Snapshot-diff engine: every counting change (dot add or
+         remove, counting, grouping, member edits, assignment,
+         row edits) funnels into the dots on #photoWrap or the
+         rows in #tallyList, so watching those — plus clicks and
+         field edits — catches them all without hooking each
+         button. A change that differs from the last snapshot
+         pushes that snapshot onto the undo stack (60 deep).   */
+      function captureState() {
+        var rows = [];
+        document.querySelectorAll(".tally-row").forEach(function (row) {
+          var sels = row.querySelectorAll("select");
+          if (sels.length < 2) return;
+          var cntEl = row.querySelector(".cnt"), feedEl = row.querySelector(".feed");
+          var rec = {
+            g: row.classList.contains("group-row") ? 1 : 0,
+            c: sels[0].value, f: sels[1].value,
+            fd: feedEl ? feedEl.value : "", n: cntEl ? cntEl.value : "0"
+          };
+          if (rec.g) {
+            var gl = row.querySelector(".gletter"), gd = row.querySelector(".gdesc");
+            rec.L = gl ? gl.textContent.replace(/^Group\s+/, "") : "";
+            rec.d = gd ? gd.textContent.replace(/^\d+\s+organisms?\s+·\s+/, "") : "";
+            rec.m = (row._members || []).map(function (m) { return dets.indexOf(m); })
+              .filter(function (i) { return i >= 0; });
+            if (row._proto) rec.p = { taxon: row._proto.taxon || "", family: row._proto.family || "", factory: row._proto.factory ? 1 : 0, name: row._proto.name || "" };
+          }
+          rows.push(rec);
+        });
+        return {
+          d: dets.map(function (x) { var o = {}; for (var k in x) o[k] = x[k]; return o; }),
+          r: rows
+        };
+      }
+      function tuneRow(row, rec) {
+        if (row._commonSel && rec.c) {
+          row._commonSel.value = rec.c;
+          row._commonSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        if (row._famSel && rec.f) {
+          var has = Array.prototype.some.call(row._famSel.options, function (o) { return o.value === rec.f; });
+          if (!has) {
+            var o = document.createElement("option");
+            o.value = rec.f; o.textContent = rec.f;
+            row._famSel.appendChild(o);
+          }
+          row._famSel.value = rec.f;
+          row._famSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        var feedEl = row.querySelector(".feed");
+        if (feedEl && rec.fd) {
+          var fh = Array.prototype.some.call(feedEl.options, function (o) { return o.value === rec.fd; });
+          if (!fh) {
+            var fo = document.createElement("option");
+            fo.value = rec.fd; fo.textContent = rec.fd;
+            feedEl.appendChild(fo);
+          }
+          feedEl.value = rec.fd;
+        }
+        var cntEl = row.querySelector(".cnt");
+        if (cntEl) cntEl.value = rec.n;
+      }
+      function applyState(s) {
+        /* Rebuilding the rows empties the bench for a moment,
+           which the step flow reads as "sample finished" and
+           jumps back to Step 1 — remember the pane the user is
+           standing on and put it back afterwards.              */
+        var paneEl = document.querySelector(".step-pane.active");
+        var paneN = paneEl ? parseInt(paneEl.getAttribute("data-pane"), 10) : 0;
+        restoring = true;
+        try {
+          groupedAt = -1;
+          dets = s.d.map(function (x) { var o = {}; for (var k in x) o[k] = x[k]; return o; });
+          renderDots();
+          document.querySelectorAll(".tally-row").forEach(function (r) { r.remove(); });
+          var groupRows = [];
+          s.r.forEach(function (rec) {
+            var row;
+            if (rec.g) {
+              row = addTallyRow({
+                count: parseInt(rec.n, 10) || 0,
+                group: {
+                  letter: rec.L || "A", desc: rec.d || "",
+                  members: (rec.m || []).map(function (i) { return dets[i]; }).filter(Boolean),
+                  proto: rec.p ? { taxon: rec.p.taxon, family: rec.p.family, factory: !!rec.p.factory, name: rec.p.name } : null
+                }
+              });
+              groupRows.push(row);
+            } else row = addTallyRow();
+            tuneRow(row, rec);
+          });
+          var list = $("tallyList");
+          for (var i = groupRows.length - 1; i >= 0; i--) list.insertBefore(groupRows[i], list.firstChild);
+          if (!document.querySelector(".tally-row")) addTallyRow();
+          groupedAt = groupRows.length ? dets.length : -1;
+          updateCheck();
+          if (paneN && typeof showStep === "function") showStep(paneN);
+        } finally {
+          lastState = captureState();
+          lastJson = JSON.stringify(lastState);
+          restoring = false;
+          syncUndoBtns(); paintSel();
+        }
+      }
+      var undoStack = [], redoStack = [], lastState = null, lastJson = "";
+      var restoring = false, historySuspendUntil = 0, noteTimer = null;
+      var MAXH = 60;
+      function syncUndoBtns() {
+        var u = $("undoBtn"), r = $("redoBtn");
+        if (u) { u.disabled = !undoStack.length; u.title = undoStack.length ? "Undo the last counting change (U) — " + undoStack.length + " step" + (undoStack.length === 1 ? "" : "s") + " back" : "Nothing to undo"; }
+        if (r) { r.disabled = !redoStack.length; r.title = redoStack.length ? "Redo (Shift+U)" : "Nothing to redo"; }
+      }
+      function noteChange() {
+        if (restoring) return;
+        var s = captureState(), j = JSON.stringify(s);
+        if (j === lastJson) return;
+        if (Date.now() < historySuspendUntil) { lastState = s; lastJson = j; return; }
+        if (lastState) {
+          undoStack.push(lastState);
+          if (undoStack.length > MAXH) undoStack.shift();
+          redoStack.length = 0;
+        }
+        lastState = s; lastJson = j;
+        syncUndoBtns();
+      }
+      function scheduleNote() {
+        if (noteTimer) clearTimeout(noteTimer);
+        noteTimer = setTimeout(function () { noteTimer = null; noteChange(); }, 280);
+      }
+      function doUndo() {
+        if (!undoStack.length) return;
+        var s = undoStack.pop();
+        redoStack.push(lastState);
+        applyState(s);
+        $("countStatus").textContent = "Undid the last counting change — Shift+U redoes it.";
+        $("countStatus").className = "status";
+      }
+      function doRedo() {
+        if (!redoStack.length) return;
+        var s = redoStack.pop();
+        undoStack.push(lastState);
+        applyState(s);
+        $("countStatus").textContent = "Redone.";
+        $("countStatus").className = "status";
+      }
+      $("undoBtn").addEventListener("click", doUndo);
+      $("redoBtn").addEventListener("click", doRedo);
+      new MutationObserver(scheduleNote).observe(wrap, { childList: true });
+      new MutationObserver(scheduleNote).observe($("tallyList"), { childList: true, subtree: true });
+      $("tallyList").addEventListener("input", scheduleNote);
+      $("tallyList").addEventListener("change", scheduleNote);
+      document.addEventListener("click", scheduleNote, true);
+      /* A new photo is a new sample on the bench: history and
+         selection start over for it.                          */
+      new MutationObserver(function () {
+        undoStack.length = 0; redoStack.length = 0;
+        historySuspendUntil = Date.now() + 900;
+        clearSel(); syncUndoBtns();
+        setTimeout(function () {
+          if (!restoring) { lastState = captureState(); lastJson = JSON.stringify(lastState); }
+        }, 1000);
+      }).observe(img, { attributes: true, attributeFilter: ["src"] });
+
+      /* ================= Pointer: selection, long-press, pan, pinch ===
+         One capture-phase handler on the photo wrap. Plain taps
+         on empty photo at 1× are left alone (the photo's own
+         add/remove handler runs as always); taps landing on a
+         dot, all touch taps, and everything while zoomed are
+         deferred to pointer-up so a drag can become a pan and a
+         hold can become a multi-select instead of a stray dot. */
+      function calArmedNow() {
+        var bar = $("calBar"), done = $("calDoneRow");
+        return !!(bar && !bar.classList.contains("hidden") && done && done.classList.contains("hidden"));
+      }
+      function panModeOn() { var b = $("modePan"); return !!(b && b.classList.contains("active")); }
+      function imgPt(cx, cy) {
+        var rect = img.getBoundingClientRect();
+        if (!rect.width || !rect.height || !imgW) return null;
+        return { px: (cx - rect.left) / rect.width * imgW, py: (cy - rect.top) / rect.height * imgH };
+      }
+      function nearestDot(px, py, tol) {
+        var best = -1, bd = Infinity;
+        dets.forEach(function (d, i) {
+          var dd = (d.x - px) * (d.x - px) + (d.y - py) * (d.y - py);
+          if (dd < bd) { bd = dd; best = i; }
+        });
+        return (best >= 0 && bd <= tol * tol) ? best : -1;
+      }
+      function removeNearest(px, py) {
+        var tol = Math.max(48, imgW * 0.05);
+        var ni = nearestDot(px, py, tol);
+        if (ni >= 0) removeDet(dets[ni]);
+      }
+      var press = null, lastTap = { t: 0, x: 0, y: 0 };
+      wrap.addEventListener("pointerdown", function (e) {
+        if (!imgW || !photoDataUrl || press) return;
+        if (e.button !== undefined && e.button > 0) return;
+        if (calArmedNow() || panModeOn()) return;
+        var pt = imgPt(e.clientX, e.clientY);
+        if (!pt) return;
+        var rect = img.getBoundingClientRect();
+        var ni = nearestDot(pt.px, pt.py, (20 / rect.width) * imgW);
+        var zoomed = !!(window.eddyZoomCtl && window.eddyZoomCtl.get().s > 1);
+        var isTouch = e.pointerType === "touch";
+        if (ni < 0 && !zoomed && !isTouch) {
+          if (!e.shiftKey) clearSel();
+          return;   // the photo's own tap handler does its usual thing
+        }
+        e.preventDefault(); e.stopPropagation();
+        press = {
+          id: e.pointerId, det: ni >= 0 ? dets[ni] : null,
+          sx: e.clientX, sy: e.clientY, shift: !!e.shiftKey,
+          zoom: zoomed, moved: false, pdx: 0, pdy: 0, longFired: false, longTimer: null
+        };
+        if (isTouch && press.det) {
+          press.longTimer = setTimeout(function () {
+            if (press) { press.longFired = true; toggleSel(press.det); }
+          }, 450);
+        }
+      }, true);
+      window.addEventListener("pointermove", function (e) {
+        if (!press || e.pointerId !== press.id) return;
+        var dx = e.clientX - press.sx, dy = e.clientY - press.sy;
+        if ((Math.abs(dx) > 3 || Math.abs(dy) > 3) && press.longTimer) {
+          clearTimeout(press.longTimer); press.longTimer = null;
+        }
+        if (press.zoom && window.eddyZoomCtl && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+          press.moved = true;
+          window.eddyZoomCtl.panBy(dx - press.pdx, dy - press.pdy);
+          press.pdx = dx; press.pdy = dy;
+        } else if (Math.abs(dx) > 8 || Math.abs(dy) > 8) press.moved = true;
+      });
+      window.addEventListener("pointerup", function (e) {
+        if (!press || e.pointerId !== press.id) return;
+        var p = press; press = null;
+        if (p.longTimer) clearTimeout(p.longTimer);
+        if (p.longFired || p.moved || pinching) return;
+        var pt = imgPt(e.clientX, e.clientY);
+        if (!pt) return;
+        if (p.zoom) {
+          var now = Date.now();
+          if (now - lastTap.t < 350 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 12) {
+            lastTap.t = 0;
+            return;   // second half of a double-tap — the zoom reset owns it
+          }
+          lastTap = { t: now, x: e.clientX, y: e.clientY };
+        }
+        if (p.shift && p.det) { toggleSel(p.det); return; }
+        if (mode === "remove") { removeNearest(pt.px, pt.py); return; }
+        if (p.det) { setSel([p.det], p.det); return; }
+        dets.push({ x: Math.round(pt.px), y: Math.round(pt.py), r: 16 });
+        renderDots(); updateCheck();
+      });
+      window.addEventListener("pointercancel", function (e) {
+        if (press && e.pointerId === press.id) {
+          if (press.longTimer) clearTimeout(press.longTimer);
+          press = null;
+        }
+      });
+      /* Pinch zoom: two touch pointers on the photo drive the
+         shared zoom transform, centred on their midpoint.     */
+      var tPtrs = {}, pinching = false, pinchD = 0;
+      view.addEventListener("pointerdown", function (e) {
+        if (e.pointerType !== "touch") return;
+        tPtrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+        if (Object.keys(tPtrs).length === 2) {
+          pinching = true;
+          var ps = Object.keys(tPtrs).map(function (k) { return tPtrs[k]; });
+          pinchD = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) || 1;
+          if (press) { if (press.longTimer) clearTimeout(press.longTimer); press = null; }
+          e.preventDefault(); e.stopPropagation();
+        }
+      }, true);
+      view.addEventListener("pointermove", function (e) {
+        if (e.pointerType !== "touch" || !tPtrs[e.pointerId]) return;
+        tPtrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+        if (pinching && Object.keys(tPtrs).length === 2 && window.eddyZoomCtl) {
+          var ps = Object.keys(tPtrs).map(function (k) { return tPtrs[k]; });
+          var d = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) || 1;
+          var r = view.getBoundingClientRect();
+          window.eddyZoomCtl.zoomAt((ps[0].x + ps[1].x) / 2 - r.left, (ps[0].y + ps[1].y) / 2 - r.top, d / pinchD);
+          pinchD = d;
+          e.preventDefault();
+        }
+      }, true);
+      function tEnd(e) {
+        if (e.pointerType !== "touch") return;
+        delete tPtrs[e.pointerId];
+        if (Object.keys(tPtrs).length < 2) pinching = false;
+      }
+      view.addEventListener("pointerup", tEnd, true);
+      view.addEventListener("pointercancel", tEnd, true);
+
+      /* ================= Keyboard shortcuts ================= */
+      document.addEventListener("keydown", function (e) {
+        var k = e.key;
+        if (k === "Escape" && !$("recentMenu").classList.contains("hidden")) { closeRecent(); return; }
+        if (k === "Escape" && !$("shortcutsOverlay").classList.contains("hidden")) { $("shortcutsOverlay").classList.add("hidden"); return; }
+        var t = e.target;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+        if (!$("view-workbench").classList.contains("active")) return;
+        if (document.querySelector(".overlay:not(.hidden)")) return;
+        if ((e.ctrlKey || e.metaKey) && (k === "z" || k === "Z")) { e.preventDefault(); doRedo(); return; }
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (k.length === 1 && k >= "0" && k <= "9") {
+          liveSel();
+          if (sel.size) {
+            e.preventDefault();
+            assignToTaxon(Array.from(sel), QUICK[k === "0" ? 9 : parseInt(k, 10) - 1]);
+          }
+          return;
+        }
+        if (k === "ArrowRight" || k === "ArrowLeft") {
+          if (!dets.length) return;
+          e.preventDefault();
+          var cur = anchor ? dets.indexOf(anchor) : -1;
+          var nx;
+          if (cur < 0) nx = k === "ArrowRight" ? 0 : dets.length - 1;
+          else nx = k === "ArrowRight" ? (cur + 1) % dets.length : (cur - 1 + dets.length) % dets.length;
+          setSel([dets[nx]], dets[nx]);
+          return;
+        }
+        if (k === "u") { e.preventDefault(); doUndo(); return; }
+        if (k === "U") { e.preventDefault(); doRedo(); return; }
+        if (k === "Delete" || k === "Backspace") {
+          if (sel.size) { e.preventDefault(); deleteSelected(); }
+          return;
+        }
+        if (k === "Escape") { clearSel(); return; }
+      });
+
+      /* ================= Quick-assign chips + bulk bar ================= */
+      var qc = $("quickChips");
+      QUICK.forEach(function (name, i) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "quick-chip";
+        var kn = document.createElement("span");
+        kn.className = "qk"; kn.textContent = i === 9 ? "0" : String(i + 1);
+        b.appendChild(kn);
+        b.appendChild(document.createTextNode(name));
+        b.title = "Assign the selected dot(s) to " + name + " (key " + (i === 9 ? "0" : String(i + 1)) + ")";
+        b.addEventListener("click", function () {
+          liveSel();
+          if (!sel.size) {
+            $("countStatus").textContent = "Select a dot first — click one on the photo (Shift+click or long-press for several), then assign it.";
+            $("countStatus").className = "status";
+            return;
+          }
+          assignToTaxon(Array.from(sel), name);
+        });
+        qc.appendChild(b);
+      });
+      var bulkSel = $("bulkTaxon");
+      TAXA.forEach(function (t) {
+        var o = document.createElement("option");
+        o.value = t.common; o.textContent = t.common;
+        bulkSel.appendChild(o);
+      });
+      $("bulkAssignBtn").addEventListener("click", function () {
+        liveSel();
+        if (sel.size >= 2) assignToTaxon(Array.from(sel), bulkSel.value);
+      });
+      $("bulkClearBtn").addEventListener("click", clearSel);
+
+      /* ================= Shortcuts dialog ================= */
+      $("shortcutsBtn").addEventListener("click", function () { $("shortcutsOverlay").classList.remove("hidden"); });
+      $("shortcutsClose").addEventListener("click", function () { $("shortcutsOverlay").classList.add("hidden"); });
+      $("shortcutsOverlay").addEventListener("click", function (e) {
+        if (e.target === this) this.classList.add("hidden");
+      });
+
+      /* ================= Sample templates ================= */
+      var TPL_KEY = "eddy_templates_v1";
+      var tpls = null;
+      try { var parsed = JSON.parse(lsGet(TPL_KEY) || "null"); if (Array.isArray(parsed)) tpls = parsed; } catch (e) { tpls = null; }
+      if (!tpls) {
+        tpls = [{ name: "Quittapahilla riffle", site: "Quittapahilla Creek, riffle", notes: "tray 1 of 3", pattern: "QUI-" }];
+        lsSet(TPL_KEY, JSON.stringify(tpls));
+      }
+      function saveTpls() { lsSet(TPL_KEY, JSON.stringify(tpls)); }
+      function renderTplUI() {
+        var selEl = $("tplSel");
+        var cur = selEl.value;
+        selEl.innerHTML = "";
+        var o0 = document.createElement("option");
+        o0.value = ""; o0.textContent = "No template";
+        selEl.appendChild(o0);
+        tpls.forEach(function (t) {
+          var o = document.createElement("option");
+          o.value = t.name; o.textContent = t.name;
+          selEl.appendChild(o);
+        });
+        selEl.value = tpls.some(function (t) { return t.name === cur; }) ? cur : "";
+        var host = $("tplList");
+        host.innerHTML = "";
+        if (!tpls.length) {
+          var p = document.createElement("p");
+          p.className = "hint";
+          p.textContent = "No templates yet — set a Site and Notes, name the template above, and Save.";
+          host.appendChild(p);
+          return;
+        }
+        tpls.forEach(function (t) {
+          var row = document.createElement("div");
+          row.className = "tpl-row";
+          var info = document.createElement("div");
+          info.className = "tinfo";
+          var nm = document.createElement("div");
+          nm.className = "tname"; nm.textContent = t.name;
+          var det = document.createElement("div");
+          det.className = "tdet";
+          det.textContent = (t.site || "no site") + (t.notes ? " · " + t.notes : "") + (t.pattern ? " · ID pattern " + t.pattern : "");
+          det.title = det.textContent;
+          info.appendChild(nm); info.appendChild(det);
+          var ed = document.createElement("button");
+          ed.type = "button"; ed.className = "btn btn-ghost btn-small"; ed.textContent = "Edit";
+          ed.setAttribute("aria-label", "Edit template " + t.name);
+          ed.addEventListener("click", function () {
+            $("tplName").value = t.name;
+            $("site").value = t.site || "";
+            $("site").dispatchEvent(new Event("input", { bubbles: true }));
+            $("notes").value = t.notes || "";
+            $("notes").dispatchEvent(new Event("input", { bubbles: true }));
+            $("tplStatus").textContent = "Editing “" + t.name + "” — its Site and Notes are in the fields now; adjust them, then “Save current as template” writes over it.";
+          });
+          var del = document.createElement("button");
+          del.type = "button"; del.className = "btn btn-ghost btn-small"; del.textContent = "Delete";
+          del.setAttribute("aria-label", "Delete template " + t.name);
+          del.addEventListener("click", function () {
+            window.eddyConfirm({
+              title: "Delete template “" + t.name + "”?",
+              text: "The template leaves the list. Samples you already made with it are untouched.",
+              okLabel: "Delete template"
+            }).then(function (ok) {
+              if (!ok) return;
+              tpls = tpls.filter(function (x) { return x.name !== t.name; });
+              saveTpls(); renderTplUI();
+              $("tplStatus").textContent = "Deleted template “" + t.name + "”.";
+            });
+          });
+          row.appendChild(info); row.appendChild(ed); row.appendChild(del);
+          host.appendChild(row);
+        });
+      }
+      $("tplSel").addEventListener("change", function () {
+        var name = this.value;
+        if (!name) return;
+        var t = tpls.filter(function (x) { return x.name === name; })[0];
+        if (!t) return;
+        $("site").value = t.site || "";
+        $("site").dispatchEvent(new Event("input", { bubbles: true }));
+        $("notes").value = t.notes || "";
+        $("notes").dispatchEvent(new Event("input", { bubbles: true }));
+        if (typeof flashEl === "function") flashEl($("site"));
+      });
+      $("tplSaveBtn").addEventListener("click", function () {
+        var nm = $("tplName").value.trim();
+        if (!nm) { $("tplStatus").textContent = "Give the template a name first, then Save."; return; }
+        var rec = {
+          name: nm,
+          site: $("site").value.trim(),
+          notes: $("notes").value.trim(),
+          pattern: ($("sampleId").value || "").replace(/\d+\s*$/, "")
+        };
+        var ix = -1;
+        tpls.forEach(function (x, i) { if (x.name === nm) ix = i; });
+        if (ix >= 0) tpls[ix] = rec; else tpls.push(rec);
+        saveTpls(); renderTplUI();
+        $("tplSel").value = nm;
+        $("tplStatus").textContent = "Saved template “" + nm + "” — Site “" + (rec.site || "—") + "”, Notes “" + (rec.notes || "—") + "”.";
+      });
+      renderTplUI();
+
+      /* ================= Recent samples ================= */
+      var recentBtn = $("recentBtn"), recentMenu = $("recentMenu");
+      function closeRecent() {
+        recentMenu.classList.add("hidden");
+        recentBtn.setAttribute("aria-expanded", "false");
+      }
+      function loadRecent(rec) {
+        var doLoad = function () {
+          if (!window.eddyRestoreDraft) return;
+          var d = {
+            v: 1, savedAt: rec.savedAt || Date.now(),
+            date: rec.date || "", site: rec.site || "",
+            lat: rec.lat != null ? rec.lat : null, lng: rec.lng != null ? rec.lng : null,
+            sampleId: rec.sampleId || "", notes: rec.notes || "",
+            photo: rec.photo || "", photoName: "library-photo.jpg",
+            imgW: rec.imgW || 0, imgH: rec.imgH || 0,
+            dets: (rec.dets || []).map(function (dt) {
+              return {
+                fx: rec.imgW ? dt.x / rec.imgW : 0, fy: rec.imgH ? dt.y / rec.imgH : 0,
+                fr: rec.imgW ? 14 / rec.imgW : 0, fw: 0, fh: 0
+              };
+            }),
+            cal: null, chat: rec.chat || [],
+            rows: (rec.rows || []).map(function (r) {
+              return { group: 0, common: r.common, family: r.family, feed: r.feed || "", count: String(r.count || 0) };
+            })
+          };
+          historySuspendUntil = Date.now() + 1600;
+          undoStack.length = 0; redoStack.length = 0;
+          clearSel(); syncUndoBtns();
+          window.eddyRestoreDraft(d);
+          var wb = document.querySelector('.rail-btn[data-view="workbench"]');
+          if (wb) wb.click();
+          if (typeof showStep === "function") showStep(rec.photo ? 2 : 1);
+          setTimeout(function () {
+            if (!restoring) { lastState = captureState(); lastJson = JSON.stringify(lastState); }
+          }, 1700);
+        };
+        var busy = !!photoDataUrl || dets.length > 0 ||
+          Array.prototype.some.call(document.querySelectorAll(".tally-row .cnt"), function (el) { return (parseInt(el.value, 10) || 0) > 0; });
+        if (busy && window.eddyConfirm) {
+          window.eddyConfirm({
+            title: "Load “" + (rec.sampleId || "this sample") + "” into the workbench?",
+            text: "It replaces what's on the bench now. The loaded sample stays in your library either way — but work in progress on the bench is only kept if you finished it into the library first.",
+            okLabel: "Load sample"
+          }).then(function (ok) { if (ok) doLoad(); });
+        } else doLoad();
+      }
+      function renderRecent() {
+        recentMenu.innerHTML = "";
+        var load = document.createElement("div");
+        load.className = "recent-empty"; load.textContent = "Loading…";
+        recentMenu.appendChild(load);
+        if (!window.eddyLib || !window.eddyLib.all) {
+          load.textContent = "The sample library isn't available right now.";
+          return;
+        }
+        window.eddyLib.all().then(function (recs) {
+          var last8 = (recs || []).slice().sort(function (a, b) { return b.savedAt - a.savedAt; }).slice(0, 8);
+          recentMenu.innerHTML = "";
+          if (!last8.length) {
+            var e0 = document.createElement("div");
+            e0.className = "recent-empty";
+            e0.textContent = "No finished samples yet — finish a sample and it will appear here for one-tap reloading.";
+            recentMenu.appendChild(e0);
+            return;
+          }
+          last8.forEach(function (rec) {
+            var b = document.createElement("button");
+            b.type = "button"; b.className = "recent-item"; b.setAttribute("role", "menuitem");
+            var id = document.createElement("span");
+            id.className = "rid"; id.textContent = rec.sampleId || "unspecified";
+            var dt = document.createElement("span");
+            dt.className = "rdt";
+            dt.textContent = rec.date || (rec.savedAt ? new Date(rec.savedAt).toLocaleDateString() : "");
+            b.appendChild(id); b.appendChild(dt);
+            b.addEventListener("click", function () { closeRecent(); loadRecent(rec); });
+            recentMenu.appendChild(b);
+          });
+        }).catch(function () {
+          recentMenu.innerHTML = "";
+          var e1 = document.createElement("div");
+          e1.className = "recent-empty"; e1.textContent = "Couldn't read the sample library.";
+          recentMenu.appendChild(e1);
+        });
+      }
+      recentBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (recentMenu.classList.contains("hidden")) {
+          recentMenu.classList.remove("hidden");
+          recentBtn.setAttribute("aria-expanded", "true");
+          renderRecent();
+        } else closeRecent();
+      });
+      document.addEventListener("click", function (e) {
+        if (!recentMenu.classList.contains("hidden") && !recentMenu.contains(e.target) && e.target !== recentBtn) closeRecent();
+      });
+
+      /* ================= Init ================= */
+      lastState = captureState();
+      lastJson = JSON.stringify(lastState);
+      syncUndoBtns();
+      paintSel();
     })();
     </script>
 
