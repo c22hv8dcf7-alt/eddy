@@ -198,6 +198,25 @@
       #camDots{position:absolute;inset:0;pointer-events:none}
       .cam-live{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.72);color:#fff;font-size:.72rem;font-weight:700;letter-spacing:.09em;padding:5px 10px;border-radius:999px;line-height:1;z-index:2}
       .cam-live i{width:8px;height:8px;border-radius:50%;background:#ff5347;display:block;flex:none}
+      /* ---------- Live Mode (webcam auto-count) ---------- */
+      .wb-modebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:2px 0 14px}
+      .wb-mode-lab{font-weight:700;font-size:.9rem;color:var(--ink-2)}
+      .wb-modebar .seg-ctl{max-width:360px}
+      #liveModeAlert{margin:0 0 14px}
+      #liveWrap{position:relative;border-radius:10px;overflow:hidden;line-height:0;background:var(--photo-bg);margin-top:12px;border:1px solid var(--line)}
+      #liveVideo{width:100%;display:block}
+      #liveDots{position:absolute;inset:0;pointer-events:none}
+      .live-stab{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:7px;background:rgba(20,16,4,.8);color:#ffd98a;font-size:.78rem;font-weight:700;padding:6px 11px;border-radius:999px;line-height:1.2;z-index:2}
+      .live-stab i{width:8px;height:8px;border-radius:50%;background:#f2a81d;display:block;flex:none;animation:livePulse 1s ease-in-out infinite}
+      @keyframes livePulse{0%,100%{opacity:1}50%{opacity:.25}}
+      @media (prefers-reduced-motion: reduce){.live-stab i{animation:none}}
+      .live-locked{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.72);color:#fff;font-size:.75rem;font-weight:700;padding:6px 11px;border-radius:999px;line-height:1.2;z-index:2}
+      .live-error{margin-top:12px;border:1.5px solid var(--red);border-radius:10px;background:var(--panel-2);padding:12px 14px}
+      .live-error p{margin:0 0 10px;font-size:.95rem;line-height:1.45}
+      .live-count{font-family:"IBM Plex Mono",monospace;font-size:.92rem;font-weight:600;margin:10px 0 0;min-height:1.2em}
+      #photoArea.live-on #zoomView,#photoArea.live-on .photobar,#photoArea.live-on .calbar,
+      #photoArea.live-on .modebar,#photoArea.live-on #tapHint,#photoArea.live-on #quickBar,
+      #photoArea.live-on #dotListWrap,#photoArea.live-on #qualityBanner{display:none}
       .dot{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
         background:var(--dot);color:#fff;font-size:11px;font-weight:700;line-height:1;
         display:flex;align-items:center;justify-content:center;pointer-events:none;
@@ -1090,6 +1109,173 @@
         .card{padding:16px 14px}
       }
     </style>
+    <style>
+      /* ================= Phone UX layer (≤640px only) =================
+         Every rule that changes layout or size lives inside the
+         max-width:640px query, so wider screens render exactly as
+         before. The phone-only elements the companion script
+         builds (.phx-*) are display:none at every other width. */
+      .rail-btn.phx-tab{display:none !important}
+      .phx-stepper,.phx-lens,.phx-scrim,.phx-review,.phx-railshow{display:none}
+      .phx-sheet{display:none}
+      @media (max-width:640px){
+        html,body{overflow-x:hidden}
+
+        /* --- Bottom tab bar: five core tabs (Count · Tally · Reference · Map · More).
+           The other six views move under More as a list (companion script). --- */
+        .rail-btn[data-view="key"],.rail-btn[data-view="sheet"],.rail-btn[data-view="library"],
+        .rail-btn[data-view="trends"],.rail-btn[data-view="graphs"],.rail-btn[data-view="train"]{display:none}
+        .rail-btn.phx-tab{display:flex !important}
+        .rail-btn[data-view="workbench"]{order:1}
+        .rail-btn.phx-tally{order:2}
+        .rail-btn[data-view="reference"]{order:3}
+        .rail-btn[data-view="sites"]{order:4}
+        .rail-btn.phx-more{order:5}
+        .rail-btn[data-view="workbench"],.rail-btn[data-view="sites"],.rail-btn[data-view="reference"]{font-size:0}
+        .rail-btn[data-view="workbench"]::after,.rail-btn[data-view="sites"]::after,.rail-btn[data-view="reference"]::after{font-size:.6rem;line-height:1.1}
+        .rail-btn[data-view="workbench"]::after{content:"Count"}
+        .rail-btn[data-view="sites"]::after{content:"Map"}
+        .rail-btn[data-view="reference"]::after{content:"Guide"}
+        /* The bar slides away while the tray photo is being worked
+           (zoomed in or scrolled down over) and returns on scroll-up
+           or when the photo is left — toggled by the companion script. */
+        .rail{transition:transform .26s ease}
+        body.phx-railhide .rail{transform:translateY(calc(100% + 2px))}
+
+        /* --- Every button / interactive control at least 48px tall --- */
+        button{min-height:48px}
+        .btn{min-height:48px}
+        .photobar .btn{min-height:48px}
+        .seg-ctl button{min-height:48px}
+        .zoom-ctl button{width:48px;height:48px}
+        #zoomBadgeReset{min-height:48px;padding:8px 12px}
+        .stepper button{width:48px;height:48px}
+        .stepper input{min-height:48px}
+        .rm-row{min-height:48px}
+        .step{min-height:48px}
+        summary{min-height:48px;padding-top:12px;padding-bottom:12px;box-sizing:border-box}
+        input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea{min-height:48px}
+        .drop #takePhotoBtn{width:100%;min-height:54px;font-size:1.02rem}
+
+        /* --- Workbench: the photo owns the touch surface.
+           touch-action:none keeps one-finger drags for pan / the
+           magnifier instead of scrolling the panel mid-aim; the
+           panel still scrolls from anywhere outside the photo. --- */
+        #zoomView{touch-action:none}
+        /* Dots keep their visual size but gain an invisible
+           expanded hit region — 26px dot + 6px ring = 38px,
+           30px coarse dot + ring = 42px, both past the 32px floor. */
+        .dot::after{content:"";position:absolute;inset:-6px;border-radius:50%}
+
+        /* --- Manual count steppers (companion script builds the bar) --- */
+        .phx-stepper{display:none;align-items:center;gap:12px;margin-top:12px;
+          background:var(--panel-2);border:1.5px solid var(--line-strong);border-radius:12px;padding:10px 12px}
+        .phx-stepper.on{display:flex}
+        .phx-stepper .ps-lab{font-weight:700;font-size:.85rem;color:var(--ink-2);margin-right:auto}
+        .phx-stepper .ps-val{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:1.2rem;min-width:3ch;text-align:center}
+        .phx-stepper .ps-btn{width:58px;height:56px;flex:none;border-radius:11px;cursor:pointer;
+          border:1.5px solid var(--line-strong);background:var(--panel-3);color:var(--ink);
+          font-family:inherit;font-size:1.55rem;font-weight:700;line-height:1}
+        .phx-stepper .ps-btn:active{background:var(--amber);color:var(--amber-ink)}
+
+        /* --- Big circular amber capture button: the drop zone's
+           Take Photo button becomes a glowing shutter-style disc
+           (dashed inner ring, camera glyph, TAP TO CAPTURE label
+           set by the companion script). It still clicks the same
+           #cameraInput, so the capture pipeline is unchanged. --- */
+        .drop #takePhotoBtn{position:relative;width:96px;height:96px;min-height:96px;border-radius:50%;
+          flex-direction:column;gap:2px;margin:16px auto 6px;padding:10px;
+          background:radial-gradient(circle at 50% 36%,#ffdf9e 0%,var(--amber) 56%,#d98a06 100%);
+          border:2px solid rgba(245,166,35,.7);color:var(--amber-ink);
+          box-shadow:0 0 0 7px rgba(245,166,35,.13),0 0 38px rgba(245,166,35,.5),inset 0 2px 8px rgba(255,255,255,.45);
+          font-size:.58rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;line-height:1.25}
+        .drop #takePhotoBtn::before{content:"";position:absolute;inset:6px;border-radius:50%;
+          border:2px dashed rgba(34,21,3,.4);pointer-events:none}
+        .drop #takePhotoBtn svg{width:30px;height:30px;color:var(--amber-ink)}
+        .drop #takePhotoBtn:active{transform:scale(.96)}
+
+        /* --- Tab-bar handle: appears only while the bar is slid
+           away over the tray photo; tapping it pins the bar back
+           until the photo is left (companion script). --- */
+        body.phx-railhide .phx-railshow{display:flex;position:fixed;left:50%;transform:translateX(-50%);
+          bottom:calc(10px + env(safe-area-inset-bottom));z-index:290;align-items:center;gap:7px;
+          min-height:48px;padding:10px 18px;border-radius:999px;cursor:pointer;
+          border:1.5px solid var(--amber-line);background:var(--panel-2);color:var(--amber-text);
+          font-family:inherit;font-weight:700;font-size:.88rem;box-shadow:var(--shadow)}
+
+        /* A held finger on the photo is aiming, not selecting:
+           no iOS callout or text selection mid-aim. */
+        #zoomView{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+
+        /* --- Magnifier lens: follows the finger after a ~500ms hold --- */
+        .phx-lens{position:fixed;width:152px;height:152px;margin:-76px 0 0 -76px;border-radius:50%;
+          border:3px solid var(--amber);background:var(--photo-bg);overflow:hidden;z-index:620;
+          pointer-events:none;box-shadow:0 12px 34px rgba(0,0,0,.55),inset 0 0 0 2px rgba(0,0,0,.35)}
+        .phx-lens.on{display:block}
+        .phx-lens img{position:absolute;max-width:none;pointer-events:none}
+        .phx-lens::before,.phx-lens::after{content:"";position:absolute;z-index:2;background:var(--amber);opacity:.95}
+        .phx-lens::before{left:50%;top:50%;width:26px;height:2px;margin:-1px 0 0 -13px}
+        .phx-lens::after{left:50%;top:50%;width:2px;height:26px;margin:-13px 0 0 -1px}
+
+        /* --- More sheet: the remaining views as a thumb list --- */
+        .phx-scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600}
+        .phx-scrim.on{display:block}
+        .phx-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:610;background:var(--panel);
+          border-top:1.5px solid var(--line-strong);border-radius:18px 18px 0 0;
+          padding:10px 12px calc(12px + env(safe-area-inset-bottom));
+          transform:translateY(106%);transition:transform .26s ease;box-shadow:0 -10px 34px rgba(0,0,0,.45)}
+        .phx-sheet.on{transform:none}
+        .phx-sheet-h{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin:2px 4px 6px}
+        .phx-sheet-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 8px;
+          background:none;border:none;border-bottom:1px solid var(--line);color:var(--ink);
+          font-family:inherit;font-size:1rem;font-weight:600;text-align:left;cursor:pointer}
+        .phx-sheet-row:last-child{border-bottom:none}
+        .phx-sheet-row svg{color:var(--amber-text);flex:none}
+        .phx-sheet-row .psr-chev{margin-left:auto;color:var(--ink-2);font-size:1.3rem}
+
+        /* --- Camera review: rotate / crop suggestions before the
+           captured shot joins the workbench (companion script). --- */
+        .phx-review{position:fixed;inset:0;z-index:630;background:#0c0e10;color:#f2f4f6;flex-direction:column}
+        .phx-review.on{display:flex}
+        .phx-review .pr-view{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:14px}
+        .phx-review .pr-view img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 10px 32px rgba(0,0,0,.55)}
+        .phx-review .pr-body{padding:2px 14px calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px}
+        .phx-review .pr-suggest{font-size:.93rem;line-height:1.45;color:#d3dbe1}
+        .phx-review .pr-status{font-size:.9rem;line-height:1.4;color:#ffd98a;min-height:1.2em}
+        .phx-review .pr-row{display:flex;gap:8px}
+        .phx-review .pr-btn{flex:1;min-height:52px;border-radius:11px;border:1.5px solid #3a4249;background:#1a1e22;
+          color:#f2f4f6;font-family:inherit;font-weight:700;font-size:.98rem;padding:10px 8px;cursor:pointer}
+        .phx-review .pr-btn.primary{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+        .phx-review .pr-crops{display:flex;gap:6px}
+        .phx-review .pr-crops button{flex:1;min-height:48px;border-radius:10px;border:1.5px solid #3a4249;background:#14171a;
+          color:#cfd6dd;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer}
+        .phx-review .pr-crops button.active{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+
+        /* --- Tally: accordion groups + swipe actions --- */
+        .tally-groupbar{flex-direction:column;align-items:stretch;gap:6px}
+        .tally-groupbar .seg-ctl{width:100%}
+        .tally-group-head{min-height:56px;border-radius:12px;padding:10px 14px}
+        .tally-group:not(.collapsed) .tally-group-body{animation:phxExpand .25s ease}
+        @keyframes phxExpand{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+        #tallyList .tally-row{position:relative;overflow:hidden}
+        .swipe-actions{position:absolute;top:0;right:0;bottom:0;z-index:3;display:flex;
+          transform:translateX(103%);transition:transform .22s ease}
+        .tally-row.sw-open .swipe-actions{transform:none}
+        .swipe-actions button{width:80px;min-height:100%;border:none;border-radius:0;
+          font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;color:#fff;padding:6px}
+        .swipe-actions .sw-edit{background:#0f766e}
+        .swipe-actions .sw-del{background:#b3372c}
+
+        /* --- Live Mode: toggle spans the row, controls stack
+           thumb-sized under the feed, error actions full width --- */
+        .wb-modebar{flex-direction:column;align-items:stretch;gap:6px}
+        .wb-modebar .seg-ctl{width:100%;max-width:none}
+        #livePanel .btn-row .btn{flex:1 1 40%}
+        .live-error .btn-row{flex-direction:column}
+        .live-error .btn-row .btn{width:100%}
+        .live-stab{font-size:.72rem;padding:5px 9px}
+      }
+    </style>
   </head>
   <body>
         <!-- ============ BOOT LOADING SCREEN ============ -->
@@ -1612,6 +1798,14 @@
               </div>
               <p class="steps-next" id="stepsNext" role="status" aria-live="polite"></p>
             </div>
+            <div class="wb-modebar">
+              <span class="wb-mode-lab" id="wbModeLabel">Counting mode</span>
+              <div class="seg-ctl" id="wbModeCtl" role="group" aria-labelledby="wbModeLabel">
+                <button type="button" data-wbmode="photo" class="active" aria-pressed="true">Photo Mode</button>
+                <button type="button" data-wbmode="live" aria-pressed="false">Live Mode</button>
+              </div>
+            </div>
+            <p class="status bad hidden" id="liveModeAlert" role="alert"></p>
             <div class="sample-strip">
               <div class="tf">
                 <label for="sampleDate">Date</label>
@@ -1674,6 +1868,31 @@
               <!-- STEP 2: COUNT -->
               <section class="panel step-pane" data-pane="2" aria-labelledby="h-count">
                 <div class="panel-head"><span class="ph-num">2</span><h2 id="h-count">Count</h2><span class="ph-note">numbered dots · tap to add or remove</span><span class="ai-badge hidden" id="yoloBadge">AI · YOLO11</span><button type="button" class="btn btn-ghost btn-small" id="shortcutsBtn" title="Keyboard shortcuts for counting">Shortcuts</button></div>
+
+                <div id="livePanel" class="hidden">
+                  <div id="liveWrap">
+                    <video id="liveVideo" autoplay playsinline muted aria-label="Live webcam view of the sorting tray"></video>
+                    <span class="cam-live hidden" id="liveBadge"><i></i>LIVE</span>
+                    <span class="live-stab hidden" id="liveStab"><i></i>stabilizing…</span>
+                    <span class="live-locked hidden" id="liveLockedBadge">Count locked in</span>
+                    <div id="liveDots" aria-hidden="true"></div>
+                  </div>
+                  <div id="liveError" class="live-error hidden" role="alert">
+                    <p id="liveErrorMsg"></p>
+                    <div class="btn-row">
+                      <button type="button" class="btn btn-primary" id="liveRetryBtn">Retry camera</button>
+                      <button type="button" class="btn btn-ghost" id="liveToPhotoBtn">Back to Photo Mode</button>
+                    </div>
+                  </div>
+                  <p class="seg-note" style="margin-top:10px">Point the camera down at the tray and sort as usual — Eddy re-counts the tray every couple of seconds and the tally on Step 3 follows. A detection joins the count after two sightings in a row and leaves after three misses, so a shifting specimen doesn't flicker the totals. When the tray is done, <strong>Lock In Count</strong>, then <strong>Generate Report</strong>.</p>
+                  <div class="btn-row" style="margin-top:10px">
+                    <button type="button" class="btn btn-primary" id="liveLockBtn">Lock In Count</button>
+                    <button type="button" class="btn btn-teal hidden" id="liveResumeBtn">Resume Live</button>
+                    <button type="button" class="btn btn-primary" id="liveReportBtn" disabled>Generate Report</button>
+                  </div>
+                  <p class="live-count" id="liveCountLine" aria-live="polite"></p>
+                  <p class="status" id="liveStatus" role="status" aria-live="polite"></p>
+                </div>
 
                 <div id="photoArea" class="hidden">
                   <div class="qbar hidden" id="qualityBanner" role="alert">
@@ -13489,6 +13708,815 @@
         if (document.readyState === "complete") setTimeout(maybeShow, 1600);
         else window.addEventListener("load", function () { setTimeout(maybeShow, 1600); });
       })();
+    </script>
+    <script>
+    "use strict";
+    /* ================= Phone UX layer (≤640px) =================
+       Companion to the phone stylesheet in <head>. Everything
+       here initialises only on phone-width viewports and drives
+       the app's existing globals — dets, renderDots, updateCheck,
+       showView, showStep, eddyZoomCtl — so the counting pipeline,
+       tally merge, grouping, YOLO and the reference library are
+       untouched. It adds: the 5-tab bar with a More sheet, the
+       auto-hiding tab bar with a tap-to-show handle, the
+       long-press magnifier, manual count steppers, the big
+       amber TAP TO CAPTURE button and tally-row swipe actions.
+       Pinch zoom itself already lives in the QoL layer via
+       eddyZoomCtl; this layer keeps the tab bar out of its way. */
+    (function () {
+      var mq = window.matchMedia("(max-width: 640px)");
+      var inited = false;
+      function init() {
+        if (inited || !mq.matches) return;
+        inited = true;
+        var $ = function (id) { return document.getElementById(id); };
+        var rail = document.querySelector(".rail");
+        var wbBtn = document.querySelector('.rail-btn[data-view="workbench"]');
+        var wrap = $("photoWrap"), img = $("photoImg"), view = $("zoomView"), photoArea = $("photoArea");
+        if (!rail || !wrap || !img || !view) return;
+
+        /* ---------- 5-tab bar: Tally + More join the rail ---------- */
+        var tallyTab = document.createElement("button");
+        tallyTab.type = "button";
+        tallyTab.className = "rail-btn phx-tab phx-tally";
+        tallyTab.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.4 5.6l1 1L6.6 4.4M3.4 11.6l1 1 2.2-2.2M3.4 17.6l1 1 2.2-2.2"/></svg>Tally';
+        var moreTab = document.createElement("button");
+        moreTab.type = "button";
+        moreTab.className = "rail-btn phx-tab phx-more";
+        moreTab.setAttribute("aria-haspopup", "dialog");
+        moreTab.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>More';
+        if (wbBtn && wbBtn.parentNode === rail) rail.insertBefore(tallyTab, wbBtn.nextSibling);
+        rail.appendChild(moreTab);
+
+        var MORE_VIEWS = { key: 1, sheet: 1, library: 1, trends: 1, graphs: 1, train: 1 };
+        var tallyActive = false, syncing = false;
+        function syncTabs() {
+          if (syncing) return;
+          syncing = true;
+          try {
+            var activeBtn = document.querySelector(".rail-btn.active[data-view]");
+            var v = activeBtn ? activeBtn.getAttribute("data-view") : "workbench";
+            if (tallyActive && v === "workbench") {
+              tallyTab.classList.add("active");
+              if (wbBtn) wbBtn.classList.remove("active");
+              moreTab.classList.remove("active");
+              return;
+            }
+            tallyTab.classList.remove("active");
+            moreTab.classList.toggle("active", !!MORE_VIEWS[v]);
+          } finally { syncing = false; }
+        }
+        tallyTab.addEventListener("click", function () {
+          closeSheet();
+          tallyActive = true;
+          if (wbBtn) wbBtn.click();
+          if (typeof showStep === "function") showStep(3);
+          syncTabs();
+        });
+        rail.addEventListener("click", function (e) {
+          var t = e.target && e.target.closest ? e.target.closest(".rail-btn") : null;
+          if (!t || t === tallyTab) return;
+          tallyActive = false;
+          setTimeout(syncTabs, 0);
+        });
+        document.querySelectorAll(".rail-btn").forEach(function (b) {
+          new MutationObserver(syncTabs).observe(b, { attributes: true, attributeFilter: ["class"] });
+        });
+        document.querySelectorAll(".step-pane").forEach(function (p) {
+          new MutationObserver(function () {
+            if (tallyActive && p.classList.contains("active") && p.getAttribute("data-pane") !== "3") {
+              tallyActive = false; syncTabs();
+            }
+          }).observe(p, { attributes: true, attributeFilter: ["class"] });
+        });
+
+        /* ---------- More sheet: the other six views as a list ---------- */
+        var scrim = document.createElement("div");
+        scrim.className = "phx-scrim";
+        var sheet = document.createElement("div");
+        sheet.className = "phx-sheet";
+        sheet.setAttribute("role", "dialog");
+        sheet.setAttribute("aria-label", "More views");
+        var sheetH = document.createElement("h3");
+        sheetH.className = "phx-sheet-h"; sheetH.textContent = "More views";
+        sheet.appendChild(sheetH);
+        [["key", "ID Key"], ["sheet", "Datasheet"], ["library", "Library"], ["trends", "Trends"], ["graphs", "Graphs"], ["train", "Train"]].forEach(function (it) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "phx-sheet-row";
+          var rb = document.querySelector('.rail-btn[data-view="' + it[0] + '"]');
+          if (rb) { var svg = rb.querySelector("svg"); if (svg) b.appendChild(svg.cloneNode(true)); }
+          var lab = document.createElement("span"); lab.textContent = it[1]; b.appendChild(lab);
+          var chev = document.createElement("span"); chev.className = "psr-chev"; chev.setAttribute("aria-hidden", "true"); chev.textContent = "›"; b.appendChild(chev);
+          b.addEventListener("click", function () {
+            closeSheet();
+            tallyActive = false;
+            if (rb) rb.click();
+            setTimeout(syncTabs, 0);
+          });
+          sheet.appendChild(b);
+        });
+        document.body.appendChild(scrim);
+        document.body.appendChild(sheet);
+        function openSheet() { scrim.classList.add("on"); sheet.classList.add("on"); }
+        function closeSheet() { scrim.classList.remove("on"); sheet.classList.remove("on"); }
+        moreTab.addEventListener("click", openSheet);
+        scrim.addEventListener("click", closeSheet);
+
+        /* ---------- Tab bar auto-hide over the tray photo ---------- */
+        var lastTops = new WeakMap(), scrolledDown = false;
+        function photoShown() {
+          var wb = $("view-workbench");
+          return !!(wb && wb.classList.contains("active") && photoArea && !photoArea.classList.contains("hidden"));
+        }
+        var railPinned = false;   // set by the "Show tabs" handle; cleared when the photo is left
+        function applyRail() {
+          var zoomed = false;
+          try { zoomed = !!(window.eddyZoomCtl && window.eddyZoomCtl.get().s > 1.02); } catch (e) { zoomed = false; }
+          if (!photoShown()) railPinned = false;
+          document.body.classList.toggle("phx-railhide", !railPinned && photoShown() && (zoomed || scrolledDown));
+        }
+        document.addEventListener("scroll", function (e) {
+          var el = e.target;
+          if (el && el !== document && typeof el.scrollTop === "number") {
+            var top = el.scrollTop, last = lastTops.get(el);
+            if (last !== undefined) {
+              if (top - last > 6) scrolledDown = true;
+              else if (last - top > 4) scrolledDown = false;
+            }
+            lastTops.set(el, top);
+          }
+          applyRail();
+        }, true);
+        setInterval(applyRail, 400);
+
+        /* ---------- Manual count steppers ---------- */
+        var stepper = document.createElement("div");
+        stepper.className = "phx-stepper";
+        stepper.setAttribute("role", "group");
+        stepper.setAttribute("aria-label", "Manual count adjustment — add or remove a dot without tapping the photo");
+        stepper.innerHTML = '<span class="ps-lab">Manual count</span>' +
+          '<button type="button" class="ps-btn" data-step-dir="-1" aria-label="Remove the last dot">−</button>' +
+          '<span class="ps-val" aria-live="polite">0</span>' +
+          '<button type="button" class="ps-btn" data-step-dir="1" aria-label="Add a dot at the centre of the photo">+</button>';
+        if (photoArea && photoArea.parentNode) photoArea.parentNode.insertBefore(stepper, photoArea.nextSibling);
+        var stepVal = stepper.querySelector(".ps-val");
+        function syncStepper() {
+          stepper.classList.toggle("on", !!(photoArea && !photoArea.classList.contains("hidden")));
+          stepVal.textContent = String(typeof dets !== "undefined" ? dets.length : 0);
+        }
+        stepper.querySelector('[data-step-dir="1"]').addEventListener("click", function () {
+          if (!imgW || !photoDataUrl) return;
+          var z = { s: 1, x: 0, y: 0 };
+          try { if (window.eddyZoomCtl) z = window.eddyZoomCtl.get(); } catch (e) { /* keep 1× */ }
+          var vw = view.clientWidth || 1, vh = view.clientHeight || 1;
+          var ow = wrap.offsetWidth || vw, oh = wrap.offsetHeight || vh;
+          var fx = ((vw / 2 - z.x) / z.s) / ow, fy = ((vh / 2 - z.y) / z.s) / oh;
+          var n = dets.length, ang = n * 2.39996, rad = Math.min(70, 12 + n * 3);
+          var px = fx * imgW + Math.cos(ang) * rad, py = fy * imgH + Math.sin(ang) * rad;
+          px = Math.max(8, Math.min(imgW - 8, px)); py = Math.max(8, Math.min(imgH - 8, py));
+          dets.push({ x: Math.round(px), y: Math.round(py), r: 16 });
+          renderDots(); updateCheck(); syncStepper();
+        });
+        stepper.querySelector('[data-step-dir="-1"]').addEventListener("click", function () {
+          if (!dets.length) return;
+          dets.splice(dets.length - 1, 1);
+          renderDots(); updateCheck(); syncStepper();
+        });
+        new MutationObserver(syncStepper).observe(wrap, { childList: true });
+        if (photoArea) new MutationObserver(syncStepper).observe(photoArea, { attributes: true, attributeFilter: ["class"] });
+        syncStepper();
+
+        var hint = $("tapHint");
+        if (hint) hint.appendChild(document.createTextNode(" On your phone: press and hold on the photo for half a second to open the magnifier and check your aim — keep holding still, then let go to drop the dot there."));
+
+        /* ---------- Big amber capture button label ----------
+           The button already clicks #cameraInput (capture=
+           environment); only its phone face changes. */
+        var capBtn = $("takePhotoBtn");
+        if (capBtn) {
+          var capSvg = capBtn.querySelector("svg");
+          capBtn.textContent = "";
+          if (capSvg) capBtn.appendChild(capSvg);
+          var capLab = document.createElement("span");
+          capLab.textContent = "Tap to capture";
+          capBtn.appendChild(capLab);
+          capBtn.setAttribute("aria-label", "Tap to capture — take a tray photo with the camera");
+        }
+
+        /* ---------- Tab-bar handle: tap to bring the bar back ---------- */
+        var railShow = document.createElement("button");
+        railShow.type = "button";
+        railShow.className = "phx-railshow";
+        railShow.setAttribute("aria-label", "Show the tab bar");
+        railShow.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 14l7-7 7 7"/></svg>Tabs';
+        railShow.addEventListener("click", function () {
+          railPinned = true;
+          document.body.classList.remove("phx-railhide");
+        });
+        document.body.appendChild(railShow);
+
+        /* ---------- Magnifier lens ----------
+           Purely visual: it never touches the press pipeline.
+           A finger held still ~500ms opens it; the photo's own
+           pointer-up handler still places the dot on release,
+           exactly where the crosshair was checked. Any real
+           slide before it opens cancels it (that's a pan /
+           scroll), and a second finger (pinch) cancels it too. */
+        var lens = document.createElement("div");
+        lens.className = "phx-lens";
+        lens.setAttribute("aria-hidden", "true");
+        var lensImg = document.createElement("img");
+        lensImg.alt = "";
+        lens.appendChild(lensImg);
+        document.body.appendChild(lens);
+        var LENS_Z = 2.5, lensPt = null, lensTimer = null, lensOn = false;
+        function lensPlace(cx, cy) {
+          var r = img.getBoundingClientRect();
+          if (!r.width) return;
+          lens.style.left = cx + "px";
+          lens.style.top = cy + "px";
+          lensImg.style.width = (r.width * LENS_Z) + "px";
+          lensImg.style.height = (r.height * LENS_Z) + "px";
+          lensImg.style.left = (76 - (cx - r.left) * LENS_Z) + "px";
+          lensImg.style.top = (76 - (cy - r.top) * LENS_Z) + "px";
+        }
+        function lensShow(cx, cy) {
+          var src = img.getAttribute("src");
+          if (!src) return;
+          if (lensImg.getAttribute("src") !== src) lensImg.src = src;
+          lens.classList.add("on"); lensOn = true;
+          lensPlace(cx, cy);
+        }
+        function lensHide() { lens.classList.remove("on"); lensOn = false; }
+        wrap.addEventListener("pointerdown", function (e) {
+          if (e.pointerType !== "touch" || lensPt) return;
+          if (typeof photoDataUrl === "undefined" || !photoDataUrl) return;
+          lensPt = { id: e.pointerId, x: e.clientX, y: e.clientY };
+          lensTimer = setTimeout(function () {
+            if (lensPt) lensShow(lensPt.x, lensPt.y);
+          }, 500);
+        }, true);
+        window.addEventListener("pointermove", function (e) {
+          if (!lensPt || e.pointerId !== lensPt.id) return;
+          if (!lensOn) {
+            if (Math.hypot(e.clientX - lensPt.x, e.clientY - lensPt.y) > 10) {
+              if (lensTimer) clearTimeout(lensTimer);
+              lensTimer = null; lensPt = null;
+            }
+            return;
+          }
+          lensPt.x = e.clientX; lensPt.y = e.clientY;
+          lensPlace(e.clientX, e.clientY);
+        }, true);
+        function lensEnd(e) {
+          if (lensPt && e.pointerId === lensPt.id) {
+            if (lensTimer) clearTimeout(lensTimer);
+            lensTimer = null; lensPt = null; lensHide();
+          }
+        }
+        window.addEventListener("pointerup", lensEnd, true);
+        window.addEventListener("pointercancel", lensEnd, true);
+
+        /* ---------- Tally rows: swipe-left actions ----------
+           A clear horizontal swipe on a row (decided at touchend,
+           so taps, selects, steppers and vertical scrolling are
+           never disturbed) reveals Edit count / Delete. Edit
+           focuses the row's own count input; Delete clicks the
+           row's own Remove button, so the app's confirm dialog
+           and tally maths stay in charge. Rows are only ever
+           moved by the grouping layer, never rebuilt, so the
+           action strip rides along; the observer covers rows
+           added later. */
+        var tallyList = $("tallyList");
+        function closeSwipes(except) {
+          if (!tallyList) return;
+          Array.prototype.forEach.call(tallyList.querySelectorAll(".tally-row.sw-open"), function (r) {
+            if (r !== except) r.classList.remove("sw-open");
+          });
+        }
+        function addSwipe(row) {
+          if (!row || row.querySelector(".swipe-actions")) return;
+          var box = document.createElement("div");
+          box.className = "swipe-actions";
+          var eb = document.createElement("button");
+          eb.type = "button"; eb.className = "sw-edit"; eb.textContent = "Edit count";
+          eb.setAttribute("aria-label", "Edit this row's count");
+          var db = document.createElement("button");
+          db.type = "button"; db.className = "sw-del"; db.textContent = "Delete";
+          db.setAttribute("aria-label", "Delete this tally row");
+          eb.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            row.classList.remove("sw-open");
+            var inp = row.querySelector(".cnt");
+            if (inp) {
+              try { inp.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) { /* older engine */ }
+              inp.focus();
+              try { inp.select(); } catch (e) { /* not selectable */ }
+            }
+          });
+          db.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            row.classList.remove("sw-open");
+            var rm = row.querySelector(".rm-row");
+            if (rm) rm.click();
+          });
+          box.appendChild(eb); box.appendChild(db);
+          row.appendChild(box);
+        }
+        if (tallyList) {
+          Array.prototype.forEach.call(tallyList.querySelectorAll(".tally-row"), addSwipe);
+          new MutationObserver(function (muts) {
+            muts.forEach(function (m) {
+              Array.prototype.forEach.call(m.addedNodes, function (n) {
+                if (n.nodeType !== 1) return;
+                if (n.classList && n.classList.contains("tally-row")) addSwipe(n);
+                if (n.querySelectorAll) Array.prototype.forEach.call(n.querySelectorAll(".tally-row"), addSwipe);
+              });
+            });
+          }).observe(tallyList, { childList: true, subtree: true });
+          var swPt = null;
+          tallyList.addEventListener("touchstart", function (e) {
+            var t = e.target;
+            var row = (t && t.closest) ? t.closest(".tally-row") : null;
+            if (!row || e.touches.length !== 1) { swPt = null; return; }
+            swPt = { row: row, x: e.touches[0].clientX, y: e.touches[0].clientY };
+          }, { passive: true });
+          tallyList.addEventListener("touchend", function (e) {
+            if (!swPt) return;
+            var t = e.changedTouches[0];
+            var dx = t.clientX - swPt.x, dy = t.clientY - swPt.y;
+            var row = swPt.row; swPt = null;
+            if (Math.abs(dy) > 36 || Math.abs(dx) < 44) return;
+            if (dx < 0) { closeSwipes(row); row.classList.add("sw-open"); }
+            else row.classList.remove("sw-open");
+          }, { passive: true });
+          document.addEventListener("touchstart", function (e) {
+            if (!tallyList.contains(e.target)) closeSwipes(null);
+          }, { passive: true });
+        }
+
+        syncTabs();
+        /* Handles for verification / debugging in devtools. */
+        window.eddyPhone = {
+          syncTabs: syncTabs, openSheet: openSheet, closeSheet: closeSheet,
+          syncStepper: syncStepper, applyRail: applyRail,
+          lens: lens, stepper: stepper, review: null, sheet: sheet,
+          railShow: railShow, capBtn: capBtn,
+          tallyTab: tallyTab, moreTab: moreTab
+        };
+      }
+      if (mq.matches) init();
+      if (mq.addEventListener) mq.addEventListener("change", init);
+    })();
+    </script>
+
+    <script>
+    /* ---------------- Live Mode (webcam auto-count) ----------------
+       Layered on top of the workbench above; nothing in the
+       photo workflow changes. A webcam watches the sorting
+       tray and Eddy keeps the tally current while hands do the
+       sorting: a detection pass runs on a grabbed frame every
+       ~2 s — YOLO11 (yoloDetect) first, the classic counter
+       standing in when the model can't run — and each raw pass
+       is smoothed before it may touch the tally: an organism
+       joins the count only after 2 consecutive sightings and
+       leaves only after 3 consecutive misses, matched across
+       passes by class + position. While any track sits in that
+       add/remove window the workbench shows "stabilizing…".
+       The smoothed set is rebuilt into groups + tally rows
+       through the exact pipeline a photo count uses
+       (clusterDets → addTallyRow → updateCheck), so the Step 3
+       grouping switch (taxon / feeding group / tolerance) and
+       the composition chart track the live tally on their own.
+       Lock In freezes the tally and stops the passes while the
+       preview keeps running; Generate Report opens the normal
+       printable lab report (Save as PDF) from the locked tally;
+       Resume Live restarts the passes. Leaving Live Mode,
+       hiding the tab, or leaving the page stops the camera.
+       window.eddyLive exposes the state plus a feed() hook so
+       the smoothing can be exercised without a camera (the
+       same debugging-handle pattern as window.eddyPhone).    */
+    (function () {
+      "use strict";
+      var $ = function (id) { return document.getElementById(id); };
+      var panel = $("livePanel"), video = $("liveVideo");
+      if (!panel || !video) return;
+      var ADD_HITS = 2;        /* consecutive sightings before a detection counts */
+      var REMOVE_MISSES = 3;   /* consecutive misses before a counted detection leaves */
+      var PASS_MS = 2000;      /* detection cadence — a pass every ~2 s, never per frame */
+
+      var liveOn = false, liveLocked = false, liveStream = null;
+      var liveTimer = null, liveBusy = false, liveHidden = false, haveFull = false;
+      var tracks = [];         /* {cls, det, hits, misses, counted} */
+      var frameW = 0, frameH = 0;
+      var lastSig = null;
+      var scratch = document.createElement("canvas");
+      var fullScratch = document.createElement("canvas");
+
+      function countedDets() {
+        var out = [];
+        tracks.forEach(function (t) { if (t.counted) out.push(t.det); });
+        return out;
+      }
+      function isStabilizing() {
+        for (var i = 0; i < tracks.length; i++) {
+          if (!tracks[i].counted || tracks[i].misses > 0) return true;
+        }
+        return false;
+      }
+      function setStatus(msg, cls) {
+        var st = $("liveStatus");
+        if (!st) return;
+        st.textContent = msg || "";
+        st.className = "status" + (cls ? " " + cls : "");
+      }
+      function showError(msg) {
+        $("liveErrorMsg").textContent = msg;
+        $("liveError").classList.remove("hidden");
+      }
+      function hideError() { $("liveError").classList.add("hidden"); }
+      function showAlert(msg) {
+        var a = $("liveModeAlert");
+        a.textContent = msg;
+        a.classList.remove("hidden");
+      }
+      function hideAlert() { $("liveModeAlert").classList.add("hidden"); }
+      function syncSeg() {
+        document.querySelectorAll("#wbModeCtl [data-wbmode]").forEach(function (b) {
+          var on = (b.getAttribute("data-wbmode") === "live") === liveOn;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      }
+      function syncChrome() {
+        $("liveStab").classList.toggle("hidden", !(liveOn && !liveLocked && isStabilizing()));
+        $("liveLockedBadge").classList.toggle("hidden", !(liveOn && liveLocked));
+        $("liveBadge").classList.toggle("hidden", !(liveOn && !!liveStream));
+        $("liveLockBtn").classList.toggle("hidden", !liveOn || liveLocked);
+        $("liveResumeBtn").classList.toggle("hidden", !(liveOn && liveLocked));
+        var rows = (typeof readTally === "function") ? readTally() : [];
+        $("liveReportBtn").disabled = !(liveOn && liveLocked && rows.length > 0);
+      }
+
+      /* Dots over the live feed, in the same numbered style as
+         dots on a photo — confirmed (counted) detections only. */
+      function renderLiveDots() {
+        var box = $("liveDots");
+        box.innerHTML = "";
+        if (!frameW || !frameH) return;
+        countedDets().forEach(function (dt, i) {
+          var el = document.createElement("div");
+          el.className = "dot";
+          el.textContent = i + 1;
+          el.style.left = (dt.x / frameW * 100) + "%";
+          el.style.top = (dt.y / frameH * 100) + "%";
+          box.appendChild(el);
+        });
+      }
+
+      /* Push the smoothed set into the bench: the current
+         frame becomes the sample's photo (analysis space =
+         detection space), groups + tally rows are rebuilt by
+         the shared pipeline, and updateCheck re-shelves the
+         tally under whichever grouping mode Step 3 is in.
+         Runs only when the counted set actually changed.    */
+      function applyTally() {
+        var list = countedDets();
+        renderLiveDots();
+        var sig = list.map(function (d) { return (d.yolo != null ? d.yolo : -1) + "@" + d.x + "," + d.y; }).join("|");
+        if (sig === lastSig) { syncChrome(); return; }
+        lastSig = sig;
+        if (frameW > 0 && frameH > 0) {
+          var acv = document.createElement("canvas");
+          acv.width = frameW; acv.height = frameH;
+          var actx = acv.getContext("2d", { willReadFrequently: true });
+          try { actx.drawImage(scratch, 0, 0); } catch (e) { /* blank frame still sizes the bench */ }
+          dets = list.slice();
+          imgW = frameW; imgH = frameH;
+          analysisCv = acv; analysisW = frameW; analysisH = frameH;
+          try { analysisData = actx.getImageData(0, 0, frameW, frameH); } catch (e) { analysisData = null; }
+          fullCv = haveFull ? fullScratch : acv;
+          photoDataUrl = acv.toDataURL("image/jpeg", 0.9);
+          photoFileName = "webcam-live.jpg";
+          $("photoImg").src = photoDataUrl;
+          $("photoArea").classList.remove("hidden");
+          $("dropZone").classList.add("has-photo");
+          $("photoDlBtn").classList.remove("hidden");
+          $("countBtn").disabled = false;
+        }
+        document.querySelectorAll(".tally-row.group-row").forEach(function (r) { r.remove(); });
+        if (list.length) {
+          var groups = clusterDets(dets, $("groupStrict").value);
+          var tallyList = $("tallyList"), created = [];
+          groups.forEach(function (g, gi) {
+            created.push(addTallyRow({ count: g.members.length, group: { letter: groupLetter(gi), desc: describeGroup(g), members: g.members, proto: g.proto || null } }));
+          });
+          for (var i = created.length - 1; i >= 0; i--) tallyList.insertBefore(created[i], tallyList.firstChild);
+          groupedAt = dets.length;
+          $("groupStatus").textContent = "Live Mode is keeping this tally — " + dets.length + (dets.length === 1 ? " organism" : " organisms") + " in " + groups.length + (groups.length === 1 ? " group" : " groups") + ", updated from the tray as you sort. Rows arrive pre-named by AI detection; rename any row that's wrong, exactly as with a photo count.";
+          $("groupStatus").className = "status";
+        } else {
+          groupedAt = -1;
+          $("groupStatus").textContent = "Live Mode: the tray reads empty right now — the tally fills in as organisms land and stay put for two passes.";
+          $("groupStatus").className = "status";
+        }
+        renderDots();
+        updateCheck();
+        var rows = readTally();
+        var tot = rows.reduce(function (a, r) { return a + r.count; }, 0);
+        var line = $("liveCountLine");
+        if (line) line.textContent = liveOn ? ("Live tally: " + tot + (tot === 1 ? " organism" : " organisms") + " · " + rows.length + (rows.length === 1 ? " taxon" : " taxa")) : "";
+        syncChrome();
+      }
+
+      /* One raw detection pass → smoothing. Matching is by
+         class, then nearest position inside a generous radius
+         (organisms shift as hands work, but rarely teleport). */
+      function smooth(raw) {
+        var used = {}, i, j;
+        for (i = 0; i < raw.length; i++) {
+          var d = raw[i];
+          var cls = (d.yolo != null) ? d.yolo : -1;
+          var best = -1, bestDist = Infinity;
+          for (j = 0; j < tracks.length; j++) {
+            if (used[j] || tracks[j].cls !== cls) continue;
+            var dx = tracks[j].det.x - d.x, dy = tracks[j].det.y - d.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var tol = Math.max(30, (d.r || 16) * 2.4, (tracks[j].det.r || 16) * 2.4);
+            if (dist < tol && dist < bestDist) { bestDist = dist; best = j; }
+          }
+          if (best >= 0) {
+            used[best] = 1;
+            var t = tracks[best];
+            t.hits += 1; t.misses = 0; t.det = d;
+            if (t.hits >= ADD_HITS) t.counted = true;
+          } else {
+            tracks.push({ cls: cls, det: d, hits: 1, misses: 0, counted: ADD_HITS <= 1 });
+            used[tracks.length - 1] = 1;
+          }
+        }
+        for (i = 0; i < tracks.length; i++) {
+          if (!used[i]) { tracks[i].misses += 1; tracks[i].hits = 0; }
+        }
+        tracks = tracks.filter(function (t) { return t.misses < REMOVE_MISSES; });
+        applyTally();
+        syncChrome();
+      }
+
+      function classicPass(ctx, w, h) {
+        try { return detect(ctx.getImageData(0, 0, w, h), w, h, $("sensitivity").value) || []; }
+        catch (e) { return []; }
+      }
+      function schedule(ms) {
+        if (liveTimer) clearTimeout(liveTimer);
+        liveTimer = setTimeout(runPass, ms == null ? PASS_MS : ms);
+      }
+      function stopLoop() {
+        if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
+      }
+      function runPass() {
+        liveTimer = null;
+        if (!liveOn || liveLocked || liveBusy) return;
+        if (!liveStream || !video.videoWidth) { schedule(600); return; }
+        liveBusy = true;
+        var s = Math.min(1, 900 / Math.max(video.videoWidth, video.videoHeight));
+        var w = Math.max(2, Math.round(video.videoWidth * s)), h = Math.max(2, Math.round(video.videoHeight * s));
+        scratch.width = w; scratch.height = h;
+        var ctx = scratch.getContext("2d", { willReadFrequently: true });
+        try { ctx.drawImage(video, 0, 0, w, h); }
+        catch (e) { liveBusy = false; schedule(); return; }
+        var fs = Math.min(1, 1600 / Math.max(video.videoWidth, video.videoHeight));
+        fullScratch.width = Math.max(2, Math.round(video.videoWidth * fs));
+        fullScratch.height = Math.max(2, Math.round(video.videoHeight * fs));
+        try { fullScratch.getContext("2d").drawImage(video, 0, 0, fullScratch.width, fullScratch.height); haveFull = true; }
+        catch (e) { haveFull = false; }
+        frameW = w; frameH = h;
+        var finish = function (raw) {
+          liveBusy = false;
+          if (!liveOn || liveLocked) return;
+          smooth(raw || []);
+          schedule();
+        };
+        if (typeof yoloEnabled === "function" && yoloEnabled() && typeof yoloDetect === "function") {
+          yoloDetect(scratch, w, h).then(function (yd) {
+            if (yd) { lastCountAI = true; finish(yd); }
+            else { lastCountAI = false; finish(classicPass(ctx, w, h)); }
+          }, function () { lastCountAI = false; finish(classicPass(ctx, w, h)); });
+        } else {
+          lastCountAI = false;
+          finish(classicPass(ctx, w, h));
+        }
+      }
+
+      function stopStream() {
+        if (liveStream) {
+          liveStream.getTracks().forEach(function (t) { t.stop(); });
+          liveStream = null;
+        }
+        video.srcObject = null;
+      }
+      function fallbackToPhoto(msg) {
+        exitLive();
+        showAlert(msg);
+      }
+      function startCamera() {
+        hideError();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          fallbackToPhoto("Live Mode needs a camera, but this browser can't open one — camera access needs a secure (https) page in a browser that supports it. You're back in Photo Mode: upload a tray photo there instead.");
+          return;
+        }
+        setStatus("Starting the camera…");
+        stopStream();
+        navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false }).then(function (stream) {
+          if (!liveOn) { stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+          liveStream = stream;
+          video.srcObject = stream;
+          var p = video.play();
+          if (p && p.catch) p.catch(function () { /* autoplay hiccup — the stream still shows once it can */ });
+          var track = stream.getVideoTracks()[0];
+          if (track) track.onended = function () {
+            if (!liveOn) return;
+            stopLoop(); stopStream();
+            showError("The camera disconnected. Check the cable, then tap Retry camera — or go back to Photo Mode.");
+            setStatus("The camera disconnected.", "bad");
+            syncChrome();
+          };
+          setStatus(liveLocked
+            ? "Camera on — the count stays locked in. Tap Resume Live to count again."
+            : "Live — Eddy re-counts the tray every couple of seconds. Sort as usual; the tally follows.", "good");
+          syncChrome();
+          if (!liveLocked) schedule(500);
+        }).catch(function (err) {
+          if (!liveOn) return;
+          stopStream();
+          var name = err && err.name;
+          if (name === "NotAllowedError" || name === "SecurityError") {
+            showError("Camera access was denied — check your browser permissions, then tap Retry camera. Or go back to Photo Mode and upload a tray photo instead.");
+            setStatus("Camera access was denied — check your browser permissions.", "bad");
+          } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+            fallbackToPhoto("No camera was found on this device, so Live Mode can't run. You're back in Photo Mode — upload a tray photo there instead.");
+            return;
+          } else if (name === "NotReadableError") {
+            showError("The camera is busy — another app or tab may be using it. Close that, then tap Retry camera.");
+            setStatus("The camera is busy.", "bad");
+          } else {
+            showError("The camera couldn't be started" + (name ? " (" + name + ")" : "") + ". Tap Retry camera, or go back to Photo Mode.");
+            setStatus("The camera couldn't be started.", "bad");
+          }
+          syncChrome();
+        });
+      }
+
+      function enterLiveShell() {
+        liveOn = true; liveLocked = false; liveBusy = false;
+        tracks = []; lastSig = null; frameW = 0; frameH = 0; haveFull = false;
+        $("liveDots").innerHTML = "";
+        $("liveCountLine").textContent = "";
+        hideAlert(); hideError();
+        panel.classList.remove("hidden");
+        var pa = $("photoArea");
+        pa.classList.remove("hidden");
+        pa.classList.add("live-on");
+        syncSeg();
+        syncChrome();
+        if (typeof showStep === "function") showStep(2);
+      }
+      function enterLive() {
+        if (typeof stopWebcam === "function") { try { stopWebcam(); } catch (e) { /* the snap panel is optional */ } }
+        enterLiveShell();
+        setStatus("Starting the camera…");
+        startCamera();
+      }
+      function exitLive() {
+        liveOn = false; liveLocked = false; liveHidden = false;
+        stopLoop(); stopStream();
+        tracks = []; lastSig = null;
+        panel.classList.add("hidden");
+        var pa = $("photoArea");
+        pa.classList.remove("live-on");
+        if (!photoDataUrl) pa.classList.add("hidden");
+        $("liveDots").innerHTML = "";
+        hideError();
+        syncSeg();
+        syncChrome();
+      }
+      function setWbMode(mode) {
+        if (mode === "live") { if (!liveOn) enterLive(); }
+        else if (liveOn) exitLive();
+        else syncSeg();
+      }
+
+      function lockIn() {
+        if (!liveOn || liveLocked) return;
+        stopLoop();
+        liveLocked = true;
+        applyTally();
+        var rows = readTally();
+        var tot = rows.reduce(function (a, r) { return a + r.count; }, 0);
+        if (tot > 0) {
+          setStatus("Count locked in: " + tot + (tot === 1 ? " organism" : " organisms") + " across " + rows.length + (rows.length === 1 ? " taxon" : " taxa") + ". Generate the report when you're ready — Resume Live picks the counting back up.", "good");
+        } else {
+          setStatus("Locked in — but nothing is tallied yet. Resume Live and let a count stabilize first.", "bad");
+        }
+        syncChrome();
+      }
+      function resumeLive() {
+        if (!liveOn || !liveLocked) return;
+        liveLocked = false;
+        setStatus("Live again — the tally resumes updating as the tray changes.", "good");
+        syncChrome();
+        if (liveStream) schedule(300);
+        else startCamera();
+      }
+      function generateReport() {
+        var rows = readTally();
+        if (!rows.length) {
+          setStatus("Nothing to report yet — let a count stabilize and lock it in first.", "bad");
+          return;
+        }
+        if (window.eddyShowReport) {
+          window.eddyShowReport({
+            sampleId: $("sampleId").value.trim() || "unspecified",
+            site: $("site").value.trim(),
+            date: $("sampleDate").value || (typeof todayStr === "function" ? todayStr() : ""),
+            notes: $("notes").value.trim(),
+            rows: rows,
+            photo: photoDataUrl || "",
+            dets: dets, imgW: imgW, imgH: imgH,
+            calibrated: rows.some(function (r) { return r.sizeMm != null; }) ||
+              !!(window.eddyCalGet && window.eddyCalGet())
+          });
+        }
+      }
+
+      document.querySelectorAll("#wbModeCtl [data-wbmode]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          hideAlert();
+          setWbMode(b.getAttribute("data-wbmode"));
+        });
+      });
+      $("liveLockBtn").addEventListener("click", lockIn);
+      $("liveResumeBtn").addEventListener("click", resumeLive);
+      $("liveReportBtn").addEventListener("click", generateReport);
+      $("liveRetryBtn").addEventListener("click", function () { hideError(); setStatus("Starting the camera…"); startCamera(); });
+      $("liveToPhotoBtn").addEventListener("click", function () { setWbMode("photo"); });
+      /* The older snap-webcam panel and the photo inputs share
+         the camera and the bench with Live Mode: handing over
+         to any of them ends Live Mode cleanly first.          */
+      var camOpen = $("camOpenBtn");
+      if (camOpen) camOpen.addEventListener("click", function () { if (liveOn) exitLive(); }, true);
+      ["photoInput", "cameraInput"].forEach(function (id) {
+        var inp = $(id);
+        if (inp) inp.addEventListener("change", function () { if (liveOn) exitLive(); });
+      });
+      /* Tab hidden → camera and passes stop; tab back → the
+         camera restarts (and the passes too, unless locked). */
+      document.addEventListener("visibilitychange", function () {
+        if (!liveOn) return;
+        if (document.hidden) {
+          liveHidden = true;
+          stopLoop(); stopStream();
+          syncChrome();
+        } else if (liveHidden) {
+          liveHidden = false;
+          setStatus("Welcome back — restarting the camera…");
+          startCamera();
+        }
+      });
+      window.addEventListener("pagehide", function () { stopLoop(); stopStream(); });
+
+      /* Handles for verification / debugging in devtools.
+         feed() runs one smoothing pass over supplied dets
+         ({x, y, r, yolo}) in a w×h frame — no camera needed.  */
+      window.eddyLive = {
+        isOn: function () { return liveOn; },
+        isLocked: function () { return liveLocked; },
+        isStabilizing: isStabilizing,
+        counted: function () { return countedDets().length; },
+        tracks: function () {
+          return tracks.map(function (t) {
+            return { cls: t.cls, hits: t.hits, misses: t.misses, counted: t.counted, x: t.det.x, y: t.det.y };
+          });
+        },
+        setMode: setWbMode,
+        lock: lockIn,
+        resume: resumeLive,
+        report: generateReport,
+        feed: function (raw, w, h) {
+          if (!liveOn) enterLiveShell();
+          if (liveLocked) return false;
+          frameW = w || 640; frameH = h || 480;
+          if (scratch.width !== frameW || scratch.height !== frameH) {
+            scratch.width = frameW; scratch.height = frameH;
+          }
+          var cx = scratch.getContext("2d");
+          cx.fillStyle = "#cfc8b8"; cx.fillRect(0, 0, frameW, frameH);
+          haveFull = false;
+          smooth(raw || []);
+          return true;
+        }
+      };
+    })();
     </script>
 
   </body>
