@@ -38,6 +38,7 @@ fn dismiss_update() {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             check_for_update,
             install_pending_update,
@@ -46,3 +47,4 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running Eddy");
 }
+

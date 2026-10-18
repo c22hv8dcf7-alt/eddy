@@ -872,6 +872,47 @@
         transform:scaleX(0);transform-origin:left center;will-change:transform}
       .upd-fallback{font-size:1.05rem;color:#a8bfd4;text-align:center;padding:0 24px}
 
+      /* ---------- Silent background updates ----------
+         The only two surfaces the silent updater ever shows: a
+         small "Updating…" indicator in the top bar while a
+         download runs, and a dismissible "Restart to update" pill
+         in the bottom corner once an update is staged. Neither
+         blocks, neither shifts layout, and there is no modal. */
+      .upd-indicator{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;
+        color:var(--ink-2);white-space:nowrap}
+      .upd-ind-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex:none;
+        animation:updIndPulse 1.1s ease-in-out infinite}
+      @keyframes updIndPulse{0%,100%{opacity:.3}50%{opacity:1}}
+      .upd-pill{position:fixed;right:16px;bottom:16px;z-index:390;display:flex;align-items:center;
+        gap:9px;background:var(--panel-2);border:1px solid var(--line-strong);border-radius:999px;
+        padding:7px 7px 7px 14px;box-shadow:var(--shadow);color:var(--ink);
+        animation:updPillIn .25s ease}
+      @keyframes updPillIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+      .upd-pill-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex:none}
+      .upd-pill-main{background:none;border:none;color:inherit;font:inherit;font-size:.88rem;
+        font-weight:600;cursor:pointer;padding:5px 2px;white-space:nowrap}
+      .upd-pill-main:hover{color:var(--amber-text)}
+      .upd-pill-x{flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);
+        background:none;color:var(--ink-2);font-size:.95rem;cursor:pointer;line-height:1;padding:0;
+        font-family:inherit}
+      .upd-pill-x:hover{color:var(--ink);border-color:var(--line-strong)}
+      @media (max-width:640px){
+        /* Stay clear of the phone tab bar, like the install banner. */
+        .upd-pill{bottom:calc(82px + env(safe-area-inset-bottom));right:12px}
+        .upd-pill-main{min-height:36px}
+        .upd-pill-x{width:36px;height:36px}
+      }
+      /* Settings > Updates: switch + quiet status lines */
+      .upd-set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px}
+      .switch{position:relative;width:46px;height:26px;border-radius:13px;flex:none;padding:0;
+        border:1px solid var(--line-strong);background:var(--panel-3);cursor:pointer;
+        transition:background .18s ease,border-color .18s ease}
+      .switch-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+        background:var(--ink-2);transition:transform .18s ease,background .18s ease;pointer-events:none}
+      .switch[aria-checked="true"]{background:var(--amber);border-color:var(--amber)}
+      .switch[aria-checked="true"] .switch-knob{transform:translateX(20px);background:#221503}
+      .upd-fail-note{color:var(--amber-text)}
+
       /* ---------- Responsive ---------- */
       @media (max-width:1240px){.panels{grid-template-columns:minmax(0,1fr) 380px}}
       @media (max-width:980px){
@@ -1754,6 +1795,7 @@
             <svg class="ic-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
             <svg class="ic-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           </button>
+          <span class="upd-indicator hidden" id="updIndicator" role="status"><span class="upd-ind-dot" aria-hidden="true"></span>Updating…</span>
           <button type="button" class="btn btn-ghost" id="settingsBtn" aria-haspopup="true" aria-expanded="false" aria-controls="settingsPop">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01A1.7 1.7 0 0 0 10 2.91V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1 1.55.61.26 1.31.13 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01c.26.6.87 1 1.55 1H21a2 2 0 1 1 0 4h-.09c-.68 0-1.3.4-1.51 1z"/></svg>
             Settings
@@ -1839,6 +1881,21 @@
             </div>
             <p class="hint" id="tplStatus" style="margin-top:6px" role="status"></p>
             <div id="tplList" style="margin-top:6px"></div>
+          </div>
+          <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
+            <h3>Updates</h3>
+            <div class="upd-set-row">
+              <span class="field-label" id="autoUpdLabel" style="margin:0">Automatic updates</span>
+              <button type="button" class="switch" id="autoUpdToggle" role="switch" aria-checked="true" aria-labelledby="autoUpdLabel"><span class="switch-knob" aria-hidden="true"></span></button>
+            </div>
+            <p class="hint" style="margin-top:6px">Eddy checks quietly when it opens and downloads in the background — no prompts. When an update is ready you'll see a small “Restart to update” pill; ignoring it applies the update on the next launch.</p>
+            <p class="hint" style="margin-top:8px">Current version: <span id="updCurVer" style="font-family:'IBM Plex Mono',monospace">—</span></p>
+            <p class="hint" style="margin-top:4px">Last checked: <span id="updLastChecked">Never</span></p>
+            <p class="hint upd-fail-note hidden" id="updFailNote" style="margin-top:4px" role="status"></p>
+            <div style="margin-top:8px">
+              <button type="button" class="btn btn-ghost" id="updCheckBtn">Check for updates</button>
+            </div>
+            <p class="hint" id="updCheckStatus" style="margin-top:6px" role="status"></p>
           </div>
           <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
             <h3>About Eddy</h3>
@@ -2682,6 +2739,13 @@
       <p class="upd-label" id="updLabel">Updating Eddy…</p>
       <div class="upd-bar" id="updBar" aria-hidden="true"><span class="upd-bar-fill" id="updBarFill"></span></div>
       <p class="upd-fallback hidden" id="updFallback">Updating…</p>
+    </div>
+
+    <!-- ============ SILENT UPDATE: RESTART PILL ============ -->
+    <div id="updPill" class="upd-pill hidden" role="status">
+      <span class="upd-pill-dot" aria-hidden="true"></span>
+      <button type="button" class="upd-pill-main" id="updPillApply">Restart to update</button>
+      <button type="button" class="upd-pill-x" id="updPillDismiss" aria-label="Dismiss — the update applies on the next launch">×</button>
     </div>
 
     <!-- ============ ALERT BARS (storage full / engine load) ============ -->
@@ -13056,8 +13120,442 @@
           /* check failed — modal stays silent */
         });
       }
-      if (document.readyState === "complete") setTimeout(checkOnce, 2000);
-      else window.addEventListener("load", function () { setTimeout(checkOnce, 2000); });
+      /* Manual entry point, used by Settings > Updates when
+         automatic updates are OFF — the pre-existing behavior,
+         on demand. */
+      window.eddyLegacyUpdateCheck = function () { checked = false; checkOnce(); };
+      /* Silent background updates (the EddyUpdates module below)
+         own the launch check whenever "Automatic updates" is on —
+         the default — so this dialog no longer pops on its own.
+         With automatic updates off, the original behavior is
+         preserved exactly: one check per launch, 2 seconds after
+         load, dialog and all. */
+      var legacyAuto = true;
+      try { legacyAuto = localStorage.getItem("eddy.autoUpdates") === "0"; } catch (e) { legacyAuto = false; }
+      if (legacyAuto) {
+        if (document.readyState === "complete") setTimeout(checkOnce, 2000);
+        else window.addEventListener("load", function () { setTimeout(checkOnce, 2000); });
+      }
+    })();
+    </script>
+    <script>
+    "use strict";
+    /* ---------- Silent background updates ----------
+       Chrome-style updates: Eddy checks quietly a few seconds
+       after launch, downloads in the background (the only sign is
+       a small "Updating…" indicator in the top bar), and once the
+       update is staged a dismissible "Restart to update" pill
+       appears in the bottom corner. Clicking it applies the
+       update; ignoring it applies it on the next launch; five
+       idle minutes with no dialog open applies it too. There is
+       no update modal at any point in this flow.
+
+       Backends, in priority order:
+         · Desktop (Tauri v2): the stock updater plugin, driven
+           through the raw bridge — plugin:updater|check, then
+           plugin:updater|download_and_install, then
+           plugin:process|restart. Every __TAURI__ access is
+           feature-guarded, so the pure-web build never sees it.
+           If a check finds an update already staged this session,
+           no second download is started — the pill is the whole
+           response (the Rust-side launch check, if still present,
+           may get there first; this module never fights it).
+         · Phone PWA: the service worker. A waiting updated worker
+           raises the same pill; clicking it posts SKIP_WAITING
+           and reloads on controllerchange.
+
+       "Just updated" detection: the current version is compared
+       with eddy.lastRunVersion in localStorage; on an increase
+       the dot-assembly update screen plays once
+       (EddyUpdateScreen.show). First run ever stores the version
+       without playing anything.
+
+       Failures are silent: eddy.updateFailCount counts
+       consecutive failed checks (reset on success), and only at
+       3+ does a quiet line appear — inside Settings > Updates,
+       never as a popup. Settings also carries the "Automatic
+       updates" toggle (eddy.autoUpdates, default on): off skips
+       the launch check entirely, and the manual "Check for
+       updates" button then falls back to the pre-existing
+       dialog flow above (window.eddyLegacyUpdateCheck). */
+    (function () {
+      var LS_AUTO = "eddy.autoUpdates";
+      var LS_LASTVER = "eddy.lastRunVersion";
+      var LS_FAILS = "eddy.updateFailCount";
+      var LS_CHECKED = "eddy.updateLastChecked";
+      var FALLBACK_VERSION = "0.2.40"; /* this build's version; the desktop app reports its own */
+      var IDLE_MS = 5 * 60 * 1000;
+
+      var indicator = document.getElementById("updIndicator");
+      var pill = document.getElementById("updPill");
+      var pillApply = document.getElementById("updPillApply");
+      var pillDismiss = document.getElementById("updPillDismiss");
+      var toggle = document.getElementById("autoUpdToggle");
+      var curVerEl = document.getElementById("updCurVer");
+      var lastCheckedEl = document.getElementById("updLastChecked");
+      var failNoteEl = document.getElementById("updFailNote");
+      var checkBtn = document.getElementById("updCheckBtn");
+      var checkStatusEl = document.getElementById("updCheckStatus");
+
+      var state = {
+        currentVersion: FALLBACK_VERSION,
+        staged: false, stagedVersion: "", stagedVia: "",
+        waitingWorker: null, swReg: null, swWired: false,
+        applying: false, checking: false,
+        lastInput: Date.now()
+      };
+
+      /* ----- storage (private mode must never throw) ----- */
+      function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+      function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* unavailable */ } }
+      function autoOn() { return lsGet(LS_AUTO) !== "0"; }
+      function failCount() {
+        var n = parseInt(lsGet(LS_FAILS) || "0", 10);
+        return isFinite(n) && n > 0 ? n : 0;
+      }
+      function cmpVer(a, b) {
+        var pa = String(a || "").split("."), pb = String(b || "").split(".");
+        var n = Math.max(pa.length, pb.length);
+        for (var i = 0; i < n; i++) {
+          var na = parseInt(pa[i], 10) || 0, nb = parseInt(pb[i], 10) || 0;
+          if (na !== nb) return na < nb ? -1 : 1;
+        }
+        return 0;
+      }
+
+      /* ----- Tauri bridge, feature-guarded ----- */
+      function tauriApi() {
+        if (typeof window.__TAURI__ === "undefined" || !window.__TAURI__) return null;
+        var t = window.__TAURI__;
+        if (t.core && typeof t.core.invoke === "function") return t;
+        if (typeof t.invoke === "function") return { core: { invoke: t.invoke } };
+        return null;
+      }
+      function tinvoke(cmd, args) {
+        var t = tauriApi();
+        if (!t) return null;
+        try { return t.core.invoke(cmd, args || {}); } catch (e) { return null; }
+      }
+      function resolveVersion(done) {
+        var p = tinvoke("plugin:app|version");
+        if (p && typeof p.then === "function") {
+          p.then(function (v) {
+            if (typeof v === "string" && v) state.currentVersion = v;
+            done(state.currentVersion);
+          }, function () { done(state.currentVersion); });
+        } else done(state.currentVersion);
+      }
+
+      /* ----- Settings > Updates rendering ----- */
+      function fmtChecked(iso) {
+        if (!iso) return "Never";
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return "Never";
+        try {
+          return d.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+        } catch (e) { return d.toString(); }
+      }
+      function renderSettings() {
+        if (toggle) toggle.setAttribute("aria-checked", autoOn() ? "true" : "false");
+        if (curVerEl) curVerEl.textContent = state.currentVersion;
+        if (lastCheckedEl) lastCheckedEl.textContent = fmtChecked(lsGet(LS_CHECKED));
+        if (failNoteEl) {
+          var f = failCount();
+          if (f >= 3) {
+            failNoteEl.textContent = "Update check failed " + f + " times — check your connection";
+            failNoteEl.classList.remove("hidden");
+          } else failNoteEl.classList.add("hidden");
+        }
+      }
+      function setCheckStatus(msg) { if (checkStatusEl) checkStatusEl.textContent = msg || ""; }
+      function recordCheck(ok) {
+        lsSet(LS_CHECKED, new Date().toISOString());
+        lsSet(LS_FAILS, ok ? "0" : String(failCount() + 1));
+        renderSettings();
+      }
+
+      /* ----- the two visible surfaces ----- */
+      function showIndicator(on) { if (indicator) indicator.classList.toggle("hidden", !on); }
+      function onStaged(version, via, worker) {
+        state.staged = true;
+        state.stagedVersion = version || "";
+        state.stagedVia = via;
+        if (worker) state.waitingWorker = worker;
+        showIndicator(false);
+        if (pill) pill.classList.remove("hidden");
+      }
+      function hidePill() { if (pill) pill.classList.add("hidden"); }
+
+      /* ----- "just updated" → dot-assembly screen, once ----- */
+      function detectJustUpdated() {
+        resolveVersion(function (ver) {
+          var last = lsGet(LS_LASTVER);
+          var increased = !!last && cmpVer(ver, last) > 0;
+          lsSet(LS_LASTVER, ver);
+          renderSettings();
+          if (increased) {
+            setTimeout(function () {
+              if (window.EddyUpdateScreen) window.EddyUpdateScreen.show(ver, { demo: true });
+            }, 1400);
+          }
+        });
+      }
+
+      /* ----- desktop: silent check → background download/install ----- */
+      function tauriSilentCheck(manual) {
+        var p = tinvoke("plugin:updater|check", {});
+        if (!p || typeof p.then !== "function") {
+          if (manual) setCheckStatus("Update checks run in the desktop app.");
+          return;
+        }
+        p.then(function (meta) {
+          recordCheck(true);
+          if (!meta) { if (manual) setCheckStatus("You're up to date — Eddy " + state.currentVersion + "."); return; }
+          var version = typeof meta.version === "string" ? meta.version : "";
+          if (typeof meta.currentVersion === "string" && meta.currentVersion) {
+            state.currentVersion = meta.currentVersion;
+            renderSettings();
+          }
+          if (state.staged) return; /* already downloaded this session — never start a second one */
+          showIndicator(true);
+          if (manual) setCheckStatus("Update found — downloading in the background…");
+          var args = { rid: meta.rid };
+          var t = tauriApi();
+          if (t && t.core && typeof t.core.Channel === "function") {
+            try {
+              var ch = new t.core.Channel();
+              ch.onmessage = function () { /* progress events are consumed quietly; the indicator stays indeterminate */ };
+              args.onEvent = ch;
+            } catch (e) { /* no channel — the download proceeds without progress */ }
+          }
+          var dp = tinvoke("plugin:updater|download_and_install", args);
+          if (!dp || typeof dp.then !== "function") { onStaged(version, "tauri"); return; }
+          dp.then(function () { onStaged(version, "tauri"); }, function () {
+            showIndicator(false);
+            recordCheck(false);
+            if (manual) setCheckStatus("The update didn't finish downloading — Eddy will retry next launch.");
+          });
+        }, function () {
+          recordCheck(false);
+          if (manual) setCheckStatus("Couldn't check just now — Eddy will retry next launch.");
+        });
+      }
+
+      /* ----- PWA: waiting worker → same pill ----- */
+      function grabSW() {
+        if (!("serviceWorker" in navigator)) return;
+        var gp;
+        try { gp = navigator.serviceWorker.getRegistration(); } catch (e) { return; }
+        if (!gp || typeof gp.then !== "function") return;
+        gp.then(function (reg) {
+          if (reg) { wireSW(reg); return; }
+          /* The worker is registered from assets/, so its default
+             scope may not cover this page and getRegistration()
+             comes back empty. Fall back to the origin's
+             registrations so update checks and waiting-worker
+             detection still reach the real worker. */
+          if (typeof navigator.serviceWorker.getRegistrations === "function") {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              if (regs && regs.length) wireSW(regs[0]);
+            }, function () { /* no registration — plain web page */ });
+          }
+        }, function () { /* no registration — plain web page */ });
+      }
+      function wireSW(reg) {
+        if (reg) {
+          state.swReg = reg;
+          if (reg.waiting && navigator.serviceWorker.controller && !state.staged) {
+            onStaged(state.currentVersion, "pwa", reg.waiting);
+          }
+          if (state.swWired) return;
+          state.swWired = true;
+          reg.addEventListener("updatefound", function () {
+            var nw = reg.installing;
+            if (!nw) return;
+            var isUpdate = !!navigator.serviceWorker.controller;
+            if (isUpdate) showIndicator(true);
+            nw.addEventListener("statechange", function () {
+              if (nw.state === "installed") {
+                showIndicator(false);
+                if (isUpdate) onStaged(state.currentVersion, "pwa", reg.waiting || nw);
+              } else if (nw.state === "redundant") showIndicator(false);
+            });
+          });
+        }
+      }
+      function swCheck(manual) {
+        if (!state.swReg) return false;
+        var p;
+        try { p = state.swReg.update(); } catch (e) { p = null; }
+        if (p && typeof p.then === "function") {
+          p.then(function () {
+            recordCheck(true);
+            if (state.swReg.waiting && navigator.serviceWorker.controller) {
+              onStaged(state.currentVersion, "pwa", state.swReg.waiting);
+            } else if (manual && !state.staged) {
+              setCheckStatus("You're up to date — Eddy " + state.currentVersion + ".");
+            }
+          }, function () {
+            recordCheck(false);
+            if (manual) setCheckStatus("Couldn't check just now — Eddy will retry next launch.");
+          });
+        }
+        return true;
+      }
+      var swReloading = false;
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("controllerchange", function () {
+          if (!state.applying || swReloading) return;
+          swReloading = true;
+          try { window.location.reload(); } catch (e) { /* shell handles it */ }
+        });
+      }
+
+      /* ----- check dispatcher ----- */
+      function runCheck(manual) {
+        if (state.checking) return;
+        state.checking = true;
+        function done() { state.checking = false; }
+        if (tauriApi()) { tauriSilentCheck(manual); done(); return; }
+        if (state.swReg) { swCheck(manual); done(); return; }
+        /* The service worker may still be registering — one retry. */
+        setTimeout(function () {
+          grabSW();
+          if (tauriApi()) tauriSilentCheck(manual);
+          else if (state.swReg) swCheck(manual);
+          else if (manual) setCheckStatus("Update checks aren't available in this browser.");
+          done();
+        }, 600);
+      }
+
+      /* ----- apply (pill click / idle auto-restart) ----- */
+      function fallbackRelaunch() {
+        var t = tauriApi();
+        try {
+          if (t && t.process && typeof t.process.relaunch === "function") { t.process.relaunch(); return; }
+        } catch (e) { /* no process plugin handle */ }
+        try { window.location.reload(); } catch (e) { /* desktop shell owns the restart */ }
+      }
+      function applyStaged() {
+        if (state.applying || !state.staged) return;
+        state.applying = true;
+        hidePill();
+        showIndicator(false);
+        if (state.stagedVia === "pwa") {
+          var w = state.waitingWorker;
+          if (w) {
+            try { w.postMessage({ type: "SKIP_WAITING" }); } catch (e) { /* reload below covers it */ }
+            /* controllerchange reloads; this is the belt-and-braces path. */
+            setTimeout(function () { try { window.location.reload(); } catch (e) { /* noop */ } }, 1200);
+          } else {
+            try { window.location.reload(); } catch (e) { /* noop */ }
+          }
+          return;
+        }
+        if (state.stagedVia === "tauri") {
+          if (window.EddyUpdateScreen && state.stagedVersion) window.EddyUpdateScreen.show(state.stagedVersion);
+          var rp = tinvoke("plugin:process|restart");
+          if (rp && typeof rp.then === "function") rp.then(function () { /* restarting */ }, function () { fallbackRelaunch(); });
+          else fallbackRelaunch();
+          /* If the restart somehow never lands, don't leave the
+             dot screen holding forever — restore the pill. */
+          setTimeout(function () {
+            if (!state.applying) return;
+            state.applying = false;
+            if (window.EddyUpdateScreen) window.EddyUpdateScreen.finish();
+            if (pill) pill.classList.remove("hidden");
+          }, 6000);
+          return;
+        }
+        /* Simulated apply (preview hooks): the dot-assembly screen
+           with the new version, exactly what a real update shows
+           on its first launch. */
+        if (window.EddyUpdateScreen) {
+          window.EddyUpdateScreen.show(state.stagedVersion || state.currentVersion, { demo: true });
+        }
+        state.staged = false;
+        state.applying = false;
+      }
+
+      /* ----- pill + Settings wiring ----- */
+      if (pillApply) pillApply.addEventListener("click", applyStaged);
+      if (pillDismiss) pillDismiss.addEventListener("click", function () {
+        hidePill();
+        var p = tinvoke("dismiss_update"); /* best-effort, matches the old dialog's Later */
+        if (p && typeof p.then === "function") p.then(function () { }, function () { });
+      });
+      if (toggle) toggle.addEventListener("click", function () {
+        var next = !autoOn();
+        lsSet(LS_AUTO, next ? "1" : "0");
+        renderSettings();
+        setCheckStatus(next
+          ? "Automatic updates on — Eddy checks quietly when it opens."
+          : "Automatic updates off — the button below still checks manually.");
+        if (next) runCheck(false);
+      });
+      if (checkBtn) checkBtn.addEventListener("click", function () {
+        if (!autoOn()) {
+          /* Pre-existing manual behavior: the original update dialog. */
+          lsSet(LS_CHECKED, new Date().toISOString());
+          renderSettings();
+          setCheckStatus("Checking for updates…");
+          if (typeof window.eddyLegacyUpdateCheck === "function") window.eddyLegacyUpdateCheck();
+          setTimeout(function () {
+            var ov = document.getElementById("updateOverlay");
+            if (ov && !ov.classList.contains("hidden")) setCheckStatus("");
+            else setCheckStatus("You're up to date — Eddy " + state.currentVersion + ".");
+          }, 3000);
+          return;
+        }
+        setCheckStatus("Checking for updates…");
+        runCheck(true);
+      });
+
+      /* ----- idle auto-restart: 5 quiet minutes, no dialog open ----- */
+      ["pointerdown", "keydown", "touchstart", "wheel"].forEach(function (ev) {
+        window.addEventListener(ev, function () { state.lastInput = Date.now(); }, { passive: true });
+      });
+      setInterval(function () {
+        if (!state.staged || state.applying) return;
+        if (Date.now() - state.lastInput < IDLE_MS) return;
+        if (document.querySelector(".overlay:not(.hidden)")) return; /* a dialog is open — never interrupt */
+        applyStaged();
+      }, 20000);
+
+      /* ----- launch: detect the just-updated case, then the
+         deferred silent check (~3s after load, idle time) ----- */
+      renderSettings();
+      detectJustUpdated();
+      grabSW();
+      window.addEventListener("load", function () { setTimeout(grabSW, 400); });
+      function launchCheck() {
+        if (!autoOn()) return;
+        grabSW();
+        if (typeof window.requestIdleCallback === "function") {
+          window.requestIdleCallback(function () { runCheck(false); }, { timeout: 2000 });
+        } else runCheck(false);
+      }
+      if (document.readyState === "complete") setTimeout(launchCheck, 3000);
+      else window.addEventListener("load", function () { setTimeout(launchCheck, 3000); });
+
+      /* ----- preview / verification hooks ----- */
+      window.eddyUpdates = {
+        state: function () {
+          return {
+            auto: autoOn(), fails: failCount(), lastChecked: lsGet(LS_CHECKED),
+            staged: state.staged, stagedVersion: state.stagedVersion,
+            stagedVia: state.stagedVia, currentVersion: state.currentVersion
+          };
+        },
+        checkNow: function () { runCheck(true); },
+        applyStaged: applyStaged,
+        simulateAvailable: function (version) {
+          var v = typeof version === "string" && version ? version : "0.2.41";
+          showIndicator(true);
+          setTimeout(function () { recordCheck(true); onStaged(v, "sim"); }, 1400);
+        },
+        simulateFailure: function () { recordCheck(false); }
+      };
     })();
     </script>
     <script>
@@ -14129,7 +14627,7 @@
       /* ---------- PWA: offline cache + iOS install banner ---------- */
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {
-          navigator.serviceWorker.register("data:application/javascript;base64,LyogRWRkeSBzZXJ2aWNlIHdvcmtlciDigJQgY2FjaGVzIHRoZSBhcHAgc2hlbGwgYW5kIGV2ZXJ5IGJ1bmRsZWQKICAgYXNzZXQgb24gaW5zdGFsbCwgdGhlbiBzZXJ2ZXMgY2FjaGUtZmlyc3Qgd2l0aCBhIG5ldHdvcmsgZmFsbGJhY2suCiAgIENETiBsaWJyYXJpZXMgKGZvbnRzLCBMZWFmbGV0LCBPTk5YIHJ1bnRpbWUpIGFyZSBhZGRlZCB0byB0aGUgc2FtZQogICBjYWNoZSBhdCBydW50aW1lIGFzIHRoZXkgbG9hZCwgc28gcmVwZWF0IHZpc2l0cyB3b3JrIG9mZmxpbmUuCiAgIE5vdGU6IHRoaXMgZmlsZSBsaXZlcyBpbiBhc3NldHMvICh0aGUgb25seSBkaXJlY3Rvcnkgc2VydmVkIHdpdGgKICAgdGhlIHBhZ2UpLCBzbyBpdHMgVVJMcyBhcmUgcmVsYXRpdmUgdG8gdGhhdCBmb2xkZXI6IC4uLyBpcyB0aGUKICAgYXBwIHJvb3Qgd2hlcmUgaW5kZXguaHRtbCBsaXZlcy4gKi8KdmFyIENBQ0hFID0gImVkZHktdjEiOwp2YXIgQ09SRSA9IFsKICAiLi4vIiwKICAiLi4vaW5kZXguaHRtbCIsCiAgIi4vbWFuaWZlc3QuanNvbiIsCiAgIi4vaWNvbi0xODAucG5nIiwKICAiLi9pY29uLTE5Mi5wbmciLAogICIuL2ljb24tNTEyLnBuZyIKXTsKdmFyIEFTU0VUUyA9IFsKICAiLi9rZXktaGN0Zi53ZWJwIiwKICAiLi9rZXktcml2ZXIucG5nIiwKICAiLi9yZWYvYW5pc29wdGVyYS0xLmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtMi5qcGciLAogICIuL3JlZi9hbmlzb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvYW5pc29wdGVyYS00LmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtNS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMi5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMy5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNC5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNS5qcGciLAogICIuL3JlZi9iYWV0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTIuanBnIiwKICAiLi9yZWYvYmFldGlkYWUtMy5qcGciLAogICIuL3JlZi9iYWV0aWRhZS00LmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTUuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtMS5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JlbG9zdG9tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtNC5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS01LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTEuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtMi5qcGciLAogICIuL3JlZi9jYWVuaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTQuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtNS5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTEuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhbWJhcmlkYWUtMy5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTQuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS00LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTEuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtMi5qcGciLAogICIuL3JlZi9jaGFvYm9yaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTQuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtNS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMi5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMy5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNC5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMi5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNC5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNS5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTIuanBnIiwKICAiLi9yZWYvY29yeWRhbGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTUuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTEuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTIuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTMuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTQuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTUuanBnIiwKICAiLi9yZWYvZGl4aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtMi5qcGciLAogICIuL3JlZi9kaXhpZGFlLTMuanBnIiwKICAiLi9yZWYvZGl4aWRhZS00LmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtNS5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTEuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2R5dGlzY2lkYWUtMy5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTQuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS01LmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtMS5qcGciLAogICIuL3JlZi9lbG1pZGFlLTIuanBnIiwKICAiLi9yZWYvZWxtaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtNC5qcGciLAogICIuL3JlZi9lbG1pZGFlLTUuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtMS5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2VwaGVtZXJlbGxpZGFlLTMuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtNC5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTEuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtMi5qcGciLAogICIuL3JlZi9nYW1tYXJ1cy0zLmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTQuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtNS5qcGciLAogICIuL3JlZi9nZXJyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2VycmlkYWUtMy5qcGciLAogICIuL3JlZi9nZXJyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTUuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTEuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTQuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTUuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTEuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTIuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTMuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTQuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTUuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtMi5qcGciLAogICIuL3JlZi9oYWxpcGxpZGFlLTMuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtNS5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTEuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2hlcHRhZ2VuaWlkYWUtMy5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTQuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0xLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0yLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0zLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS00LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS01LmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtMi5qcGciLAogICIuL3JlZi9oeWRyb3BzeWNoaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtNS5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHRpbGlkYWUtMy5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtMS5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTIuanBnIiwKICAiLi9yZWYvbGV1Y3RyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtNC5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTUuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtMi5qcGciLAogICIuL3JlZi9saW1uZXBoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtNS5qcGciLAogICIuL3JlZi9uZXBpZGFlLTEuanBnIiwKICAiLi9yZWYvbmVwaWRhZS0yLmpwZyIsCiAgIi4vcmVmL25lcGlkYWUtMy5qcGciLAogICIuL3JlZi9uZXBpZGFlLTQuanBnIiwKICAiLi9yZWYvbmVwaWRhZS01LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0zLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS00LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS01LmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTEuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtMi5qcGciLAogICIuL3JlZi9vbGlnb2NoYWV0YS0zLmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTQuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtNS5qcGciLAogICIuL3JlZi9wZXJsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTIuanBnIiwKICAiLi9yZWYvcGVybGlkYWUtMy5qcGciLAogICIuL3JlZi9wZXJsaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTUuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtMi5qcGciLAogICIuL3JlZi9wZXJsb2RpZGFlLTMuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtNS5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTIuanBnIiwKICAiLi9yZWYvcGhpbG9wb3RhbWlkYWUtMy5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTUuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtMS5qcGciLAogICIuL3JlZi9waHlzaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3BoeXNpZGFlLTMuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtNC5qcGciLAogICIuL3JlZi9waHlzaWRhZS01LmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTEuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtMi5qcGciLAogICIuL3JlZi9wbGFub3JiaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTQuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtNS5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTIuanBnIiwKICAiLi9yZWYvcHNlcGhlbmlkYWUtMy5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTUuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtMS5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3JoeWFjb3BoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtNC5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTEuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtMi5qcGciLAogICIuL3JlZi9zaWFsaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTQuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtNS5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTEuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3NpbXVsaWlkYWUtMy5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTQuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NuYWlsLTEuanBnIiwKICAiLi9yZWYvc25haWwtMi5qcGciLAogICIuL3JlZi9zbmFpbC0zLmpwZyIsCiAgIi4vcmVmL3NuYWlsLTQuanBnIiwKICAiLi9yZWYvc25haWwtNS5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTIuanBnIiwKICAiLi9yZWYvc3BoYWVyaWlkYWUtMy5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTUuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS0xLmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtMi5qcGciLAogICIuL3JlZi9zdHJhdGlvbXlpZGFlLTMuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS00LmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtNS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMi5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMy5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNC5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMi5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMy5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNC5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMi5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMy5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNC5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNS5qcGciLAogICIuL3JlZi92ZWxpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTIuanBnIiwKICAiLi9yZWYvdmVsaWlkYWUtMy5qcGciLAogICIuL3JlZi92ZWxpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTUuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTEuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTIuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTQuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTUuanBnIiwKICAiLi9yZWYvdGh1bWIvYW5pc29wdGVyYS5qcGciLAogICIuL3JlZi90aHVtYi9hc2VsbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmFldGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmVsb3N0b21hdGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYnJhY2h5Y2VudHJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhZW5pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhbWJhcmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY2FwbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoYW9ib3JpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoaXJvbm9taWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9jb3JpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY29yeWRhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY3VsaWNpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2RpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvZHl0aXNjaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9lbG1pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2VwaGVtZXJlbGxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dhbW1hcnVzLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dlcnJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dsb3Nzb3NvbWF0aWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9neXJpbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvaGFsaXBsaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oZXB0YWdlbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2hpcnVkaW5lYS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3BzeWNoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3B0aWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2lzb255Y2hpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9sZXB0b3BobGViaWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbGV1Y3RyaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9saW1uZXBoaWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL25lcGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbm90b25lY3RpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL29saWdvY2hhZXRhLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxvZGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGhpbG9wb3RhbWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGh5c2lkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGxhbm9yYmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcHNlcGhlbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcmh5YWNvcGhpbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2lhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2ltdWxpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zbmFpbC5qcGciLAogICIuL3JlZi90aHVtYi9zcGhhZXJpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zdHJhdGlvbXlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3N5cnBoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi90YWJhbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvdGlwdWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3ZlbGlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3p5Z29wdGVyYS5qcGciLAogICIuL2ludi9hc2lhbi1jbGFtLTEuanBnIiwKICAiLi9pbnYvYXNpYW4tY2xhbS0yLmpwZyIsCiAgIi4vaW52L2FzaWFuLWNsYW0tMy5qcGciLAogICIuL2ludi9iYW5kZWQtbXlzdGVyeS1zbmFpbC0xLmpwZyIsCiAgIi4vaW52L2JhbmRlZC1teXN0ZXJ5LXNuYWlsLTIuanBnIiwKICAiLi9pbnYvYmFuZGVkLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMS5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMi5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9uei1tdWRzbmFpbC0xLmpwZyIsCiAgIi4vaW52L256LW11ZHNuYWlsLTIuanBnIiwKICAiLi9pbnYvbnotbXVkc25haWwtMy5qcGciLAogICIuL2ludi9xdWFnZ2EtbXVzc2VsLTEuanBnIiwKICAiLi9pbnYvcXVhZ2dhLW11c3NlbC0yLmpwZyIsCiAgIi4vaW52L3F1YWdnYS1tdXNzZWwtMy5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMS5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMi5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMy5qcGciLAogICIuL2ludi9ydXN0eS1jcmF5ZmlzaC0xLmpwZyIsCiAgIi4vaW52L3J1c3R5LWNyYXlmaXNoLTIuanBnIiwKICAiLi9pbnYvcnVzdHktY3JheWZpc2gtMy5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMS5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMi5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMy5qcGciLAogICIuL3lvbG8vYmVzdC5vbm54IgpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJpbnN0YWxsIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgZXZlbnQud2FpdFVudGlsKAogICAgY2FjaGVzLm9wZW4oQ0FDSEUpLnRoZW4oZnVuY3Rpb24gKGNhY2hlKSB7CiAgICAgIHJldHVybiBjYWNoZS5hZGRBbGwoQ09SRSkudGhlbihmdW5jdGlvbiAoKSB7CiAgICAgICAgLyogUGVyLWZpbGUgYWRkczogb25lIG1pc3NpbmcgZmlsZSBtdXN0IG5ldmVyIHNpbmsgdGhlIGluc3RhbGwuICovCiAgICAgICAgcmV0dXJuIFByb21pc2UuYWxsKEFTU0VUUy5tYXAoZnVuY3Rpb24gKHVybCkgewogICAgICAgICAgcmV0dXJuIGNhY2hlLmFkZCh1cmwpLmNhdGNoKGZ1bmN0aW9uICgpIHsgLyogc2tpcCAqLyB9KTsKICAgICAgICB9KSk7CiAgICAgIH0pOwogICAgfSkudGhlbihmdW5jdGlvbiAoKSB7IHJldHVybiBzZWxmLnNraXBXYWl0aW5nKCk7IH0pCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoImFjdGl2YXRlIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgZXZlbnQud2FpdFVudGlsKAogICAgY2FjaGVzLmtleXMoKS50aGVuKGZ1bmN0aW9uIChrZXlzKSB7CiAgICAgIHJldHVybiBQcm9taXNlLmFsbChrZXlzLm1hcChmdW5jdGlvbiAoaykgewogICAgICAgIHJldHVybiBrID09PSBDQUNIRSA/IG51bGwgOiBjYWNoZXMuZGVsZXRlKGspOwogICAgICB9KSk7CiAgICB9KS50aGVuKGZ1bmN0aW9uICgpIHsgcmV0dXJuIHNlbGYuY2xpZW50cy5jbGFpbSgpOyB9KQogICk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJmZXRjaCIsIGZ1bmN0aW9uIChldmVudCkgewogIHZhciByZXEgPSBldmVudC5yZXF1ZXN0OwogIGlmIChyZXEubWV0aG9kICE9PSAiR0VUIikgcmV0dXJuOwogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKHJlcSwgeyBpZ25vcmVTZWFyY2g6IHRydWUgfSkudGhlbihmdW5jdGlvbiAoaGl0KSB7CiAgICAgIGlmIChoaXQpIHJldHVybiBoaXQ7CiAgICAgIHJldHVybiBmZXRjaChyZXEpLnRoZW4oZnVuY3Rpb24gKHJlcykgewogICAgICAgIGlmIChyZXMgJiYgKHJlcy5zdGF0dXMgPT09IDIwMCB8fCByZXMudHlwZSA9PT0gIm9wYXF1ZSIpKSB7CiAgICAgICAgICB2YXIgY29weSA9IHJlcy5jbG9uZSgpOwogICAgICAgICAgY2FjaGVzLm9wZW4oQ0FDSEUpLnRoZW4oZnVuY3Rpb24gKGNhY2hlKSB7IGNhY2hlLnB1dChyZXEsIGNvcHkpOyB9KTsKICAgICAgICB9CiAgICAgICAgcmV0dXJuIHJlczsKICAgICAgfSkuY2F0Y2goZnVuY3Rpb24gKCkgewogICAgICAgIGlmIChyZXEubW9kZSA9PT0gIm5hdmlnYXRlIikgewogICAgICAgICAgcmV0dXJuIGNhY2hlcy5tYXRjaCgiLi4vaW5kZXguaHRtbCIsIHsgaWdub3JlU2VhcmNoOiB0cnVlIH0pOwogICAgICAgIH0KICAgICAgICByZXR1cm4gUmVzcG9uc2UuZXJyb3IoKTsKICAgICAgfSk7CiAgICB9KQogICk7Cn0pOwo=").catch(function () {
+          navigator.serviceWorker.register("data:application/javascript;base64,LyogRWRkeSBzZXJ2aWNlIHdvcmtlciDigJQgY2FjaGVzIHRoZSBhcHAgc2hlbGwgYW5kIGV2ZXJ5IGJ1bmRsZWQKICAgYXNzZXQgb24gaW5zdGFsbCwgdGhlbiBzZXJ2ZXMgY2FjaGUtZmlyc3Qgd2l0aCBhIG5ldHdvcmsgZmFsbGJhY2suCiAgIENETiBsaWJyYXJpZXMgKGZvbnRzLCBMZWFmbGV0LCBPTk5YIHJ1bnRpbWUpIGFyZSBhZGRlZCB0byB0aGUgc2FtZQogICBjYWNoZSBhdCBydW50aW1lIGFzIHRoZXkgbG9hZCwgc28gcmVwZWF0IHZpc2l0cyB3b3JrIG9mZmxpbmUuCiAgIE5vdGU6IHRoaXMgZmlsZSBsaXZlcyBpbiBhc3NldHMvICh0aGUgb25seSBkaXJlY3Rvcnkgc2VydmVkIHdpdGgKICAgdGhlIHBhZ2UpLCBzbyBpdHMgVVJMcyBhcmUgcmVsYXRpdmUgdG8gdGhhdCBmb2xkZXI6IC4uLyBpcyB0aGUKICAgYXBwIHJvb3Qgd2hlcmUgaW5kZXguaHRtbCBsaXZlcy4gKi8KdmFyIENBQ0hFID0gImVkZHktdjEiOwp2YXIgQ09SRSA9IFsKICAiLi4vIiwKICAiLi4vaW5kZXguaHRtbCIsCiAgIi4vbWFuaWZlc3QuanNvbiIsCiAgIi4vaWNvbi0xODAucG5nIiwKICAiLi9pY29uLTE5Mi5wbmciLAogICIuL2ljb24tNTEyLnBuZyIKXTsKdmFyIEFTU0VUUyA9IFsKICAiLi9rZXktaGN0Zi53ZWJwIiwKICAiLi9rZXktcml2ZXIucG5nIiwKICAiLi9yZWYvYW5pc29wdGVyYS0xLmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtMi5qcGciLAogICIuL3JlZi9hbmlzb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvYW5pc29wdGVyYS00LmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtNS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMi5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMy5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNC5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNS5qcGciLAogICIuL3JlZi9iYWV0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTIuanBnIiwKICAiLi9yZWYvYmFldGlkYWUtMy5qcGciLAogICIuL3JlZi9iYWV0aWRhZS00LmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTUuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtMS5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JlbG9zdG9tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtNC5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS01LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTEuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtMi5qcGciLAogICIuL3JlZi9jYWVuaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTQuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtNS5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTEuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhbWJhcmlkYWUtMy5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTQuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS00LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTEuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtMi5qcGciLAogICIuL3JlZi9jaGFvYm9yaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTQuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtNS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMi5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMy5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNC5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMi5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNC5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNS5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTIuanBnIiwKICAiLi9yZWYvY29yeWRhbGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTUuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTEuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTIuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTMuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTQuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTUuanBnIiwKICAiLi9yZWYvZGl4aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtMi5qcGciLAogICIuL3JlZi9kaXhpZGFlLTMuanBnIiwKICAiLi9yZWYvZGl4aWRhZS00LmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtNS5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTEuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2R5dGlzY2lkYWUtMy5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTQuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS01LmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtMS5qcGciLAogICIuL3JlZi9lbG1pZGFlLTIuanBnIiwKICAiLi9yZWYvZWxtaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtNC5qcGciLAogICIuL3JlZi9lbG1pZGFlLTUuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtMS5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2VwaGVtZXJlbGxpZGFlLTMuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtNC5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTEuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtMi5qcGciLAogICIuL3JlZi9nYW1tYXJ1cy0zLmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTQuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtNS5qcGciLAogICIuL3JlZi9nZXJyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2VycmlkYWUtMy5qcGciLAogICIuL3JlZi9nZXJyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTUuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTEuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTQuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTUuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTEuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTIuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTMuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTQuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTUuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtMi5qcGciLAogICIuL3JlZi9oYWxpcGxpZGFlLTMuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtNS5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTEuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2hlcHRhZ2VuaWlkYWUtMy5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTQuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0xLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0yLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0zLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS00LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS01LmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtMi5qcGciLAogICIuL3JlZi9oeWRyb3BzeWNoaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtNS5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHRpbGlkYWUtMy5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtMS5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTIuanBnIiwKICAiLi9yZWYvbGV1Y3RyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtNC5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTUuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtMi5qcGciLAogICIuL3JlZi9saW1uZXBoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtNS5qcGciLAogICIuL3JlZi9uZXBpZGFlLTEuanBnIiwKICAiLi9yZWYvbmVwaWRhZS0yLmpwZyIsCiAgIi4vcmVmL25lcGlkYWUtMy5qcGciLAogICIuL3JlZi9uZXBpZGFlLTQuanBnIiwKICAiLi9yZWYvbmVwaWRhZS01LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0zLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS00LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS01LmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTEuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtMi5qcGciLAogICIuL3JlZi9vbGlnb2NoYWV0YS0zLmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTQuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtNS5qcGciLAogICIuL3JlZi9wZXJsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTIuanBnIiwKICAiLi9yZWYvcGVybGlkYWUtMy5qcGciLAogICIuL3JlZi9wZXJsaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTUuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtMi5qcGciLAogICIuL3JlZi9wZXJsb2RpZGFlLTMuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtNS5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTIuanBnIiwKICAiLi9yZWYvcGhpbG9wb3RhbWlkYWUtMy5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTUuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtMS5qcGciLAogICIuL3JlZi9waHlzaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3BoeXNpZGFlLTMuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtNC5qcGciLAogICIuL3JlZi9waHlzaWRhZS01LmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTEuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtMi5qcGciLAogICIuL3JlZi9wbGFub3JiaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTQuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtNS5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTIuanBnIiwKICAiLi9yZWYvcHNlcGhlbmlkYWUtMy5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTUuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtMS5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3JoeWFjb3BoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtNC5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTEuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtMi5qcGciLAogICIuL3JlZi9zaWFsaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTQuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtNS5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTEuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3NpbXVsaWlkYWUtMy5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTQuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NuYWlsLTEuanBnIiwKICAiLi9yZWYvc25haWwtMi5qcGciLAogICIuL3JlZi9zbmFpbC0zLmpwZyIsCiAgIi4vcmVmL3NuYWlsLTQuanBnIiwKICAiLi9yZWYvc25haWwtNS5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTIuanBnIiwKICAiLi9yZWYvc3BoYWVyaWlkYWUtMy5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTUuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS0xLmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtMi5qcGciLAogICIuL3JlZi9zdHJhdGlvbXlpZGFlLTMuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS00LmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtNS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMi5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMy5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNC5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMi5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMy5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNC5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMi5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMy5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNC5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNS5qcGciLAogICIuL3JlZi92ZWxpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTIuanBnIiwKICAiLi9yZWYvdmVsaWlkYWUtMy5qcGciLAogICIuL3JlZi92ZWxpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTUuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTEuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTIuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTQuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTUuanBnIiwKICAiLi9yZWYvdGh1bWIvYW5pc29wdGVyYS5qcGciLAogICIuL3JlZi90aHVtYi9hc2VsbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmFldGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmVsb3N0b21hdGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYnJhY2h5Y2VudHJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhZW5pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhbWJhcmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY2FwbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoYW9ib3JpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoaXJvbm9taWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9jb3JpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY29yeWRhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY3VsaWNpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2RpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvZHl0aXNjaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9lbG1pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2VwaGVtZXJlbGxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dhbW1hcnVzLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dlcnJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dsb3Nzb3NvbWF0aWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9neXJpbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvaGFsaXBsaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oZXB0YWdlbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2hpcnVkaW5lYS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3BzeWNoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3B0aWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2lzb255Y2hpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9sZXB0b3BobGViaWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbGV1Y3RyaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9saW1uZXBoaWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL25lcGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbm90b25lY3RpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL29saWdvY2hhZXRhLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxvZGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGhpbG9wb3RhbWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGh5c2lkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGxhbm9yYmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcHNlcGhlbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcmh5YWNvcGhpbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2lhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2ltdWxpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zbmFpbC5qcGciLAogICIuL3JlZi90aHVtYi9zcGhhZXJpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zdHJhdGlvbXlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3N5cnBoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi90YWJhbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvdGlwdWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3ZlbGlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3p5Z29wdGVyYS5qcGciLAogICIuL2ludi9hc2lhbi1jbGFtLTEuanBnIiwKICAiLi9pbnYvYXNpYW4tY2xhbS0yLmpwZyIsCiAgIi4vaW52L2FzaWFuLWNsYW0tMy5qcGciLAogICIuL2ludi9iYW5kZWQtbXlzdGVyeS1zbmFpbC0xLmpwZyIsCiAgIi4vaW52L2JhbmRlZC1teXN0ZXJ5LXNuYWlsLTIuanBnIiwKICAiLi9pbnYvYmFuZGVkLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMS5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMi5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9uei1tdWRzbmFpbC0xLmpwZyIsCiAgIi4vaW52L256LW11ZHNuYWlsLTIuanBnIiwKICAiLi9pbnYvbnotbXVkc25haWwtMy5qcGciLAogICIuL2ludi9xdWFnZ2EtbXVzc2VsLTEuanBnIiwKICAiLi9pbnYvcXVhZ2dhLW11c3NlbC0yLmpwZyIsCiAgIi4vaW52L3F1YWdnYS1tdXNzZWwtMy5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMS5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMi5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMy5qcGciLAogICIuL2ludi9ydXN0eS1jcmF5ZmlzaC0xLmpwZyIsCiAgIi4vaW52L3J1c3R5LWNyYXlmaXNoLTIuanBnIiwKICAiLi9pbnYvcnVzdHktY3JheWZpc2gtMy5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMS5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMi5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMy5qcGciLAogICIuL3lvbG8vYmVzdC5vbm54IgpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJpbnN0YWxsIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgLyogRGVsaWJlcmF0ZWx5IE5PIHNraXBXYWl0aW5nKCkgaGVyZTogYW4gdXBkYXRlZCB3b3JrZXIgc3RheXMKICAgICBpbiB0aGUgd2FpdGluZyBzdGF0ZSBzbyB0aGUgcGFnZSBjYW4gb2ZmZXIgaXRzIHN1YnRsZQogICAgICJSZXN0YXJ0IHRvIHVwZGF0ZSIgcGlsbCAoc2lsZW50IGJhY2tncm91bmQgdXBkYXRlcykuIFRoZQogICAgIHBpbGwgcG9zdHMgU0tJUF9XQUlUSU5HIHdoZW4gdGFwcGVkOyBhbiBpZ25vcmVkIHVwZGF0ZSBzdGlsbAogICAgIGFjdGl2YXRlcyBvbiBpdHMgb3duIG9uY2UgZXZlcnkgRWRkeSB0YWIvd2luZG93IGlzIGNsb3NlZC4gKi8KICBldmVudC53YWl0VW50aWwoCiAgICBjYWNoZXMub3BlbihDQUNIRSkudGhlbihmdW5jdGlvbiAoY2FjaGUpIHsKICAgICAgcmV0dXJuIGNhY2hlLmFkZEFsbChDT1JFKS50aGVuKGZ1bmN0aW9uICgpIHsKICAgICAgICAvKiBQZXItZmlsZSBhZGRzOiBvbmUgbWlzc2luZyBmaWxlIG11c3QgbmV2ZXIgc2luayB0aGUgaW5zdGFsbC4gKi8KICAgICAgICByZXR1cm4gUHJvbWlzZS5hbGwoQVNTRVRTLm1hcChmdW5jdGlvbiAodXJsKSB7CiAgICAgICAgICByZXR1cm4gY2FjaGUuYWRkKHVybCkuY2F0Y2goZnVuY3Rpb24gKCkgeyAvKiBza2lwICovIH0pOwogICAgICAgIH0pKTsKICAgICAgfSk7CiAgICB9KQogICk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJtZXNzYWdlIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgaWYgKGV2ZW50LmRhdGEgJiYgZXZlbnQuZGF0YS50eXBlID09PSAiU0tJUF9XQUlUSU5HIikgc2VsZi5za2lwV2FpdGluZygpOwp9KTsKCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcigiYWN0aXZhdGUiLCBmdW5jdGlvbiAoZXZlbnQpIHsKICBldmVudC53YWl0VW50aWwoCiAgICBjYWNoZXMua2V5cygpLnRoZW4oZnVuY3Rpb24gKGtleXMpIHsKICAgICAgcmV0dXJuIFByb21pc2UuYWxsKGtleXMubWFwKGZ1bmN0aW9uIChrKSB7CiAgICAgICAgcmV0dXJuIGsgPT09IENBQ0hFID8gbnVsbCA6IGNhY2hlcy5kZWxldGUoayk7CiAgICAgIH0pKTsKICAgIH0pLnRoZW4oZnVuY3Rpb24gKCkgeyByZXR1cm4gc2VsZi5jbGllbnRzLmNsYWltKCk7IH0pCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoImZldGNoIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgdmFyIHJlcSA9IGV2ZW50LnJlcXVlc3Q7CiAgaWYgKHJlcS5tZXRob2QgIT09ICJHRVQiKSByZXR1cm47CiAgZXZlbnQucmVzcG9uZFdpdGgoCiAgICBjYWNoZXMubWF0Y2gocmVxLCB7IGlnbm9yZVNlYXJjaDogdHJ1ZSB9KS50aGVuKGZ1bmN0aW9uIChoaXQpIHsKICAgICAgaWYgKGhpdCkgcmV0dXJuIGhpdDsKICAgICAgcmV0dXJuIGZldGNoKHJlcSkudGhlbihmdW5jdGlvbiAocmVzKSB7CiAgICAgICAgaWYgKHJlcyAmJiAocmVzLnN0YXR1cyA9PT0gMjAwIHx8IHJlcy50eXBlID09PSAib3BhcXVlIikpIHsKICAgICAgICAgIHZhciBjb3B5ID0gcmVzLmNsb25lKCk7CiAgICAgICAgICBjYWNoZXMub3BlbihDQUNIRSkudGhlbihmdW5jdGlvbiAoY2FjaGUpIHsgY2FjaGUucHV0KHJlcSwgY29weSk7IH0pOwogICAgICAgIH0KICAgICAgICByZXR1cm4gcmVzOwogICAgICB9KS5jYXRjaChmdW5jdGlvbiAoKSB7CiAgICAgICAgaWYgKHJlcS5tb2RlID09PSAibmF2aWdhdGUiKSB7CiAgICAgICAgICByZXR1cm4gY2FjaGVzLm1hdGNoKCIuLi9pbmRleC5odG1sIiwgeyBpZ25vcmVTZWFyY2g6IHRydWUgfSk7CiAgICAgICAgfQogICAgICAgIHJldHVybiBSZXNwb25zZS5lcnJvcigpOwogICAgICB9KTsKICAgIH0pCiAgKTsKfSk7Cg==").catch(function () {
             /* Offline cache unavailable in this browser — the app still runs. */
           });
         });

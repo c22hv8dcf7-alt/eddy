@@ -39,11 +39,11 @@
   },
   "identifier": "com.eddy.counter",
   "productName": "Eddy",
-  "version": "0.2.40",
+  "version": "0.2.41",
   "plugins": {
     "updater": {
       "active": true,
-      "dialog": true,
+      "dialog": false,
       "endpoints": [
         "https://github.com/c22hv8dcf7-alt/eddy/releases/latest/download/latest.json"
       ],
