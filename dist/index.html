@@ -214,6 +214,21 @@
       .live-error{margin-top:12px;border:1.5px solid var(--red);border-radius:10px;background:var(--panel-2);padding:12px 14px}
       .live-error p{margin:0 0 10px;font-size:.95rem;line-height:1.45}
       .live-count{font-family:"IBM Plex Mono",monospace;font-size:.92rem;font-weight:600;margin:10px 0 0;min-height:1.2em}
+      /* Burst capture rate chip, beside the Photo/Live toggle */
+      .live-fps{font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:600;color:var(--ink-2);
+        border:1.5px solid var(--line-strong);border-radius:999px;padding:5px 11px;line-height:1.2;background:var(--panel-2);white-space:nowrap}
+      /* The same measured rate as a badge on the feed itself —
+         bottom-right, clear of LIVE (top-left), stabilizing…
+         (top-right) and the locked badge (bottom-left) */
+      .live-fps-badge{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.72);color:#fff;
+        font-family:"IBM Plex Mono",monospace;font-size:.75rem;font-weight:600;padding:6px 11px;
+        border-radius:999px;line-height:1.2;z-index:2}
+      /* Medium-confidence live dots sit at ~60% opacity */
+      #liveDots .dot-unc{opacity:.6}
+      /* "uncertain" marker on a tally row holding medium-confidence organisms */
+      .unc-badge{display:inline-flex;align-items:center;font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:700;
+        letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;
+        background:var(--amber-soft);color:var(--amber-text);border:1px solid var(--amber-line)}
       #photoArea.live-on #zoomView,#photoArea.live-on .photobar,#photoArea.live-on .calbar,
       #photoArea.live-on .modebar,#photoArea.live-on #tapHint,#photoArea.live-on #quickBar,
       #photoArea.live-on #dotListWrap,#photoArea.live-on #qualityBanner{display:none}
@@ -833,6 +848,30 @@
       .update-pct{margin-top:12px;font-family:"IBM Plex Mono",monospace;font-size:1.3rem;font-weight:600;color:#eaf2f9}
       .update-status{margin-top:3px;font-size:.85rem;color:#a8bfd4}
 
+      /* ---------- Update install screen: dot-assembly version ----------
+         Full-screen overlay shown while an update installs. Amber
+         dots fly in from the screen edges and lock into a 5x7
+         dot-matrix version number, hold with a gentle pulse, then
+         scatter and fade as the updated app loads. All dot motion
+         runs on one requestAnimationFrame loop writing translate3d
+         transforms — see the EddyUpdateScreen script. Cosmetic
+         only: it never blocks or delays the install itself. */
+      .upd-screen{position:fixed;inset:0;z-index:2000;background:#0f1419;color:#eaf2f9;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        transition:opacity .45s ease}
+      .upd-screen.upd-fading{opacity:0;pointer-events:none}
+      .upd-field{position:relative;flex:none;will-change:transform}
+      .upd-field.upd-hold{animation:updPulse 1.2s ease-in-out infinite}
+      @keyframes updPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+      .upd-dot{position:absolute;border-radius:50%;background:#f5a623;opacity:0;
+        box-shadow:0 0 8px rgba(245,166,35,.55);will-change:transform,opacity}
+      .upd-label{margin-top:34px;font-size:.95rem;color:#8b98a5;letter-spacing:.04em;text-align:center}
+      .upd-bar{margin-top:16px;width:min(280px,62vw);height:3px;border-radius:2px;
+        background:rgba(234,242,249,.12);overflow:hidden}
+      .upd-bar-fill{display:block;height:100%;width:100%;border-radius:2px;background:#f5a623;
+        transform:scaleX(0);transform-origin:left center;will-change:transform}
+      .upd-fallback{font-size:1.05rem;color:#a8bfd4;text-align:center;padding:0 24px}
+
       /* ---------- Responsive ---------- */
       @media (max-width:1240px){.panels{grid-template-columns:minmax(0,1fr) 380px}}
       @media (max-width:980px){
@@ -998,7 +1037,7 @@
          dot arrives. */
       .boot-fly{position:absolute;inset:0;pointer-events:none}
       .boot-dot{position:absolute;border-radius:50%;background:#f5a623;opacity:.15;
-        box-shadow:0 0 6px rgba(245,166,35,.45);will-change:transform,opacity}
+        box-shadow:0 0 6px rgba(245,166,35,.45)}
       .boot-dot.flying{transition:transform .6s cubic-bezier(.215,.61,.355,1),opacity .3s ease}
       .boot-dot.locked{animation:bootDotPulse .2s ease}
       .boot-dot.mayfly{background:#7dd3fc;box-shadow:0 0 6px rgba(125,211,252,.5)}
@@ -1007,7 +1046,7 @@
         padding-bottom:calc(46px + env(safe-area-inset-bottom,0px))}
       .boot-insect{font-size:.8rem;font-weight:700;letter-spacing:.3em;padding-left:.3em;
         text-transform:uppercase;color:#f5a623;min-height:1.3em;margin-bottom:6px;
-        transition:color .85s ease}
+        transition:color 1.5s cubic-bezier(.4,0,.2,1)}
       .boot-insect.mayfly{color:#7dd3fc}
       .boot-status{font-size:.85rem;color:#a8bfd4;min-height:1.3em}
       @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
@@ -1416,8 +1455,13 @@
           el.style.left = (tx - sz / 2) + "px";
           el.style.top = (ty - sz / 2) + "px";
           flyEl.appendChild(el);
-          dots.push({ el: el, tx: tx, ty: ty,
-            mx: cx + (mp[0] - 150) * sc, my: cy + (mp[1] - 93) * sc,
+          /* Morph endpoints precomputed here, once: the dot
+             rests at translate(0,0) on its stonefly target,
+             so the morph lerps (0,0) → (ex, ey). Nothing is
+             measured or derived per frame later.           */
+          var mx = cx + (mp[0] - 150) * sc, my = cy + (mp[1] - 93) * sc;
+          dots.push({ el: el, tx: tx, ty: ty, mx: mx, my: my,
+            ex: mx - tx, ey: my - ty,
             flown: false, locked: false });
         }
         for (var i = 0; i < STONEFLY.length; i++) addDot(STONEFLY[i], MAYFLY[i]);
@@ -1459,29 +1503,93 @@
         later(lock, dur + 90); /* fallback if transitionend is missed */
       }
       /* ---------- Phase 2: the morph ----------
-         The same dots slide from their stonefly targets to
-         their mayfly targets over 850 ms with a rippling
-         ~18 ms per-dot stagger, fill shifting amber → light
-         blue as they go. A position morph, not a fade.     */
-      var MORPH_MS = 850, MORPH_STAGGER = 18;
+         The same dots glide from their stonefly targets to
+         their mayfly targets over 1.5 s, fill shifting
+         amber → light blue as they go. A position morph,
+         not a fade. Driven by requestAnimationFrame: every
+         start/end offset and both endpoint colours were
+         precomputed before the first frame, so each frame
+         is only a lerp plus a translate3d / colour write
+         per dot — no CSS transitions, no per-dot delays,
+         no layout reads. Easing is cubic-bezier(0.4, 0,
+         0.2, 1), solved once into a lookup table. The 44
+         dots are well inside a 60 fps budget, so the count
+         stays as authored.                              */
+      var MORPH_MS = 1500;
+      var AMBER_RGB = [245, 166, 35], BLUE_RGB = [125, 211, 252];
+      function bezierY(x, p1x, p1y, p2x, p2y) {
+        /* Solve a CSS cubic-bezier for y at a given x:
+           Newton steps with a bisection fallback. Runs
+           only while the table below is built.          */
+        var cx = 3 * p1x, bx = 3 * (p2x - p1x) - cx, ax = 1 - cx - bx;
+        var cy = 3 * p1y, by = 3 * (p2y - p1y) - cy, ay = 1 - cy - by;
+        function sx(t) { return ((ax * t + bx) * t + cx) * t; }
+        function sy(t) { return ((ay * t + by) * t + cy) * t; }
+        function dx(t) { return (3 * ax * t + 2 * bx) * t + cx; }
+        var t = x, i, err, d;
+        for (i = 0; i < 5; i++) {
+          err = sx(t) - x;
+          if (Math.abs(err) < 1e-4) return sy(t);
+          d = dx(t);
+          if (Math.abs(d) < 1e-4) break;
+          t -= err / d;
+        }
+        var lo = 0, hi = 1; t = x;
+        while (hi - lo > 1e-4) {
+          if (sx(t) < x) lo = t; else hi = t;
+          t = (lo + hi) / 2;
+        }
+        return sy(t);
+      }
+      var EASE_TABLE = (function () {
+        var tab = [], N = 240;
+        for (var i = 0; i <= N; i++) tab.push(bezierY(i / N, 0.4, 0, 0.2, 1));
+        return tab;
+      })();
       function startMorph() {
         if (done || morphStarted) return;
         morphStarted = true;
         setStatus("morphing…");
         if (insectEl) { insectEl.textContent = "Mayfly Nymph"; insectEl.classList.add("mayfly"); }
-        for (var i = 0; i < dots.length; i++) {
-          var d = dots[i];
-          d.el.style.transition = "transform " + MORPH_MS + "ms cubic-bezier(.45,0,.25,1), " +
-            "background-color " + MORPH_MS + "ms ease, box-shadow " + MORPH_MS + "ms ease, opacity .3s ease";
-          d.el.style.transitionDelay = ((i % 24) * MORPH_STAGGER) + "ms";
+        var N = dots.length, i, d;
+        /* Kill the fly-in transitions so nothing fights the
+           per-frame writes, and promote the dots onto their
+           own layers for the duration of the morph only.  */
+        for (i = 0; i < N; i++) {
+          d = dots[i];
+          d.el.style.transition = "none";
+          d.el.classList.remove("flying");
+          d.el.style.willChange = "transform";
         }
-        void flyEl.offsetWidth; /* settle the new transition spec */
-        for (var j = 0; j < dots.length; j++) {
-          var m = dots[j];
-          m.el.classList.add("mayfly");
-          m.el.style.transform = "translate(" + (m.mx - m.tx) + "px," + (m.my - m.ty) + "px)";
-        }
-        later(function () {
+        var dur = reduced ? 0 : MORPH_MS;
+        var startT = 0;
+        var frame = function (now) {
+          if (done) return;
+          if (!startT) startT = now;
+          var t = dur ? Math.min(1, (now - startT) / dur) : 1;
+          var e = EASE_TABLE[Math.round(t * (EASE_TABLE.length - 1))];
+          /* One fill for every dot this frame: lerp the
+             cached endpoint RGBs (glow alpha rides along
+             so the shadow never snaps either).           */
+          var r = Math.round(AMBER_RGB[0] + (BLUE_RGB[0] - AMBER_RGB[0]) * e);
+          var g = Math.round(AMBER_RGB[1] + (BLUE_RGB[1] - AMBER_RGB[1]) * e);
+          var b = Math.round(AMBER_RGB[2] + (BLUE_RGB[2] - AMBER_RGB[2]) * e);
+          var bg = "rgb(" + r + "," + g + "," + b + ")";
+          var sh = "0 0 6px rgba(" + r + "," + g + "," + b + "," + (0.45 + 0.05 * e).toFixed(3) + ")";
+          for (var j = 0; j < N; j++) {
+            var m = dots[j];
+            m.el.style.transform = "translate3d(" + (m.ex * e).toFixed(2) + "px," + (m.ey * e).toFixed(2) + "px,0)";
+            m.el.style.backgroundColor = bg;
+            m.el.style.boxShadow = sh;
+          }
+          if (t < 1) { requestAnimationFrame(frame); return; }
+          /* Morph complete: drop the layer promotion and
+             settle on the mayfly class (its fill and glow
+             match the final lerped values exactly).      */
+          for (var k = 0; k < N; k++) {
+            dots[k].el.style.willChange = "";
+            dots[k].el.classList.add("mayfly");
+          }
           morphDoneAt = Date.now();
           setStatus("mayfly complete");
           later(function () {
@@ -1489,7 +1597,8 @@
             setStatus("ready");
             maybeDismiss();
           }, 220);
-        }, MORPH_MS + 23 * MORPH_STAGGER + 40);
+        };
+        requestAnimationFrame(frame);
       }
       buildDots();
       setStatus("assembling…");
@@ -1804,6 +1913,7 @@
                 <button type="button" data-wbmode="photo" class="active" aria-pressed="true">Photo Mode</button>
                 <button type="button" data-wbmode="live" aria-pressed="false">Live Mode</button>
               </div>
+              <span class="live-fps hidden" id="liveFps" role="status" title="Live capture rate — drops automatically if this device can't keep up">5 fps</span>
             </div>
             <p class="status bad hidden" id="liveModeAlert" role="alert"></p>
             <div class="sample-strip">
@@ -1875,6 +1985,7 @@
                     <span class="cam-live hidden" id="liveBadge"><i></i>LIVE</span>
                     <span class="live-stab hidden" id="liveStab"><i></i>stabilizing…</span>
                     <span class="live-locked hidden" id="liveLockedBadge">Count locked in</span>
+                    <span class="live-fps-badge hidden" id="liveFpsBadge">5 fps</span>
                     <div id="liveDots" aria-hidden="true"></div>
                   </div>
                   <div id="liveError" class="live-error hidden" role="alert">
@@ -1884,7 +1995,7 @@
                       <button type="button" class="btn btn-ghost" id="liveToPhotoBtn">Back to Photo Mode</button>
                     </div>
                   </div>
-                  <p class="seg-note" style="margin-top:10px">Point the camera down at the tray and sort as usual — Eddy re-counts the tray every couple of seconds and the tally on Step 3 follows. A detection joins the count after two sightings in a row and leaves after three misses, so a shifting specimen doesn't flicker the totals. When the tray is done, <strong>Lock In Count</strong>, then <strong>Generate Report</strong>.</p>
+                  <p class="seg-note" style="margin-top:10px">Point the camera down at the tray and sort as usual — Eddy grabs five frames a second and cross-checks each rolling second of frames, so a one-frame glitch never reaches the tally. An organism seen in nearly every frame of the last second counts solid; one seen in only some of them counts too, but its dot shows dimmer and its tally row is flagged <strong>uncertain</strong> until it settles. When the tray is done, <strong>Lock In Count</strong>, then <strong>Generate Report</strong>.</p>
                   <div class="btn-row" style="margin-top:10px">
                     <button type="button" class="btn btn-primary" id="liveLockBtn">Lock In Count</button>
                     <button type="button" class="btn btn-teal hidden" id="liveResumeBtn">Resume Live</button>
@@ -2563,6 +2674,14 @@
         </div>
         <p id="updateError" class="update-error hidden" role="alert"></p>
       </div>
+    </div>
+
+    <!-- ============ UPDATE INSTALL SCREEN (dot-assembly version) ============ -->
+    <div id="updateScreen" class="upd-screen hidden" role="status" aria-label="Updating Eddy">
+      <div class="upd-field" id="updField" aria-hidden="true"></div>
+      <p class="upd-label" id="updLabel">Updating Eddy…</p>
+      <div class="upd-bar" id="updBar" aria-hidden="true"><span class="upd-bar-fill" id="updBarFill"></span></div>
+      <p class="upd-fallback hidden" id="updFallback">Updating…</p>
     </div>
 
     <!-- ============ ALERT BARS (storage full / engine load) ============ -->
@@ -12409,6 +12528,349 @@
 
     <script>
     "use strict";
+    /* ---------- Update install screen: dot-assembly version ----------
+       When an update starts installing, amber dots fly in from the
+       screen edges and assemble into the new version number, drawn
+       as a 5x7 dot matrix (LED-style) — real positioned dots, not
+       text. The number holds with a gentle pulse, then the dots
+       scatter and fade as the updated app loads.
+
+         Phase 1 (0–2s)  dots fly in along curved paths on a single
+                         requestAnimationFrame loop, each dot
+                         starting within the first 0.3s, eased with
+                         cubic-bezier(0.4, 0, 0.2, 1), moved only
+                         by translate3d (GPU-composited, 60fps)
+         Phase 2 (2–4s)  hold — whole dot field pulses 1→1.03→1
+         Phase 3 (4–5s)  dots scatter outward, fade, overlay fades
+
+       Purely cosmetic: show()/finish() are fire-and-forget and
+       never touch the install itself. If anything about building
+       the dots throws, a plain "Updating…" overlay shows instead —
+       the user never stares at a broken screen.
+
+       window.EddyUpdateScreen.show(version[, { demo: true }])
+       window.EddyUpdateScreen.finish()
+       window.showUpdateScreen(version)  — preview alias (demo mode)
+       Demo mode plays the full ~5s sequence on its own timers
+       (used by the #update-demo preview in the web build, where
+       there is no Tauri updater). In live mode the updater calls
+       finish() when the install settles; the dots hold (pulsing)
+       until then, so a slow download never rushes the screen. */
+    (function () {
+      var screen = document.getElementById("updateScreen");
+      var field = document.getElementById("updField");
+      var label = document.getElementById("updLabel");
+      var bar = document.getElementById("updBar");
+      var barFill = document.getElementById("updBarFill");
+      var fallbackEl = document.getElementById("updFallback");
+      if (!screen || !field) return;
+
+      /* 5x7 dot-matrix glyphs ("1" = dot). Digits are 5 columns;
+         the "." separator is a 3x3 block sitting on the baseline. */
+      var GLYPHS = {
+        "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
+        "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+        "2": ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
+        "3": ["11111", "00010", "00100", "00010", "00001", "10001", "01110"],
+        "4": ["00010", "00110", "01010", "10010", "11111", "00010", "00010"],
+        "5": ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+        "6": ["00110", "01000", "10000", "11110", "10001", "10001", "01110"],
+        "7": ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+        "8": ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
+        "9": ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
+        ".": ["000", "000", "000", "000", "111", "111", "111"]
+      };
+      var ROWS = 7, GAP_COLS = 2; /* empty columns between glyphs */
+
+      /* Lay a version string (digits + dots; anything else is
+         skipped) out as dot targets, centred in a field scaled to
+         the viewport. Returns { cells:[{x,y}], w, h, dot } in px,
+         coordinates relative to the field's top-left corner.
+         Computed once, before the animation starts — the rAF loop
+         below never measures layout. */
+      function layoutVersion(str) {
+        var chars = [];
+        for (var i = 0; i < str.length; i++) if (GLYPHS[str[i]]) chars.push(str[i]);
+        if (!chars.length) chars = ["0"];
+        var cols = 0;
+        chars.forEach(function (ch, idx) { cols += GLYPHS[ch][0].length + (idx ? GAP_COLS : 0); });
+        var vw = window.innerWidth || 1024, vh = window.innerHeight || 768;
+        var pitch = Math.min((Math.min(vw * 0.86, 560)) / cols, (vh * 0.36) / ROWS);
+        pitch = Math.max(4, pitch);
+        var cells = [], x0 = 0;
+        chars.forEach(function (ch) {
+          var g = GLYPHS[ch], gw = g[0].length;
+          for (var r = 0; r < ROWS; r++) for (var c = 0; c < gw; c++) {
+            if (g[r][c] === "1") cells.push({ x: (x0 + c) * pitch, y: r * pitch });
+          }
+          x0 += gw + GAP_COLS;
+        });
+        return { cells: cells, w: cols * pitch, h: ROWS * pitch, dot: Math.max(3, pitch * 0.62), pitch: pitch };
+      }
+
+      /* JS solver for a CSS cubic-bezier timing function, so the
+         rAF loop eases exactly like cubic-bezier(0.4, 0, 0.2, 1). */
+      function cubicBezier(x1, y1, x2, y2) {
+        function sampleX(t) { var u = 1 - t; return 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t; }
+        function sampleY(t) { var u = 1 - t; return 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t; }
+        function sampleDX(t) { var u = 1 - t; return 3 * u * u * x1 + 6 * u * t * (x2 - x1) + 3 * t * t * (1 - x2); }
+        return function (x) {
+          if (x <= 0) return 0;
+          if (x >= 1) return 1;
+          var t = x, i, d;
+          for (i = 0; i < 5; i++) { /* Newton–Raphson */
+            d = sampleDX(t);
+            if (Math.abs(d) < 1e-6) break;
+            t -= (sampleX(t) - x) / d;
+            if (t < 0 || t > 1) { t = x; break; }
+          }
+          if (Math.abs(sampleX(t) - x) > 1e-4) { /* bisection fallback */
+            var lo = 0, hi = 1; t = x;
+            for (i = 0; i < 12; i++) {
+              if (sampleX(t) < x) lo = t; else hi = t;
+              t = (lo + hi) / 2;
+            }
+          }
+          return sampleY(t);
+        };
+      }
+      var EASE = cubicBezier(0.4, 0, 0.2, 1);      /* the brief's glide */
+      var EASE_IN = cubicBezier(0.55, 0.06, 0.68, 0.19); /* scatter accel */
+      var reduced = typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      var active = false, generation = 0, timers = [], dots = [],
+          rafId = null, barAnim = null, layout = null;
+
+      function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+      function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+      function stopRaf() { if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } }
+      function cancelBar() { if (barAnim) { try { barAnim.cancel(); } catch (e) { /* done */ } barAnim = null; } }
+
+      function cleanup() {
+        clearTimers(); stopRaf(); cancelBar();
+        dots = [];
+        field.innerHTML = "";
+        field.classList.remove("upd-hold");
+        screen.classList.remove("upd-fading");
+        screen.classList.add("hidden");
+        active = false;
+      }
+
+      function showFallback() {
+        field.classList.add("hidden");
+        if (label) label.classList.add("hidden");
+        if (bar) bar.classList.add("hidden");
+        if (fallbackEl) fallbackEl.classList.remove("hidden");
+        screen.classList.remove("upd-fading");
+        screen.classList.remove("hidden");
+      }
+
+      /* Write one dot's composited transform + opacity, and remember
+         where it is so a mid-flight finish() scatters from the dot's
+         current spot instead of snapping it home first. */
+      function paint(d, ox, oy, scale, op) {
+        d.ox = ox; d.oy = oy; d.op = op;
+        d.el.style.transform = "translate3d(" + ox.toFixed(1) + "px," + oy.toFixed(1) + "px,0) scale(" + scale.toFixed(3) + ")";
+        d.el.style.opacity = op.toFixed(3);
+      }
+
+      /* Phase 1: one rAF loop flies every dot from its screen-edge
+         start to its target along a bowed (quadratic-bezier) path.
+         Each dot's transform is an offset from its laid-out target
+         cell, so translate3d(0,0,0) is home. */
+      function flyIn(gen) {
+        var t0 = performance.now();
+        function frame(now) {
+          if (gen !== generation) return;
+          var t = now - t0, done = true;
+          for (var i = 0; i < dots.length; i++) {
+            var d = dots[i];
+            var lt = (t - d.delay) / d.dur;
+            if (lt <= 0) { paint(d, d.sx, d.sy, 0.55, 0); done = false; continue; }
+            if (lt < 1) done = false; else lt = 1;
+            var e = EASE(lt), u = 1 - e;
+            paint(d,
+              u * u * d.sx + 2 * u * e * d.cx,
+              u * u * d.sy + 2 * u * e * d.cy,
+              0.55 + 0.45 * e,
+              Math.min(1, lt * 2.4));
+          }
+          rafId = done ? null : requestAnimationFrame(frame);
+        }
+        rafId = requestAnimationFrame(frame);
+      }
+
+      function show(version, opts) {
+        if (active) cleanup();
+        var gen = ++generation;
+        active = true;
+        var demo = !!(opts && opts.demo);
+        try {
+          var str = String(version == null ? "" : version).trim() || "0.0.0";
+          layout = layoutVersion(str);
+          /* Reset to the animated layout (a previous fallback hid these). */
+          field.classList.remove("hidden");
+          if (label) label.classList.remove("hidden");
+          if (bar) bar.classList.remove("hidden");
+          if (fallbackEl) fallbackEl.classList.add("hidden");
+          screen.classList.remove("upd-fading");
+          field.classList.remove("upd-hold");
+          field.style.width = layout.w + "px";
+          field.style.height = layout.h + "px";
+          field.innerHTML = "";
+          dots = [];
+          screen.classList.remove("hidden");
+
+          /* Pre-compute every dot's flight before the first frame:
+             a start point just off a random screen edge (in field
+             coordinates), a bowed control point, a start delay
+             inside the first 0.3s, and a duration that lands the
+             whole number by ~2s. */
+          var vw = window.innerWidth || 1024, vh = window.innerHeight || 768;
+          var fx = (vw - layout.w) / 2, fy = (vh - layout.h) / 2 - 30;
+          layout.cells.forEach(function (cell) {
+            var el = document.createElement("span");
+            el.className = "upd-dot";
+            el.style.width = el.style.height = layout.dot + "px";
+            el.style.left = cell.x + "px";
+            el.style.top = cell.y + "px";
+            field.appendChild(el);
+            var m = 30, side = Math.floor(Math.random() * 4), ex, ey;
+            if (side === 0) { ex = Math.random() * vw; ey = -m; }
+            else if (side === 1) { ex = vw + m; ey = Math.random() * vh; }
+            else if (side === 2) { ex = Math.random() * vw; ey = vh + m; }
+            else { ex = -m; ey = Math.random() * vh; }
+            /* Offsets are relative to the dot's target cell. */
+            var sx = (ex - fx) - cell.x, sy = (ey - fy) - cell.y;
+            var bow = (Math.random() - 0.5) * layout.pitch * 9;
+            var len = Math.sqrt(sx * sx + sy * sy) || 1;
+            var d = {
+              el: el, x: cell.x, y: cell.y,
+              sx: sx, sy: sy,
+              cx: sx * 0.45 + (-sy / len) * bow,
+              cy: sy * 0.45 + (sx / len) * bow,
+              delay: Math.random() * 300,
+              dur: 1350 + Math.random() * 300,
+              ox: sx, oy: sy, op: 0
+            };
+            dots.push(d);
+            if (reduced) { el.style.opacity = "1"; d.ox = 0; d.oy = 0; d.op = 1; }
+            else paint(d, sx, sy, 0.55, 0);
+          });
+          if (!reduced) flyIn(gen);
+
+          /* Progress bar: fills across the sequence; in live mode
+             it eases to ~88% during the hold and finish() tops it
+             up, so it never claims done before the install is. */
+          cancelBar();
+          if (barFill && typeof barFill.animate === "function") {
+            barAnim = barFill.animate([
+              { transform: "scaleX(0)" },
+              { transform: "scaleX(" + (demo ? 0.97 : 0.88) + ")" }
+            ], { duration: demo ? 4000 : 6000, easing: "ease-out", fill: "forwards" });
+          }
+
+          /* Phase 2: hold — pulse the assembled field (starts as
+             the last dots land, ~2s in). */
+          later(function () { if (gen === generation) field.classList.add("upd-hold"); }, reduced ? 60 : 1950);
+          if (demo) later(function () { if (gen === generation) finish(); }, reduced ? 1400 : 4000);
+        } catch (e) {
+          /* Any failure building the animation: plain text overlay. */
+          try { showFallback(); } catch (e2) { /* overlay markup itself is static; nothing more to do */ }
+        }
+      }
+
+      /* Phase 3: scatter + fade, then hide. One rAF loop pushes
+         every dot outward from the number's centre (from wherever
+         it currently sits) while it fades; the overlay then fades
+         and hides. Safe to call any time — including when the
+         screen never showed. */
+      function finish() {
+        if (!active) return;
+        var gen = generation;
+        clearTimers(); stopRaf();
+        field.classList.remove("upd-hold");
+        if (barFill && typeof barFill.animate === "function") {
+          cancelBar();
+          try {
+            var cur = 0.88;
+            try {
+              var mtx = getComputedStyle(barFill).transform;
+              var mm = /matrix\(([^)]+)\)/.exec(mtx || "");
+              if (mm) cur = parseFloat(mm[1].split(",")[0]) || 0;
+            } catch (e2) { /* keep default */ }
+            barAnim = barFill.animate([
+              { transform: "scaleX(" + cur + ")" }, { transform: "scaleX(1)" }
+            ], { duration: 320, easing: "ease-out", fill: "forwards" });
+          } catch (e) { barAnim = null; }
+        }
+        if (reduced) {
+          later(function () { if (gen === generation) screen.classList.add("upd-fading"); }, 60);
+          later(function () { if (gen === generation) cleanup(); }, 560);
+          return;
+        }
+        var cx = (layout ? layout.w : field.offsetWidth || 300) / 2;
+        var cy = (layout ? layout.h : field.offsetHeight || 100) / 2;
+        dots.forEach(function (d) {
+          var vx = d.x - cx, vy = d.y - cy;
+          var len = Math.sqrt(vx * vx + vy * vy) || 1;
+          var dist = 130 + Math.random() * 210;
+          d.tx = d.ox + (vx / len) * dist + (Math.random() - 0.5) * 90;
+          d.ty = d.oy + (vy / len) * dist + (Math.random() - 0.5) * 90;
+          d.fromX = d.ox; d.fromY = d.oy; d.fromOp = d.op;
+          d.sdelay = Math.random() * 200;
+          d.sdur = 620 + Math.random() * 330;
+        });
+        var t0 = performance.now(), faded = false;
+        function frame(now) {
+          if (gen !== generation) return;
+          var t = now - t0, done = true;
+          for (var i = 0; i < dots.length; i++) {
+            var d = dots[i];
+            var lt = (t - d.sdelay) / d.sdur;
+            if (lt <= 0) { if (t < 1100) done = false; continue; }
+            if (lt < 1) done = false; else lt = 1;
+            var e = EASE_IN(lt);
+            paint(d,
+              d.fromX + (d.tx - d.fromX) * e,
+              d.fromY + (d.ty - d.fromY) * e,
+              1 - 0.5 * e,
+              d.fromOp * (1 - e));
+          }
+          if (!faded && t > 480) { faded = true; screen.classList.add("upd-fading"); }
+          if (done) { rafId = null; cleanup(); }
+          else rafId = requestAnimationFrame(frame);
+        }
+        rafId = requestAnimationFrame(frame);
+        /* Hard stop: never leave the overlay up if a frame stalls. */
+        later(function () { if (gen === generation && active) cleanup(); }, 2200);
+      }
+
+      window.EddyUpdateScreen = { show: show, finish: finish, showFallback: showFallback };
+      /* Preview hook named in the brief: plays the full sequence
+         for any version string, e.g. showUpdateScreen("0.2.39"). */
+      window.showUpdateScreen = function (version) { show(version, { demo: true }); };
+
+      /* Web-build preview: there is no Tauri updater here, so the
+         screen is reachable via #update-demo or #update-demo=0.2.40.
+         Plays the full sequence once the app has booted, then
+         clears the hash so a refresh doesn't replay it. */
+      function demoFromHash() {
+        var h = window.location.hash || "";
+        if (h.indexOf("#update-demo") !== 0) return;
+        var v = h.slice("#update-demo".length).replace(/^=/, "") || "0.2.39";
+        setTimeout(function () {
+          show(v, { demo: true });
+          try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (e) { /* file:// etc. */ }
+        }, 900);
+      }
+      if (document.readyState === "complete" || document.readyState === "interactive") demoFromHash();
+      else document.addEventListener("DOMContentLoaded", demoFromHash);
+    })();
+    </script>
+    <script>
+    "use strict";
     /* ---------- Update-available popup (desktop app only) ----------
        The Rust backend checks for a new release on startup and stages
        any pending update. The frontend polls for it once — 2 seconds
@@ -12431,6 +12893,7 @@
       var errorEl = document.getElementById("updateError");
       if (!overlay || !title || !notesEl || !installBtn || !laterBtn) return;
       var installing = false;
+      var pendingVersion = "";
 
       /* ---------- Install progress ring ----------
          While the update downloads, the modal swaps its buttons
@@ -12530,6 +12993,11 @@
       }
       function settleInstall(err) {
         installing = false;
+        /* Scatter the dot-assembly update screen as the install
+           settles — on success the app is about to restart into the
+           new version; on failure the dialog (and its error) is
+           revealed again as the dots fade. */
+        if (window.EddyUpdateScreen) window.EddyUpdateScreen.finish();
         hideProgress();
         installBtn.disabled = false;
         laterBtn.disabled = false;
@@ -12545,6 +13013,10 @@
         laterBtn.disabled = true;
         installBtn.textContent = "Installing…";
         showProgress();
+        /* Cover the screen with the dot-assembly version animation
+           while the update downloads and applies. Cosmetic only —
+           the install below proceeds exactly as before. */
+        if (window.EddyUpdateScreen) window.EddyUpdateScreen.show(pendingVersion);
         var p = invoke("install_pending_update");
         /* The app restarts on success, so this only runs if the install
            failed or never started — restore the button either way, and
@@ -12576,6 +13048,7 @@
         p.then(function (result) {
           if (!result) return;
           var version = typeof result.version === "string" ? result.version : "";
+          pendingVersion = version;
           title.textContent = version ? "Eddy " + version + " is available" : "A new version of Eddy is available";
           notesEl.textContent = typeof result.notes === "string" ? result.notes : "";
           overlay.classList.remove("hidden");
@@ -14075,54 +14548,124 @@
        Layered on top of the workbench above; nothing in the
        photo workflow changes. A webcam watches the sorting
        tray and Eddy keeps the tally current while hands do the
-       sorting: a detection pass runs on a grabbed frame every
-       ~2 s — YOLO11 (yoloDetect) first, the classic counter
-       standing in when the model can't run — and each raw pass
-       is smoothed before it may touch the tally: an organism
-       joins the count only after 2 consecutive sightings and
-       leaves only after 3 consecutive misses, matched across
-       passes by class + position. While any track sits in that
-       add/remove window the workbench shows "stabilizing…".
-       The smoothed set is rebuilt into groups + tally rows
+       sorting. The camera is captured in a burst — a frame
+       every 200 ms (5 fps) — and YOLO11 (yoloDetect, which
+       already prefers its Web Worker and falls back to the
+       main thread; the classic counter stands in when the
+       model can't run) runs on every captured frame. Raw
+       frames never touch the tally directly: detections are
+       matched across frames by class + position (same
+       organism ≈ within 40 px) into tracks, and each track is
+       scored over the rolling 1-second window (the last
+       capture-rate-many frames):
+         seen in ≥80% of the window (4–5 of 5) → HIGH —
+           counted, dot at full opacity;
+         seen in ≥60% (3 of 5) → MEDIUM — counted but
+           uncertain: dot at ~60% opacity, tally row flagged
+           "uncertain", and the "stabilizing…" pill shows
+           while any counted organism sits in this tier;
+         seen in less → LOW — treated as a false positive,
+           never counted; a track absent for a whole window
+           is dropped entirely.
+       The counted set is rebuilt into groups + tally rows
        through the exact pipeline a photo count uses
        (clusterDets → addTallyRow → updateCheck), so the Step 3
        grouping switch (taxon / feeding group / tolerance) and
        the composition chart track the live tally on their own.
-       Lock In freezes the tally and stops the passes while the
-       preview keeps running; Generate Report opens the normal
-       printable lab report (Save as PDF) from the locked tally;
-       Resume Live restarts the passes. Leaving Live Mode,
-       hiding the tab, or leaving the page stops the camera.
-       window.eddyLive exposes the state plus a feed() hook so
-       the smoothing can be exercised without a camera (the
-       same debugging-handle pattern as window.eddyPhone).    */
+       The capture loop is self-clocking (the next frame is
+       scheduled only after the previous inference lands) and
+       watches its own throughput: if a device can't sustain
+       the rate, it degrades 5 fps → 3 fps → 2 fps, never below
+       2, and the fps chip beside the mode toggle plus a badge
+       on the feed itself show the measured rate. Lock In
+       freezes the tally and stops the captures while the
+       preview keeps running; Generate
+       Report opens the normal printable lab report (Save as
+       PDF) from the locked tally; Resume Live restarts the
+       captures. Leaving Live Mode, hiding the tab, or leaving
+       the page stops the camera. window.eddyLive exposes the
+       state plus a feed() hook so the aggregation can be
+       exercised without a camera (the same debugging-handle
+       pattern as window.eddyPhone).    */
     (function () {
       "use strict";
       var $ = function (id) { return document.getElementById(id); };
       var panel = $("livePanel"), video = $("liveVideo");
       if (!panel || !video) return;
-      var ADD_HITS = 2;        /* consecutive sightings before a detection counts */
-      var REMOVE_MISSES = 3;   /* consecutive misses before a counted detection leaves */
-      var PASS_MS = 2000;      /* detection cadence — a pass every ~2 s, never per frame */
+      var FPS_TIERS = [5, 3, 2]; /* capture rates, best first — degrade, never below 2 fps */
+      var MATCH_PX = 40;         /* same organism: centers within ~40 px across frames */
+      var HIGH_FRAC = 0.8;       /* ≥4 of 5 frames in the window → high confidence */
+      var MED_FRAC = 0.6;        /* ≥3 of 5 frames in the window → medium (uncertain) */
 
       var liveOn = false, liveLocked = false, liveStream = null;
       var liveTimer = null, liveBusy = false, liveHidden = false, haveFull = false;
-      var tracks = [];         /* {cls, det, hits, misses, counted} */
+      var tracks = [];           /* {cls, det, seenAt:[frameSeq…], tier, counted} */
+      var frameSeq = 0;          /* frames processed since Live Mode started */
+      var tierIdx = 0;           /* current entry in FPS_TIERS */
+      var cycleSamples = [];     /* recent capture→result durations, ms (degrade watch) */
+      var frameDoneTimes = [];   /* recent frame completion stamps (measured fps) */
       var frameW = 0, frameH = 0;
       var lastSig = null;
       var scratch = document.createElement("canvas");
+      var scratchCtx = scratch.getContext("2d", { willReadFrequently: true });
       var fullScratch = document.createElement("canvas");
+      var fullCtx = fullScratch.getContext("2d");
+
+      function frameIntervalMs() { return 1000 / FPS_TIERS[tierIdx]; }
+      /* The rolling window is the last capture-rate-many frames
+         — one second of burst at the current tier.            */
+      function windowFrames() { return FPS_TIERS[tierIdx]; }
 
       function countedDets() {
         var out = [];
-        tracks.forEach(function (t) { if (t.counted) out.push(t.det); });
+        tracks.forEach(function (t) {
+          if (t.counted) { t.det._tier = t.tier; out.push(t.det); }
+        });
         return out;
       }
+      /* The pill shows exactly while a counted organism is in
+         the medium / uncertain tier.                          */
       function isStabilizing() {
         for (var i = 0; i < tracks.length; i++) {
-          if (!tracks[i].counted || tracks[i].misses > 0) return true;
+          if (tracks[i].counted && tracks[i].tier === "medium") return true;
         }
         return false;
+      }
+      /* Measured capture rate from real frame completions over
+         the last ~3 s; before enough frames land, the current
+         tier target is the honest answer.                     */
+      function measuredFps() {
+        var now = performance.now();
+        while (frameDoneTimes.length && now - frameDoneTimes[0] > 3000) frameDoneTimes.shift();
+        if (frameDoneTimes.length >= 2) {
+          var span = (frameDoneTimes[frameDoneTimes.length - 1] - frameDoneTimes[0]) / 1000;
+          if (span > 0.25) return Math.max(1, Math.round((frameDoneTimes.length - 1) / span));
+        }
+        return FPS_TIERS[tierIdx];
+      }
+      function updateFps() {
+        var t = measuredFps() + " fps";
+        var el = $("liveFps");
+        if (el) el.textContent = t;
+        var bd = $("liveFpsBadge");
+        if (bd) bd.textContent = t;
+      }
+      /* Throughput watch: sustained cycle times past the tier
+         budget step the capture rate down one tier. Samples
+         reset on a step so one bad patch can't cascade.      */
+      function noteCycle(ms) {
+        cycleSamples.push(ms);
+        if (cycleSamples.length > 8) cycleSamples.shift();
+        if (cycleSamples.length >= 4 && tierIdx < FPS_TIERS.length - 1) {
+          var avg = 0;
+          cycleSamples.forEach(function (v) { avg += v; });
+          avg /= cycleSamples.length;
+          if (avg > frameIntervalMs() * 1.15) {
+            tierIdx += 1;
+            cycleSamples = [];
+            updateFps();
+          }
+        }
       }
       function setStatus(msg, cls) {
         var st = $("liveStatus");
@@ -14152,6 +14695,9 @@
         $("liveStab").classList.toggle("hidden", !(liveOn && !liveLocked && isStabilizing()));
         $("liveLockedBadge").classList.toggle("hidden", !(liveOn && liveLocked));
         $("liveBadge").classList.toggle("hidden", !(liveOn && !!liveStream));
+        $("liveFps").classList.toggle("hidden", !liveOn);
+        $("liveFpsBadge").classList.toggle("hidden", !liveOn);
+        if (liveOn) updateFps();
         $("liveLockBtn").classList.toggle("hidden", !liveOn || liveLocked);
         $("liveResumeBtn").classList.toggle("hidden", !(liveOn && liveLocked));
         var rows = (typeof readTally === "function") ? readTally() : [];
@@ -14159,17 +14705,24 @@
       }
 
       /* Dots over the live feed, in the same numbered style as
-         dots on a photo — confirmed (counted) detections only. */
+         dots on a photo — counted detections only. A medium-
+         confidence organism's dot sits at ~60% opacity until
+         its window fills in. Dots are positioned with
+         translate3d (compositor-only, no layout thrash); the
+         .dot class's negative margins keep them centered on
+         the organism, exactly as with left/top placement.    */
       function renderLiveDots() {
         var box = $("liveDots");
         box.innerHTML = "";
         if (!frameW || !frameH) return;
+        var bw = box.clientWidth || frameW, bh = box.clientHeight || frameH;
         countedDets().forEach(function (dt, i) {
           var el = document.createElement("div");
-          el.className = "dot";
+          el.className = "dot" + (dt._tier === "medium" ? " dot-unc" : "");
           el.textContent = i + 1;
-          el.style.left = (dt.x / frameW * 100) + "%";
-          el.style.top = (dt.y / frameH * 100) + "%";
+          el.style.left = "0";
+          el.style.top = "0";
+          el.style.transform = "translate3d(" + Math.round(dt.x / frameW * bw) + "px," + Math.round(dt.y / frameH * bh) + "px,0)";
           box.appendChild(el);
         });
       }
@@ -14183,7 +14736,10 @@
       function applyTally() {
         var list = countedDets();
         renderLiveDots();
-        var sig = list.map(function (d) { return (d.yolo != null ? d.yolo : -1) + "@" + d.x + "," + d.y; }).join("|");
+        /* Signature at 4 px resolution plus each det's tier, so
+           sub-jitter frame noise doesn't rebuild the bench five
+           times a second, but a confidence change does.        */
+        var sig = list.map(function (d) { return (d.yolo != null ? d.yolo : -1) + (d._tier === "medium" ? "?" : "") + "@" + Math.round(d.x / 4) + "," + Math.round(d.y / 4); }).join("|");
         if (sig === lastSig) { syncChrome(); return; }
         lastSig = sig;
         if (frameW > 0 && frameH > 0) {
@@ -14212,12 +14768,26 @@
             created.push(addTallyRow({ count: g.members.length, group: { letter: groupLetter(gi), desc: describeGroup(g), members: g.members, proto: g.proto || null } }));
           });
           for (var i = created.length - 1; i >= 0; i--) tallyList.insertBefore(created[i], tallyList.firstChild);
+          /* A row holding any medium-confidence organism gets
+             the subtle "uncertain" marker in its group tag.   */
+          created.forEach(function (row) {
+            var unc = row._members && row._members.some(function (m) { return m._tier === "medium"; });
+            if (!unc) return;
+            var tag = row.querySelector(".group-tag");
+            if (tag) {
+              var b = document.createElement("span");
+              b.className = "unc-badge";
+              b.textContent = "uncertain";
+              b.title = "Some organisms here were seen in only part of the last second of frames — the count may still settle.";
+              tag.appendChild(b);
+            }
+          });
           groupedAt = dets.length;
           $("groupStatus").textContent = "Live Mode is keeping this tally — " + dets.length + (dets.length === 1 ? " organism" : " organisms") + " in " + groups.length + (groups.length === 1 ? " group" : " groups") + ", updated from the tray as you sort. Rows arrive pre-named by AI detection; rename any row that's wrong, exactly as with a photo count.";
           $("groupStatus").className = "status";
         } else {
           groupedAt = -1;
-          $("groupStatus").textContent = "Live Mode: the tray reads empty right now — the tally fills in as organisms land and stay put for two passes.";
+          $("groupStatus").textContent = "Live Mode: the tray reads empty right now — the tally fills in as organisms land and show up across most of a second's frames.";
           $("groupStatus").className = "status";
         }
         renderDots();
@@ -14229,10 +14799,20 @@
         syncChrome();
       }
 
-      /* One raw detection pass → smoothing. Matching is by
-         class, then nearest position inside a generous radius
-         (organisms shift as hands work, but rarely teleport). */
-      function smooth(raw) {
+      /* One captured frame → cross-frame aggregation. Each
+         detection claims the nearest still-unclaimed track of
+         the same class whose last position sits within ~40 px
+         (organisms drift as hands work, but at 5 fps they
+         don't teleport); unmatched detections open new tracks.
+         Every track is then scored over the rolling window:
+         sightings outside the window fall away, a track with
+         none left is dropped, and the sighting fraction sets
+         the tier — ≥80% high, ≥60% medium, below that low
+         (not counted). This replaces the old 2-to-add /
+         3-to-remove pass smoothing wholesale.               */
+      function processFrame(raw) {
+        frameSeq += 1;
+        var W = windowFrames();
         var used = {}, i, j;
         for (i = 0; i < raw.length; i++) {
           var d = raw[i];
@@ -14242,23 +14822,27 @@
             if (used[j] || tracks[j].cls !== cls) continue;
             var dx = tracks[j].det.x - d.x, dy = tracks[j].det.y - d.y;
             var dist = Math.sqrt(dx * dx + dy * dy);
-            var tol = Math.max(30, (d.r || 16) * 2.4, (tracks[j].det.r || 16) * 2.4);
-            if (dist < tol && dist < bestDist) { bestDist = dist; best = j; }
+            var tol = Math.max(MATCH_PX, Math.min(d.r || 16, tracks[j].det.r || 16));
+            if (dist <= tol && dist < bestDist) { bestDist = dist; best = j; }
           }
           if (best >= 0) {
             used[best] = 1;
-            var t = tracks[best];
-            t.hits += 1; t.misses = 0; t.det = d;
-            if (t.hits >= ADD_HITS) t.counted = true;
+            tracks[best].det = d;
+            tracks[best].seenAt.push(frameSeq);
           } else {
-            tracks.push({ cls: cls, det: d, hits: 1, misses: 0, counted: ADD_HITS <= 1 });
+            tracks.push({ cls: cls, det: d, seenAt: [frameSeq], tier: "low", counted: false });
             used[tracks.length - 1] = 1;
           }
         }
-        for (i = 0; i < tracks.length; i++) {
-          if (!used[i]) { tracks[i].misses += 1; tracks[i].hits = 0; }
-        }
-        tracks = tracks.filter(function (t) { return t.misses < REMOVE_MISSES; });
+        var cutoff = frameSeq - W;
+        tracks = tracks.filter(function (t) {
+          t.seenAt = t.seenAt.filter(function (f) { return f > cutoff; });
+          if (!t.seenAt.length) return false;
+          var frac = t.seenAt.length / W;
+          t.tier = frac >= HIGH_FRAC ? "high" : (frac >= MED_FRAC ? "medium" : "low");
+          t.counted = t.tier !== "low";
+          return true;
+        });
         applyTally();
         syncChrome();
       }
@@ -14269,42 +14853,72 @@
       }
       function schedule(ms) {
         if (liveTimer) clearTimeout(liveTimer);
-        liveTimer = setTimeout(runPass, ms == null ? PASS_MS : ms);
+        liveTimer = setTimeout(runFrame, ms == null ? 0 : ms);
       }
       function stopLoop() {
         if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
       }
-      function runPass() {
+      /* The burst loop. Self-clocking: the next capture is
+         scheduled only once the current frame's inference has
+         landed, so frames never queue up behind a slow model
+         and the UI thread never blocks (YOLO runs in its
+         worker via yoloDetect whenever one is available).
+         Both frame buffers are pre-allocated and only resized
+         when the camera's dimensions change. If inference
+         somehow hangs, a guard falls back to the classic
+         counter for that frame so the loop can never stall. */
+      function runFrame() {
         liveTimer = null;
         if (!liveOn || liveLocked || liveBusy) return;
-        if (!liveStream || !video.videoWidth) { schedule(600); return; }
+        if (!liveStream || !video.videoWidth) { schedule(400); return; }
         liveBusy = true;
-        var s = Math.min(1, 900 / Math.max(video.videoWidth, video.videoHeight));
-        var w = Math.max(2, Math.round(video.videoWidth * s)), h = Math.max(2, Math.round(video.videoHeight * s));
-        scratch.width = w; scratch.height = h;
-        var ctx = scratch.getContext("2d", { willReadFrequently: true });
-        try { ctx.drawImage(video, 0, 0, w, h); }
-        catch (e) { liveBusy = false; schedule(); return; }
-        var fs = Math.min(1, 1600 / Math.max(video.videoWidth, video.videoHeight));
-        fullScratch.width = Math.max(2, Math.round(video.videoWidth * fs));
-        fullScratch.height = Math.max(2, Math.round(video.videoHeight * fs));
-        try { fullScratch.getContext("2d").drawImage(video, 0, 0, fullScratch.width, fullScratch.height); haveFull = true; }
+        var cycleStart = performance.now();
+        var vw = video.videoWidth, vh = video.videoHeight;
+        var s = Math.min(1, 900 / Math.max(vw, vh));
+        var w = Math.max(2, Math.round(vw * s)), h = Math.max(2, Math.round(vh * s));
+        if (scratch.width !== w || scratch.height !== h) { scratch.width = w; scratch.height = h; }
+        try { scratchCtx.drawImage(video, 0, 0, w, h); }
+        catch (e) { liveBusy = false; schedule(120); return; }
+        var fs = Math.min(1, 1600 / Math.max(vw, vh));
+        var fw = Math.max(2, Math.round(vw * fs)), fh = Math.max(2, Math.round(vh * fs));
+        if (fullScratch.width !== fw || fullScratch.height !== fh) { fullScratch.width = fw; fullScratch.height = fh; }
+        try { fullCtx.drawImage(video, 0, 0, fw, fh); haveFull = true; }
         catch (e) { haveFull = false; }
         frameW = w; frameH = h;
+        var finished = false;
         var finish = function (raw) {
+          if (finished) return;
+          finished = true;
+          var cycleMs = performance.now() - cycleStart;
           liveBusy = false;
           if (!liveOn || liveLocked) return;
-          smooth(raw || []);
-          schedule();
+          noteCycle(cycleMs);
+          frameDoneTimes.push(performance.now());
+          processFrame(raw || []);
+          updateFps();
+          schedule(Math.max(0, frameIntervalMs() - cycleMs));
         };
         if (typeof yoloEnabled === "function" && yoloEnabled() && typeof yoloDetect === "function") {
+          var timedOut = false;
+          var guard = setTimeout(function () {
+            timedOut = true;
+            lastCountAI = false;
+            finish(classicPass(scratchCtx, w, h));
+          }, 2500);
           yoloDetect(scratch, w, h).then(function (yd) {
+            if (timedOut) return;
+            clearTimeout(guard);
             if (yd) { lastCountAI = true; finish(yd); }
-            else { lastCountAI = false; finish(classicPass(ctx, w, h)); }
-          }, function () { lastCountAI = false; finish(classicPass(ctx, w, h)); });
+            else { lastCountAI = false; finish(classicPass(scratchCtx, w, h)); }
+          }, function () {
+            if (timedOut) return;
+            clearTimeout(guard);
+            lastCountAI = false;
+            finish(classicPass(scratchCtx, w, h));
+          });
         } else {
           lastCountAI = false;
-          finish(classicPass(ctx, w, h));
+          finish(classicPass(scratchCtx, w, h));
         }
       }
 
@@ -14343,7 +14957,7 @@
           };
           setStatus(liveLocked
             ? "Camera on — the count stays locked in. Tap Resume Live to count again."
-            : "Live — Eddy re-counts the tray every couple of seconds. Sort as usual; the tally follows.", "good");
+            : "Live — Eddy scans the tray five times a second and cross-checks each second of frames. Sort as usual; the tally follows.", "good");
           syncChrome();
           if (!liveLocked) schedule(500);
         }).catch(function (err) {
@@ -14370,6 +14984,7 @@
       function enterLiveShell() {
         liveOn = true; liveLocked = false; liveBusy = false;
         tracks = []; lastSig = null; frameW = 0; frameH = 0; haveFull = false;
+        frameSeq = 0; tierIdx = 0; cycleSamples = []; frameDoneTimes = [];
         $("liveDots").innerHTML = "";
         $("liveCountLine").textContent = "";
         hideAlert(); hideError();
@@ -14390,7 +15005,7 @@
       function exitLive() {
         liveOn = false; liveLocked = false; liveHidden = false;
         stopLoop(); stopStream();
-        tracks = []; lastSig = null;
+        tracks = []; lastSig = null; frameSeq = 0; cycleSamples = []; frameDoneTimes = [];
         panel.classList.add("hidden");
         var pa = $("photoArea");
         pa.classList.remove("live-on");
@@ -14486,8 +15101,12 @@
       window.addEventListener("pagehide", function () { stopLoop(); stopStream(); });
 
       /* Handles for verification / debugging in devtools.
-         feed() runs one smoothing pass over supplied dets
-         ({x, y, r, yolo}) in a w×h frame — no camera needed.  */
+         feed() runs one burst frame of supplied dets
+         ({x, y, r, yolo}) in a w×h frame through the
+         cross-frame aggregation — no camera needed.
+         noteCycle() feeds the throughput watch a simulated
+         frame-cycle duration, so the 5→3→2 fps degradation
+         can be exercised the same way.                       */
       window.eddyLive = {
         isOn: function () { return liveOn; },
         isLocked: function () { return liveLocked; },
@@ -14495,9 +15114,13 @@
         counted: function () { return countedDets().length; },
         tracks: function () {
           return tracks.map(function (t) {
-            return { cls: t.cls, hits: t.hits, misses: t.misses, counted: t.counted, x: t.det.x, y: t.det.y };
+            return { cls: t.cls, tier: t.tier, seen: t.seenAt.length, window: windowFrames(), counted: t.counted, x: t.det.x, y: t.det.y };
           });
         },
+        fpsInfo: function () {
+          return { target: FPS_TIERS[tierIdx], measured: measuredFps(), tier: tierIdx, frames: frameSeq };
+        },
+        noteCycle: noteCycle,
         setMode: setWbMode,
         lock: lockIn,
         resume: resumeLive,
@@ -14509,10 +15132,9 @@
           if (scratch.width !== frameW || scratch.height !== frameH) {
             scratch.width = frameW; scratch.height = frameH;
           }
-          var cx = scratch.getContext("2d");
-          cx.fillStyle = "#cfc8b8"; cx.fillRect(0, 0, frameW, frameH);
+          scratchCtx.fillStyle = "#cfc8b8"; scratchCtx.fillRect(0, 0, frameW, frameH);
           haveFull = false;
-          smooth(raw || []);
+          processFrame(raw || []);
           return true;
         }
       };
