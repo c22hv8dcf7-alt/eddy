@@ -4,6 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <!-- PWA: installable on iPhone / iPad / Android home screens -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkVkZHkiLAogICJzaG9ydF9uYW1lIjogIkVkZHkiLAogICJkZXNjcmlwdGlvbiI6ICJNYWNyb2ludmVydGVicmF0ZSBjb3VudGVyIFx1MjAxNCBjb3VudCwgZ3JvdXAgYW5kIGlkZW50aWZ5IHN0cmVhbSBzYW1wbGVzIGluIHRoZSBmaWVsZC4iLAogICJzdGFydF91cmwiOiAiLi4vIiwKICAic2NvcGUiOiAiLi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAib3JpZW50YXRpb24iOiAiYW55IiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNDE5IiwKICAidGhlbWVfY29sb3IiOiAiIzBmMTQxOSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImljb24tMTkyLnBuZyIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIiwKICAgICAgInB1cnBvc2UiOiAiYW55IgogICAgfSwKICAgIHsKICAgICAgInNyYyI6ICJpY29uLTUxMi5wbmciLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIsCiAgICAgICJwdXJwb3NlIjogImFueSIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiaWNvbi01MTIucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciLAogICAgICAicHVycG9zZSI6ICJtYXNrYWJsZSIKICAgIH0KICBdCn0=" />
+    <meta name="theme-color" content="#0f1419" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Eddy" />
+    <link rel="apple-touch-icon" href="data:image/png;base64,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" />
     <script>
       /* Set the theme before first paint: saved choice wins,
          otherwise follow the OS preference. Default is dark. */
@@ -17,7 +25,7 @@
         document.documentElement.setAttribute("data-theme", t);
       })();
     </script>
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,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" />
     <title>Eddy — Macroinvertebrate Counter</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -183,6 +191,8 @@
       #photoWrap{position:relative;line-height:0;transform-origin:0 0}
       #photoWrap img{width:100%;display:block;touch-action:manipulation}
       #photoWrap.dots-off .dot{display:none}
+      #wsOverlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+      #wsOverlay path{fill:none;stroke-width:1.6;vector-effect:non-scaling-stroke;opacity:.92}
       #camWrap{position:relative;border-radius:10px;overflow:hidden;line-height:0;background:var(--photo-bg);margin-top:12px;border:1px solid var(--line)}
       #camVideo{width:100%;display:block}
       #camDots{position:absolute;inset:0;pointer-events:none}
@@ -333,6 +343,39 @@
       .member-status.bad{color:var(--red);font-weight:600}
       /* Summary footer under the rows: the running total + exports */
       .tally-foot{border-top:1.5px solid var(--line-strong);margin-top:16px;padding-top:14px}
+      /* ---------- Tally grouping toggle + composition chart ---------- */
+      .tally-groupbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+      .tally-groupbar .tg-label{font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+      .seg-ctl{display:flex;gap:3px;flex:1;min-width:0;background:var(--panel-2);border:1.5px solid var(--line-strong);border-radius:10px;padding:3px}
+      .seg-ctl button{flex:1 1 0;min-width:0;min-height:44px;border:none;border-radius:8px;background:transparent;color:var(--ink-2);
+        font-family:inherit;font-weight:700;font-size:.9rem;padding:8px 6px;line-height:1.2;cursor:pointer}
+      .seg-ctl button:hover{color:var(--ink)}
+      .seg-ctl button.active{background:var(--amber);color:var(--amber-ink)}
+      .tally-group{margin-bottom:12px}
+      .tally-group-head{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;text-align:left;
+        background:var(--panel-3);border:1.5px solid var(--line-strong);border-radius:10px;padding:9px 12px;color:var(--ink);font-family:inherit;cursor:pointer}
+      .tally-group-head .tg-chev{flex:none;font-size:.8rem;color:var(--amber-text);transition:transform .15s ease}
+      .tally-group.collapsed .tg-chev{transform:rotate(-90deg)}
+      .tally-group-head .tg-name{font-weight:700;font-size:.98rem;min-width:0}
+      .tally-group-head .tg-total{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:1.05rem;color:var(--amber-text);white-space:nowrap}
+      .tally-group-head .tg-meta{margin-left:auto;font-size:.8rem;color:var(--ink-2);white-space:nowrap}
+      .tally-group-body{padding-top:10px}
+      .tally-group.collapsed .tally-group-body{display:none}
+      .comp-chart{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+      .comp-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+      .comp-head h3{font-size:.95rem}
+      .comp-note{font-size:.8rem;color:var(--ink-2)}
+      .comp-row{display:grid;grid-template-columns:minmax(96px,32%) 1fr auto;gap:10px;align-items:center;padding:3px 0}
+      .comp-lab{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .comp-bar{height:12px;background:var(--panel-3);border:1px solid var(--line);border-radius:999px;overflow:hidden;min-width:40px}
+      .comp-bar i{display:block;height:100%;border-radius:999px}
+      .comp-val{font-family:"IBM Plex Mono",monospace;font-size:.86rem;color:var(--ink-2);white-space:nowrap}
+      .comp-val strong{color:var(--ink);font-weight:600}
+      .comp-more{font-size:.82rem;color:var(--ink-2);margin-top:4px}
+      @media (max-width:560px){
+        .comp-row{grid-template-columns:minmax(84px,36%) 1fr auto;gap:8px}
+        .seg-ctl button{font-size:.84rem;padding:8px 4px}
+      }
       .foot-total{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
       .foot-total .ft-num{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:1.7rem;line-height:1;color:var(--amber-text)}
       .foot-total .ft-lab{font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
@@ -998,6 +1041,54 @@
         .dot-chip{min-height:44px;padding:9px 14px}
         .cal-dot{width:30px;height:30px;margin:-15px 0 0 -15px}
       }
+
+      /* ---------- PWA: iOS install banner ---------- */
+      .install-banner{position:fixed;left:12px;right:12px;bottom:16px;z-index:380;
+        display:none;align-items:center;gap:12px;background:var(--panel-2);
+        border:1.5px solid var(--amber-line);border-radius:14px;box-shadow:var(--shadow);
+        padding:10px 8px 10px 14px}
+      .install-banner.show{display:flex}
+      .install-banner .ib-mark{width:40px;height:40px;border-radius:10px;background:var(--amber);flex:none;
+        display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+      .install-banner .ib-txt{flex:1;min-width:0;font-size:.9rem;line-height:1.4;color:var(--ink)}
+      .install-banner .ib-txt strong{font-family:"Archivo",sans-serif}
+      .install-banner .ib-txt svg{vertical-align:-3px;color:var(--amber-text)}
+      .install-banner .ib-x{flex:none;width:44px;height:44px;border-radius:9px;border:1px solid var(--line);
+        background:none;color:var(--ink-2);font-size:1.1rem;cursor:pointer;line-height:1;font-family:inherit}
+      .install-banner .ib-x:hover{color:var(--ink);border-color:var(--line-strong)}
+
+      /* ---------- Phones: bottom tab bar + 44px touch targets ---------- */
+      @media (max-width:640px){
+        /* The rail leaves the flow and docks to the bottom of the
+           screen as a tab bar — one thumb-sized tab per view. */
+        .rail{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:280;
+          flex-direction:row;flex-wrap:nowrap;gap:2px;width:auto;
+          padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+          border-right:none;border-top:1px solid var(--line-strong);
+          background:var(--panel);box-shadow:0 -4px 18px rgba(0,0,0,.35)}
+        .rail-btn{flex:1 1 0;width:auto;flex-direction:column;align-items:center;justify-content:center;
+          gap:3px;min-height:52px;padding:6px 1px;font-size:.57rem;line-height:1.1;text-align:center}
+        .rail-btn svg{width:21px;height:21px}
+        .app{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+        .bulk-bar{bottom:calc(80px + env(safe-area-inset-bottom))}
+        .install-banner{bottom:calc(82px + env(safe-area-inset-bottom))}
+        /* 44px minimum touch targets for the main controls */
+        .btn-small{min-height:44px}
+        .top-actions .btn{min-height:44px}
+        .top-fields input,.top-fields .tf select{min-height:44px}
+        .sample-strip input{min-height:44px}
+        .step{min-height:44px}
+        .quick-chip{min-height:44px}
+        .ai-chip button{min-height:44px}
+        .chat-x{width:44px;height:44px}
+        .recent-item{min-height:44px}
+        /* Tighter phone chrome */
+        .topbar{gap:8px;padding:8px 10px}
+        .view-scroll{padding:12px 10px}
+        .panels{padding:10px;gap:10px}
+        .panel{padding:12px}
+        .card{padding:16px 14px}
+      }
     </style>
   </head>
   <body>
@@ -1387,6 +1478,12 @@
             <option value="sensitive">Catch tiny ones — small midges &amp; worms (may dot some debris)</option>
           </select>
           <p class="hint" style="margin-top:8px">Applies to the next count (and to live webcam counting). Grouping strictness lives in the Groups &amp; tally panel.</p>
+          <label class="field-label" for="wsBoundsToggle">Show watershed boundaries</label>
+          <select id="wsBoundsToggle">
+            <option value="off" selected>Off</option>
+            <option value="on">On — outline dense-pile splits</option>
+          </select>
+          <p class="hint" style="margin-top:6px">Debug view for the classic counter: when a dense pile is split by watershed segmentation, each separated organism gets a thin coloured outline on the tray photo, so you can see exactly where the pile was carved.</p>
           <div class="ai-settings">
             <h3>AI detection</h3>
             <label class="field-label" for="yoloToggle">AI Detection (YOLO)</label>
@@ -1681,7 +1778,19 @@
                   <p class="ai-privacy" id="aiPrivacy"></p>
                   <p class="status" id="aiStatus" role="status" aria-live="polite"></p>
                 </div>
+                <div class="tally-groupbar">
+                  <span class="tg-label" id="tallyGroupLabel">Group tally by</span>
+                  <div class="seg-ctl" id="tallyGroupCtl" role="group" aria-labelledby="tallyGroupLabel">
+                    <button type="button" data-gmode="taxon" class="active" aria-pressed="true">Taxon</button>
+                    <button type="button" data-gmode="feed" aria-pressed="false">Feeding group</button>
+                    <button type="button" data-gmode="tol" aria-pressed="false">Tolerance</button>
+                  </div>
+                </div>
                 <div id="tallyList" aria-label="Tally rows — one per group or taxon"></div>
+                <div class="comp-chart hidden" id="tallyComp" aria-label="Composition of the current tally">
+                  <div class="comp-head"><h3 id="tallyCompTitle">Composition</h3><span class="comp-note" id="tallyCompNote"></span></div>
+                  <div id="tallyCompBars"></div>
+                </div>
                 <p class="empty" id="groupEmpty">No groups yet. Count a photo first (steps 1–2), then Eddy can group the identical organisms for you.</p>
                 <button type="button" class="btn btn-ghost" id="addRowBtn">+ Add taxon row</button>
                 <p class="status" id="tallyStatus" role="status" aria-live="polite"></p>
@@ -3304,6 +3413,351 @@
         };
       });
     }
+    /* Watershed segmentation for DENSE PILES — the fallback
+       for the one blob shape every other stage refuses. A
+       clump of snails or mayflies fused side-by-side reads as
+       COMPACT (high solidity, one dominant distance core),
+       which the shape gate in detect() takes as proof of a
+       single body — so the pile estimator never fires and the
+       whole clump earns one dot (the dense-pile failure: ~85%
+       error on heaped trays, and clustered snails collapsing
+       from near-perfect scattered counts to a fraction
+       counted, for the same reason). This splitter works the
+       blob the other way: instead of asking "is this one
+       body?", it finds every plausible body CENTRE — a local
+       maximum of the distance transform at least half a
+       median radius deep, with centres merged when they sit
+       closer than ~one median radius (ripples along a single
+       body's medial ridge merge; two fused bodies sit about a
+       diameter apart and survive) — then floods the blob
+       outward from those markers, so every pixel joins its
+       nearest centre and the boundaries land on the necks
+       between bodies. Three guards keep single organisms
+       safe, mirroring the ones splitComponent and the shape
+       gate already trust:
+         · ONE CENTRE — a blob whose transform holds a single
+           centre is one body, however big: return null.
+         · WAIST GUARD — if the mountain pass between two
+           regions (the level at which their transform basins
+           connect, not the flood border, which runs deep
+           inside a bigger neighbour's lobe) stays above 87%
+           of the shallower centre's depth, there is no pinch,
+           just one tapered body (a stonefly's thorax flowing
+           into its abdomen measured 0.98 in splitComponent's
+           analogous check): null.
+         · SLIVER FOLD + PLAUSIBILITY — regions under 30% of
+           a typical body fold into their strongest neighbour,
+           and a split claiming far more bodies than the blob's
+           bulk holds (>1.5× area ÷ typical, +1) is refused.
+       Each returned part also carries wsPath — its region's
+       outline as an SVG path in image coordinates — so the
+       Settings "Show watershed boundaries" view can draw
+       exactly what was split. Deterministic: fixed raster
+       scans, depth-then-raster peak order, no randomness.
+       Cost is linear in the blob's bounding box (two chamfer
+       passes, one peak scan, one flood) — a few ms on typical
+       tray blobs, well under the 50 ms budget.              */
+    function watershedSplit(comp, w, minArea, medArea) {
+      var bw = comp.bw, bh = comp.bh, size = bw * bh, i, x, y;
+      if (!medArea || medArea <= 0 || size < 4) return null;
+      var mask = new Uint8Array(size);
+      comp.pix.forEach(function (p) {
+        var gx = p % w, gy = (p / w) | 0;
+        mask[(gy - comp.by) * bw + (gx - comp.bx)] = 1;
+      });
+      /* Chamfer distance transform (same two passes as
+         splitComponent and blobShape).                        */
+      var dist = new Float32Array(size), INF = 1e9;
+      for (i = 0; i < size; i++) dist[i] = mask[i] ? INF : 0;
+      for (y = 0; y < bh; y++) for (x = 0; x < bw; x++) {
+        i = y * bw + x; if (!mask[i]) continue;
+        var m = dist[i];
+        if (x > 0) m = Math.min(m, dist[i - 1] + 1);
+        if (y > 0) m = Math.min(m, dist[i - bw] + 1);
+        if (x > 0 && y > 0) m = Math.min(m, dist[i - bw - 1] + 1.414);
+        if (x < bw - 1 && y > 0) m = Math.min(m, dist[i - bw + 1] + 1.414);
+        dist[i] = m;
+      }
+      var maxD = 0;
+      for (y = bh - 1; y >= 0; y--) for (x = bw - 1; x >= 0; x--) {
+        i = y * bw + x; if (!mask[i]) continue;
+        var m2 = dist[i];
+        if (x < bw - 1) m2 = Math.min(m2, dist[i + 1] + 1);
+        if (y < bh - 1) m2 = Math.min(m2, dist[i + bw] + 1);
+        if (x < bw - 1 && y < bh - 1) m2 = Math.min(m2, dist[i + bw + 1] + 1.414);
+        if (x > 0 && y < bh - 1) m2 = Math.min(m2, dist[i + bw - 1] + 1.414);
+        dist[i] = m2; if (m2 > maxD) maxD = m2;
+      }
+      if (maxD < 3.5) return null;   // thin blob (a worm, a hair) — one body, don't shred it
+      var medR = Math.sqrt(medArea / Math.PI);
+      /* Peak floor: a body centre sits about one median radius
+         deep, but fused neighbours bury each other's depth —
+         an outer body in a clump can read as low as a third of
+         the blob's deepest point, far under the 65%-of-deepest
+         core bar splitComponent sets (the bar the dense clump
+         fails). Half a median radius, capped at 45% of the
+         blob's own depth, is the floor a real centre clears
+         and silhouette texture doesn't.                       */
+      var peakFloor = Math.max(1.8, Math.min(0.45 * maxD, 0.5 * medR));
+      var R = 3, isMax = new Uint8Array(size);
+      for (y = 0; y < bh; y++) for (x = 0; x < bw; x++) {
+        i = y * bw + x;
+        if (!mask[i] || dist[i] < peakFloor) continue;
+        var ok = 1;
+        for (var dy = -R; dy <= R && ok; dy++) for (var dx = -R; dx <= R; dx++) {
+          var nx = x + dx, ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= bw || ny >= bh) continue;
+          var q = ny * bw + nx;
+          if (mask[q] && dist[q] > dist[i]) { ok = 0; break; }
+        }
+        isMax[i] = ok;
+      }
+      /* Cluster adjacent maxima (a plateau is one centre),
+         keeping each cluster's deepest pixel — first in
+         raster order wins ties, so this is deterministic.    */
+      var seen = new Uint8Array(size), clusters = [], stack = [];
+      for (i = 0; i < size; i++) {
+        if (!isMax[i] || seen[i]) continue;
+        var bestI = i; stack.length = 0; stack.push(i); seen[i] = 1;
+        while (stack.length) {
+          var p = stack.pop();
+          if (dist[p] > dist[bestI]) bestI = p;
+          var px = p % bw, py = (p / bw) | 0;
+          for (var ddy = -1; ddy <= 1; ddy++) for (var ddx = -1; ddx <= 1; ddx++) {
+            if (!ddx && !ddy) continue;
+            var qx = px + ddx, qy = py + ddy;
+            if (qx < 0 || qy < 0 || qx >= bw || qy >= bh) continue;
+            var qi = qy * bw + qx;
+            if (isMax[qi] && !seen[qi]) { seen[qi] = 1; stack.push(qi); }
+          }
+        }
+        clusters.push({ v: dist[bestI], i: bestI });
+      }
+      /* Non-max suppression at ~one median radius — the
+         minimum peak separation. Centres closer than that are
+         bumps on one body; centres of fused bodies sit about
+         a diameter apart and both survive. Deepest first,
+         raster order breaks ties.                             */
+      clusters.sort(function (a, b) { return b.v - a.v || a.i - b.i; });
+      var sep = Math.max(4, 0.85 * medR), peaks = [];
+      clusters.forEach(function (c) {
+        var cxp = c.i % bw, cyp = (c.i / bw) | 0;
+        var near = peaks.some(function (pk) {
+          var ddx = (pk.i % bw) - cxp, ddy = ((pk.i / bw) | 0) - cyp;
+          return ddx * ddx + ddy * ddy < sep * sep;
+        });
+        if (!near) peaks.push(c);
+      });
+      if (peaks.length < 2 || peaks.length > 40) return null;
+      /* Marker-controlled flood: grow every marker over the
+         mask, 4-connected, in queue order — each pixel joins
+         the centre whose front reaches it first (its
+         geodesically nearest body), so boundaries settle on
+         the necks between bodies.                            */
+      var owner = new Int32Array(size), queue = [];
+      peaks.forEach(function (pk, idx) { owner[pk.i] = idx + 1; queue.push(pk.i); });
+      var head = 0;
+      while (head < queue.length) {
+        var cp = queue[head++], cx2 = cp % bw, cy2 = (cp / bw) | 0;
+        var steps = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        for (var k = 0; k < 4; k++) {
+          var qx2 = cx2 + steps[k][0], qy2 = cy2 + steps[k][1];
+          if (qx2 < 0 || qy2 < 0 || qx2 >= bw || qy2 >= bh) continue;
+          var qi2 = qy2 * bw + qx2;
+          if (mask[qi2] && !owner[qi2]) { owner[qi2] = owner[cp]; queue.push(qi2); }
+        }
+      }
+      /* Region stats + pixel lists (for the sliver fold and
+         the boundary outlines below).                        */
+      var regs = peaks.map(function (pk, idx) {
+        return { area: 0, sx: 0, sy: 0, minX: bw, maxX: -1, minY: bh, maxY: -1, peakV: pk.v, pix: [], members: [idx + 1] };
+      });
+      for (y = 0; y < bh; y++) for (x = 0; x < bw; x++) {
+        i = y * bw + x; if (!mask[i] || !owner[i]) continue;
+        var r = regs[owner[i] - 1];
+        r.area++; r.sx += x; r.sy += y; r.pix.push(i);
+        if (x < r.minX) r.minX = x; if (x > r.maxX) r.maxX = x;
+        if (y < r.minY) r.minY = y; if (y > r.maxY) r.maxY = y;
+      }
+      /* Fold any sliver region — a shaving off one body, not
+         a body — into the neighbour it shares the longest
+         border with (nearest centre if it somehow borders
+         nothing), so the split reports whole organisms only. */
+      var floorA = Math.max(minArea, 0.30 * medArea);
+      var folded = true;
+      while (folded) {
+        folded = false;
+        var si = -1;
+        for (i = 0; i < regs.length; i++) {
+          if (regs[i] && regs[i].area < floorA && (si < 0 || regs[i].area < regs[si].area)) si = i;
+        }
+        if (si < 0) break;
+        var S = regs[si], votes = {}, bestVote = 0, ti = -1;
+        S.pix.forEach(function (pp) {
+          var px2 = pp % bw, py2 = (pp / bw) | 0;
+          var nb = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+          for (var k2 = 0; k2 < 4; k2++) {
+            var nx2 = px2 + nb[k2][0], ny2 = py2 + nb[k2][1];
+            if (nx2 < 0 || ny2 < 0 || nx2 >= bw || ny2 >= bh) continue;
+            var o = owner[ny2 * bw + nx2];
+            if (o && o - 1 !== si && regs[o - 1]) {
+              votes[o - 1] = (votes[o - 1] || 0) + 1;
+              if (votes[o - 1] > bestVote) { bestVote = votes[o - 1]; ti = o - 1; }
+            }
+          }
+        });
+        if (ti < 0) {
+          var scx = S.sx / S.area, scy = S.sy / S.area, td = Infinity;
+          for (i = 0; i < regs.length; i++) {
+            if (i === si || !regs[i]) continue;
+            var tx = regs[i].sx / regs[i].area - scx, ty = regs[i].sy / regs[i].area - scy, tdd = tx * tx + ty * ty;
+            if (tdd < td) { td = tdd; ti = i; }
+          }
+        }
+        if (ti < 0) { regs[si] = null; break; }
+        var T = regs[ti];
+        S.pix.forEach(function (pp) { owner[pp] = ti + 1; });
+        T.area += S.area; T.sx += S.sx; T.sy += S.sy;
+        T.minX = Math.min(T.minX, S.minX); T.maxX = Math.max(T.maxX, S.maxX);
+        T.minY = Math.min(T.minY, S.minY); T.maxY = Math.max(T.maxY, S.maxY);
+        T.pix = T.pix.concat(S.pix);
+        T.members = T.members.concat(S.members);
+        if (S.peakV > T.peakV) T.peakV = S.peakV;
+        regs[si] = null;
+        folded = true;
+      }
+      var alive = regs.filter(function (r) { return !!r; });
+      if (alive.length < 2) return null;
+      /* Plausibility: a split may not claim far more bodies
+         than the blob's bulk can hold.                        */
+      if (alive.length > Math.ceil(1.5 * (comp.area / medArea)) + 1) return null;
+      /* Waist check, on mountain passes. Two regions earn
+         separate dots only if the terrain between their
+         centres actually pinches: the pass (col) between
+         them — the level at which their two transform basins
+         connect as the depth is lowered from the top,
+         computed by union-find over pixels in descending
+         depth order — must sit below 87% of the shallower
+         centre's depth (the pinch line splitComponent uses).
+         A tapered single body has no pass: its junction stays
+         at ~0.9–1.0 of the shallower lobe (the stonefly
+         figure), so the split is refused whole. Measuring
+         the pass on the transform itself, rather than along
+         the flood's border, matters for unequal neighbours:
+         the border between a big body and a small one runs
+         deep inside the big body's lobe, where the seam
+         outreads the small centre entirely and every mixed
+         cluster looks waist-free; the pass sits at the neck
+         where the bodies actually join. Pairs whose basins
+         connect only below the 87% decision level are real
+         pinches and pass unrecorded.                         */
+      var seedLabel = {};
+      peaks.forEach(function (pk, idx) { seedLabel[pk.i] = idx + 1; });
+      var act = new Uint8Array(size), par = new Int32Array(size), compPeaks = {};
+      var colTab = {};
+      var ord = [];
+      for (i = 0; i < size; i++) if (mask[i]) ord.push(i);
+      ord.sort(function (a2, b2) { return dist[b2] - dist[a2] || a2 - b2; });
+      function findRoot(r0) {
+        var r = r0;
+        while (par[r] !== r) r = par[r];
+        while (par[r0] !== r) { var nxt = par[r0]; par[r0] = r; r0 = nxt; }
+        return r;
+      }
+      /* Activation stops at the decision level: a pass only
+         matters if it beats 87% of the shallowest centre, and
+         a pair whose basins haven't connected by that level
+         has its pass below it by construction (every pixel of
+         a higher connecting path would have activated). Pairs
+         left unconnected are passes, not unknowns — the guard
+         below treats a missing pass as a pinch. This keeps
+         the union-find off the blob's deep interior and the
+         whole check at a few ms on tray-sized blobs.        */
+      var minPeakAll = Infinity;
+      peaks.forEach(function (pk) { if (pk.v < minPeakAll) minPeakAll = pk.v; });
+      var colFloor = 0.87 * minPeakAll;
+      var NB2 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      for (var oi = 0; oi < ord.length; oi++) {
+        var pi = ord[oi];
+        if (dist[pi] <= colFloor) break;
+        par[pi] = pi; act[pi] = 1;
+        if (seedLabel[pi]) compPeaks[pi] = [seedLabel[pi]];
+        var px3 = pi % bw, py3 = (pi / bw) | 0;
+        for (var k3 = 0; k3 < 4; k3++) {
+          var qx3 = px3 + NB2[k3][0], qy3 = py3 + NB2[k3][1];
+          if (qx3 < 0 || qy3 < 0 || qx3 >= bw || qy3 >= bh) continue;
+          var qi4 = qy3 * bw + qx3;
+          if (!act[qi4]) continue;
+          var ra = findRoot(pi), rb = findRoot(qi4);
+          if (ra === rb) continue;
+          var pa = compPeaks[ra] || [], pb = compPeaks[rb] || [];
+          for (var ai = 0; ai < pa.length; ai++) for (var bi2 = 0; bi2 < pb.length; bi2++) {
+            var kk3 = Math.min(pa[ai], pb[bi2]) * 4096 + Math.max(pa[ai], pb[bi2]);
+            if (colTab[kk3] === undefined) colTab[kk3] = dist[pi];
+          }
+          par[rb] = ra;
+          if (pa.length || pb.length) compPeaks[ra] = pa.concat(pb);
+          delete compPeaks[rb];
+        }
+      }
+      /* Adjacent surviving region pairs (the seams to judge). */
+      var pairBorder = {};
+      for (y = 0; y < bh; y++) for (x = 0; x < bw; x++) {
+        i = y * bw + x; if (!mask[i] || !owner[i]) continue;
+        if (x + 1 < bw && owner[i + 1] && owner[i + 1] !== owner[i]) {
+          var kk4 = Math.min(owner[i], owner[i + 1]) * 4096 + Math.max(owner[i], owner[i + 1]);
+          var mn3 = Math.min(dist[i], dist[i + 1]);
+          if (pairBorder[kk4] === undefined || mn3 > pairBorder[kk4]) pairBorder[kk4] = mn3;
+        }
+        if (y + 1 < bh && owner[i + bw] && owner[i + bw] !== owner[i]) {
+          var kk5 = Math.min(owner[i], owner[i + bw]) * 4096 + Math.max(owner[i], owner[i + bw]);
+          var mn4 = Math.min(dist[i], dist[i + bw]);
+          if (pairBorder[kk5] === undefined || mn4 > pairBorder[kk5]) pairBorder[kk5] = mn4;
+        }
+      }
+      var byLabel = {};
+      alive.forEach(function (r) { byLabel[owner[r.pix[0]]] = r; });
+      var waistFail = false;
+      for (var pkey in pairBorder) {
+        var pu = Math.floor(+pkey / 4096), pv = (+pkey) % 4096;
+        var ru = byLabel[pu], rv = byLabel[pv];
+        if (!ru || !rv) continue;
+        var col = -1;
+        ru.members.forEach(function (ma) {
+          rv.members.forEach(function (mb) {
+            var kk6 = Math.min(ma, mb) * 4096 + Math.max(ma, mb);
+            if (colTab[kk6] !== undefined && colTab[kk6] > col) col = colTab[kk6];
+          });
+        });
+        /* No recorded pass: the basins connect only below
+           the decision level — a genuine pinch, pair passes. */
+        if (col < 0) continue;
+        if (col > 0.87 * Math.min(ru.peakV, rv.peakV)) { waistFail = true; break; }
+      }
+      if (waistFail) { comp.wshed = { reason: "waist" }; return null; }
+      comp.wshed = { count: alive.length };
+      return alive.map(function (r) {
+        /* This region's outline as an SVG path in image
+           coordinates — a unit edge wherever a neighbouring
+           pixel belongs to another region or to no region —
+           drawn by the Settings boundary view.               */
+        var rid = owner[r.pix[0]], d = "";
+        r.pix.forEach(function (pp) {
+          var lx = pp % bw, ly = (pp / bw) | 0, gx = comp.bx + lx, gy = comp.by + ly;
+          if (ly === 0 || owner[pp - bw] !== rid) d += "M" + gx + " " + gy + "h1";
+          if (ly === bh - 1 || owner[pp + bw] !== rid) d += "M" + gx + " " + (gy + 1) + "h1";
+          if (lx === 0 || owner[pp - 1] !== rid) d += "M" + gx + " " + gy + "v1";
+          if (lx === bw - 1 || owner[pp + 1] !== rid) d += "M" + (gx + 1) + " " + gy + "v1";
+        });
+        return {
+          x: comp.bx + Math.round(r.sx / r.area), y: comp.by + Math.round(r.sy / r.area),
+          r: Math.max(6, Math.round(Math.sqrt(r.area / Math.PI))),
+          w: r.maxX - r.minX + 1, h: r.maxY - r.minY + 1,
+          bx: comp.bx + r.minX, by: comp.by + r.minY,
+          ws: 1, wsPath: d
+        };
+      });
+    }
     /* Sample-region mask: fence detection inside the tray, so
        nothing outside the sample can ever be dotted. The tray
        interior is the brightest thing in the photo, so split
@@ -3957,6 +4411,38 @@
             var shape = blobShape(c, w);
             c.shape = shape;
             var notThickBody = !typMaxD || shape.maxD < 2.1 * typMaxD;
+            /* DENSE-PILE WATERSHED — tried before the estimator
+               whenever this blob holds 3+ typical bodies. The
+               case that needs it is the compact clump: solidity
+               near 1 with a single dominant core is precisely
+               the shape the gate below acquits as "one body",
+               so a heap of fused snails or mayflies never
+               reached the estimator at all and shipped as one
+               dot. watershedSplit re-opens exactly those blobs
+               — it finds every body centre the distance
+               transform holds and floods between them — and
+               its own guards (single centre, waist, sliver
+               fold, bulk plausibility) refuse true singles,
+               and splitComponent's one-body verdicts still
+               apply first (a thin blob, a pinch-free taper).
+               The estimator's thickness cap deliberately does
+               NOT gate this path: it reads a wide flat clump
+               as "deep" in-plane (a 3×3 snail clump measures
+               ~2.2× a single's depth), so the cap acquits
+               exactly the piles this fallback exists for —
+               while a genuinely big single animal is still
+               safe, because its transform holds one centre
+               (or a pinch-free waist) and the splitter refuses
+               it. A null return changes nothing: the shape
+               gate and the estimator below run exactly as
+               before, so ordinary singles and the piles the
+               estimator already handles are untouched.        */
+            var areaRatio = c.area / medArea;
+            var wsTried = false;
+            if (!oneBody && areaRatio >= 3) {
+              wsTried = true;
+              parts = watershedSplit(c, w, minArea, medArea);
+            }
             /* Two more single-body vetoes on the estimator,
                measured on this blob's own shape:
                · CORE VETO — a solid body's distance transform
@@ -3981,7 +4467,7 @@
             var compactShape = elongated
               ? shape.solidity < 0.92
               : (shape.solidity < 0.97 || shape.peaks >= 2);
-            if (!oneBody && notThickBody && compactShape && compactOk && thinOk) {
+            if (!parts && !oneBody && notThickBody && compactShape && compactOk && thinOk) {
               /* Estimate the head count from bulk (blob area ÷
                  one typical body, with a small overlap
                  correction — fused bodies hide roughly a tenth
@@ -3993,6 +4479,48 @@
                  settings yields the same dots on every run.  */
               var nEst = Math.max(2, Math.min(16, Math.round(1.12 * c.area / medArea)));
               parts = estimatePile(c, w, nEst, medArea);
+              /* Low-confidence estimate — estimatePile returns
+                 null when it can't settle two whole organisms
+                 out of the bulk: give the watershed a turn
+                 before the blob settles for a single dot.     */
+              if (!parts && !wsTried && !oneBody) parts = watershedSplit(c, w, minArea, medArea);
+            }
+            /* SEAMLESS-MOUND FALLBACK — the last resort for a
+               heap fused so deeply that its distance transform
+               holds ONE centre (measured on a shaded 3×3 snail
+               clump: peaks 1, the watershed with nothing to
+               flood from) and the shape gate's thickness cap
+               reads the wide flat clump as one deep animal
+               (2.4× a single's depth — the cap was calibrated
+               on heaps, but a flat clump's in-plane depth grows
+               with its WIDTH). The mound may still go to the
+               bulk estimator when every other witness agrees
+               it is not one body:
+                 · LUMPY — compactShape passed: solidity under
+                   the gate's own line, so not a smooth round
+                   single (a lone big disk measures 0.98).
+                 · ALL SLOPE — coreFrac under 0.15: less deep
+                   interior than ANY solid body holds (a disk
+                   measures 0.16–0.18, an ellipse 0.55+), so
+                   not a solid animal of any shape.
+                 · ONE CORE, NO WAIST — a single distance peak,
+                   and the watershed did not refuse on a waist:
+                   a tapered body whose seam stays high (the
+                   stonefly pattern) is vetoed twice over, by
+                   its core fraction and by that waist verdict.
+                 · DEEPER THAN ONE BODY — at least 1.15× the
+                   typical single's depth, so a merely WIDE flat
+                   organism (a water penny is no deeper for
+                   being broader) stays single.
+                 · and the thin veto stands (a worm is one
+                   body however long it is).
+               Only then does bulk get the final word.          */
+            if (!parts && wsTried && !oneBody && compactShape && compactOk && thinOk &&
+                shape.peaks <= 1 && shape.coreFrac < 0.15 &&
+                !(c.wshed && c.wshed.reason === "waist") &&
+                (!typMaxD || shape.maxD >= 1.15 * typMaxD)) {
+              var nEstMound = Math.max(2, Math.min(16, Math.round(1.12 * c.area / medArea)));
+              parts = estimatePile(c, w, nEstMound, medArea);
             }
           }
           if (parts) parts.forEach(function (pt) { found.push(pt); });
@@ -4357,6 +4885,21 @@
       else if (window.__eddyBoot && window.__eddyBoot.active) window.__eddyBoot.finish();
     })();
 
+    /* Watershed boundary view toggle (Settings): persists
+       like the YOLO preference and redraws the dots so the
+       outlines appear or clear immediately.                  */
+    (function initWsBoundsToggle() {
+      var sel = $("wsBoundsToggle");
+      if (!sel) return;
+      var v = null;
+      try { v = localStorage.getItem("eddy_ws_bounds"); } catch (e) { /* storage off */ }
+      if (v === "1") sel.value = "on";
+      sel.addEventListener("change", function () {
+        try { localStorage.setItem("eddy_ws_bounds", sel.value === "on" ? "1" : "0"); } catch (e) { /* session only */ }
+        renderDots();
+      });
+    })();
+
     function runCount() {
       if (!photoDataUrl) return;
       var btn = $("countBtn");
@@ -4716,10 +5259,46 @@
     function sortDetsReadingOrder() {
       if (dets.length > 1) dets = readingOrderList(dets, imgH);
     }
+    /* ---------------- Watershed boundary view ----------------
+       Debug overlay for the classic counter's dense-pile
+       splits: when the Settings toggle is on, every detection
+       that came out of watershedSplit (it carries its region
+       outline as wsPath, in analysis-image coordinates) gets
+       a thin coloured outline on the tray photo, drawn as an
+       SVG layer inside #photoWrap so it zooms and pans with
+       the photo and the dots. Off by default; the preference
+       persists in this browser like the other Settings.     */
+    function wsBoundsOn() {
+      var v = null;
+      try { v = localStorage.getItem("eddy_ws_bounds"); } catch (e) { /* storage off */ }
+      if (v === "1") return true;
+      if (v === "0") return false;
+      var sel = $("wsBoundsToggle");
+      return !!sel && sel.value === "on";
+    }
+    var WS_COLORS = ["#ffb020", "#35c4dc", "#7ee787", "#ff7b72", "#d2a8ff", "#ffa657", "#79c0ff", "#f778ba"];
+    function renderWsOverlay(wrap) {
+      var old = document.getElementById("wsOverlay");
+      if (old) old.remove();
+      if (!wsBoundsOn() || !imgW || !imgH) return;
+      var paths = "";
+      dets.forEach(function (dt, i) {
+        if (dt.wsPath) paths += '<path d="' + dt.wsPath + '" stroke="' + WS_COLORS[i % WS_COLORS.length] + '"></path>';
+      });
+      if (!paths) return;
+      var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("id", "wsOverlay");
+      svg.setAttribute("viewBox", "0 0 " + imgW + " " + imgH);
+      svg.setAttribute("preserveAspectRatio", "none");
+      svg.setAttribute("aria-hidden", "true");
+      svg.innerHTML = paths;
+      wrap.appendChild(svg);
+    }
     function renderDots() {
       sortDetsReadingOrder();
       var wrap = $("photoWrap");
       wrap.querySelectorAll(".dot").forEach(function (e) { e.remove(); });
+      renderWsOverlay(wrap);
       dets.forEach(function (dt, i) {
         var el = document.createElement("div");
         el.className = "dot"; el.textContent = i + 1;
@@ -4894,7 +5473,231 @@
       renderSession();
       scheduleAutoSave();
       refreshFlowUI();
+      refreshTallyGrouping();
     }
+
+    /* ---------------- Tally grouping (step 3) ----------------
+       A display layer over the one tally list: the same rows,
+       re-shelved under collapsible group headers — by taxon
+       (the flat list, exactly as before), by functional
+       feeding group, or by tolerance band. Rows are only ever
+       MOVED, never rebuilt, so names, counts, group
+       memberships and learned prototypes survive every switch
+       and no count can be lost. The composition chart under
+       the list re-tallies itself from readTally() in whichever
+       mode is current. A row's group comes from the row
+       itself: its feeding-group dropdown for feeding mode
+       (reference value behind it), and the reference table's
+       tolerance for its family for tolerance mode — the
+       leading number, read the same way the Hilsenhoff maths
+       reads it ("10 (red); 8 (white)" bands as 10). Runs at
+       the tail of updateCheck(); the re-shelve only happens
+       when the grouping structure actually changed, so
+       typing a count never disturbs the row being edited.  */
+    var tallyGroupMode = "taxon";
+    var tallyCollapsed = {};   // "mode|key" -> true while that group is collapsed
+    var tallyStructSig = "";   // signature of the shelving currently in the DOM
+    var tallyGidSeq = 0;
+    var TALLY_BAR_COLORS = ["#f2a81d", "#2fbfa5", "#e2703a", "#5b8def", "#9dc08b", "#d67ab1", "#c9a227", "#4fb3c9"];
+    var TOL_GROUPS = [
+      { key: "intolerant", label: "Intolerant (0–3)", color: "#2fbfa5" },
+      { key: "moderate", label: "Moderately tolerant (4–6)", color: "#f2a81d" },
+      { key: "tolerant", label: "Tolerant (7–10)", color: "#e2703a" },
+      { key: "none", label: "Tolerance not listed", color: "#5b6b7a" }
+    ];
+    function tolParse(t) {
+      if (t == null) return null;
+      var m = String(t).match(/^\s*(\d+(?:\.\d+)?)/);
+      return m ? parseFloat(m[1]) : null;
+    }
+    function tolBandOf(family) {
+      var ref = refFor(family);
+      var t = ref ? tolParse(ref.t) : null;
+      if (t == null) return "none";
+      if (t <= 3) return "intolerant";
+      if (t <= 6) return "moderate";
+      return "tolerant";
+    }
+    function feedKeyOf(family, feed) {
+      var v = feed || "";
+      if (!v) { var ref = refFor(family); v = ref ? (ref.f || "") : ""; }
+      return v || "__none__";
+    }
+    function rowFeedKey(row) {
+      var sels = row.querySelectorAll("select");
+      var feedEl = row.querySelector(".feed");
+      return feedKeyOf(sels.length > 1 ? sels[1].value : "", feedEl ? feedEl.value : "");
+    }
+    function feedGroupLabel(key) { return key === "__none__" ? "Feeding group not set" : key; }
+    function feedGroupRank(key) {
+      if (key === "__none__") return 1000;
+      var i = FEED_TYPES.indexOf(key);
+      return i >= 0 ? i : 500;
+    }
+    /* The groups the given rows fall into, in display order:
+       [{key, label, color, rows}] — rows keep bench order
+       inside each group.                                     */
+    function computeTallyGroups(mode, rows) {
+      var byKey = {}, order = [];
+      rows.forEach(function (row) {
+        var key = mode === "feed" ? rowFeedKey(row) : tolBandOf(rowFamilyOf(row));
+        if (!byKey[key]) { byKey[key] = []; order.push(key); }
+        byKey[key].push(row);
+      });
+      if (mode === "feed") {
+        order.sort(function (a, b) {
+          var d = feedGroupRank(a) - feedGroupRank(b);
+          return d !== 0 ? d : feedGroupLabel(a).localeCompare(feedGroupLabel(b));
+        });
+      } else {
+        var rank = {}; TOL_GROUPS.forEach(function (g, i) { rank[g.key] = i; });
+        order.sort(function (a, b) { return rank[a] - rank[b]; });
+      }
+      return order.map(function (key, gi) {
+        var meta = null;
+        if (mode === "tol") { for (var i = 0; i < TOL_GROUPS.length; i++) if (TOL_GROUPS[i].key === key) meta = TOL_GROUPS[i]; }
+        return {
+          key: key,
+          label: mode === "feed" ? feedGroupLabel(key) : (meta ? meta.label : key),
+          color: meta ? meta.color : TALLY_BAR_COLORS[gi % TALLY_BAR_COLORS.length],
+          /* Bench order (_gid = first-seen order) inside each
+             group, so shelving is deterministic and the flat
+             list comes back in its original order.          */
+          rows: byKey[key].slice().sort(function (a, b) { return (a._gid || 0) - (b._gid || 0); })
+        };
+      });
+    }
+    function rowFamilyOf(row) {
+      var sels = row.querySelectorAll("select");
+      return sels.length > 1 ? sels[1].value : "";
+    }
+    function rebuildTallyGroups(mode, groups) {
+      var list = $("tallyList"); if (!list) return;
+      var rows = Array.prototype.slice.call(list.querySelectorAll(".tally-row"));
+      rows.sort(function (a, b) { return (a._gid || 0) - (b._gid || 0); });
+      rows.forEach(function (r) { list.appendChild(r); });   // unshelve, back in bench order
+      Array.prototype.slice.call(list.querySelectorAll(".tally-group")).forEach(function (w) { w.remove(); });
+      if (mode === "taxon" || !groups) return;
+      groups.forEach(function (g) {
+        var ckey = mode + "|" + g.key;
+        var wrap = document.createElement("div");
+        wrap.className = "tally-group" + (tallyCollapsed[ckey] ? " collapsed" : "");
+        wrap.setAttribute("data-gkey", g.key);
+        var head = document.createElement("button");
+        head.type = "button"; head.className = "tally-group-head";
+        head.setAttribute("aria-expanded", tallyCollapsed[ckey] ? "false" : "true");
+        head.setAttribute("aria-label", "Show or hide the " + g.label + " rows");
+        var chev = document.createElement("span"); chev.className = "tg-chev"; chev.textContent = "▾"; chev.setAttribute("aria-hidden", "true");
+        var name = document.createElement("span"); name.className = "tg-name"; name.textContent = g.label;
+        var tot = document.createElement("span"); tot.className = "tg-total";
+        var meta = document.createElement("span"); meta.className = "tg-meta";
+        head.appendChild(chev); head.appendChild(name); head.appendChild(tot); head.appendChild(meta);
+        head.addEventListener("click", function () {
+          var collapsed = wrap.classList.toggle("collapsed");
+          head.setAttribute("aria-expanded", collapsed ? "false" : "true");
+          tallyCollapsed[ckey] = collapsed;
+        });
+        var body = document.createElement("div"); body.className = "tally-group-body";
+        wrap.appendChild(head); wrap.appendChild(body);
+        list.appendChild(wrap);
+        g.rows.forEach(function (r) { body.appendChild(r); });
+        wrap._totEl = tot; wrap._metaEl = meta;
+      });
+    }
+    function refreshTallyGrouping() {
+      var list = $("tallyList"); if (!list) return;
+      var mode = (typeof tallyGroupMode === "string") ? tallyGroupMode : "taxon";
+      if (mode !== "feed" && mode !== "tol") mode = "taxon";
+      var rows = Array.prototype.slice.call(list.querySelectorAll(".tally-row"));
+      rows.forEach(function (r) { if (!r._gid) r._gid = ++tallyGidSeq; });
+      if (mode === "taxon") {
+        if (list.querySelector(".tally-group")) { rebuildTallyGroups("taxon", null); tallyStructSig = "taxon"; }
+      } else {
+        var groups = computeTallyGroups(mode, rows);
+        var sig = mode + "|" + groups.map(function (g) {
+          return g.key + ":" + g.rows.map(function (r) { return r._gid; }).join(",");
+        }).join("|");
+        if (sig !== tallyStructSig) { rebuildTallyGroups(mode, groups); tallyStructSig = sig; }
+        var grand = tallyTotal();
+        var byKey = {}; groups.forEach(function (g) { byKey[g.key] = g; });
+        Array.prototype.forEach.call(list.querySelectorAll(".tally-group"), function (wrap) {
+          var g = byKey[wrap.getAttribute("data-gkey")]; if (!g) return;
+          var tot = g.rows.reduce(function (a, r) { return a + rowCountOf(r); }, 0);
+          if (wrap._totEl) wrap._totEl.textContent = "— " + tot;
+          if (wrap._metaEl) wrap._metaEl.textContent =
+            g.rows.length + (g.rows.length === 1 ? " taxon" : " taxa") +
+            (grand > 0 ? " · " + Math.round(tot / grand * 100) + "% of tally" : "");
+        });
+      }
+      renderTallyComp(mode);
+    }
+    /* Composition bars under the tally list, drawn from the
+       tally as it stands, aggregated by the current grouping
+       mode: one bar per taxon / feeding group / tolerance
+       band, widths as shares of the total count.            */
+    function renderTallyComp(mode) {
+      var host = $("tallyComp"), barsEl = $("tallyCompBars");
+      if (!host || !barsEl) return;
+      var rows = readTally();
+      var total = rows.reduce(function (a, r) { return a + r.count; }, 0);
+      if (!rows.length || !total) { host.classList.add("hidden"); barsEl.innerHTML = ""; return; }
+      host.classList.remove("hidden");
+      var titleEl = $("tallyCompTitle"), noteEl = $("tallyCompNote");
+      if (noteEl) noteEl.textContent = total + (total === 1 ? " organism" : " organisms") + " tallied";
+      var entries = [];
+      if (mode === "feed" || mode === "tol") {
+        if (titleEl) titleEl.textContent = mode === "feed" ? "Composition — by feeding group" : "Composition — by tolerance";
+        var domRows = Array.prototype.slice.call(document.querySelectorAll("#tallyList .tally-row"));
+        var groups = computeTallyGroups(mode, domRows);
+        var sums = {};
+        rows.forEach(function (r) {
+          var key = mode === "feed" ? feedKeyOf(r.family, r.feed) : tolBandOf(r.family);
+          sums[key] = (sums[key] || 0) + r.count;
+        });
+        groups.forEach(function (g) {
+          if (sums[g.key]) entries.push({ label: g.label, count: sums[g.key], color: g.color });
+        });
+      } else {
+        if (titleEl) titleEl.textContent = "Composition — by taxon";
+        var merged = mergedDisplayRows(rows);
+        merged.sort(function (a, b) { return b.count - a.count; });
+        entries = merged.map(function (r, i) {
+          return { label: r.displayCommon || r.common || r.family || "Unnamed", count: r.count, color: TALLY_BAR_COLORS[i % TALLY_BAR_COLORS.length] };
+        });
+      }
+      barsEl.innerHTML = "";
+      var shown = entries.slice(0, 20);
+      shown.forEach(function (e) {
+        var pct = Math.round(e.count / total * 1000) / 10;
+        var rowEl = document.createElement("div"); rowEl.className = "comp-row";
+        var lab = document.createElement("span"); lab.className = "comp-lab"; lab.textContent = e.label; lab.title = e.label;
+        var bar = document.createElement("div"); bar.className = "comp-bar";
+        var fill = document.createElement("i"); fill.style.width = (e.count / total * 100) + "%"; fill.style.background = e.color;
+        bar.appendChild(fill);
+        var val = document.createElement("span"); val.className = "comp-val";
+        var strong = document.createElement("strong"); strong.textContent = e.count;
+        val.appendChild(strong); val.appendChild(document.createTextNode(" · " + pct + "%"));
+        rowEl.appendChild(lab); rowEl.appendChild(bar); rowEl.appendChild(val);
+        barsEl.appendChild(rowEl);
+      });
+      if (entries.length > shown.length) {
+        var more = document.createElement("p"); more.className = "comp-more";
+        more.textContent = "+ " + (entries.length - shown.length) + " more below in the tally.";
+        barsEl.appendChild(more);
+      }
+    }
+    Array.prototype.forEach.call(document.querySelectorAll("#tallyGroupCtl [data-gmode]"), function (btn) {
+      btn.addEventListener("click", function () {
+        tallyGroupMode = btn.getAttribute("data-gmode");
+        Array.prototype.forEach.call(document.querySelectorAll("#tallyGroupCtl [data-gmode]"), function (b) {
+          var on = b === btn;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        tallyStructSig = "";   // force a re-shelve under the new mode
+        refreshTallyGrouping();
+      });
+    });
 
     function addTallyRow(opts) {
       opts = opts || {};
@@ -12628,6 +13431,64 @@
       syncUndoBtns();
       paintSel();
     })();
+    </script>
+
+    <script>
+      /* ---------- PWA: offline cache + iOS install banner ---------- */
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("data:application/javascript;base64,LyogRWRkeSBzZXJ2aWNlIHdvcmtlciDigJQgY2FjaGVzIHRoZSBhcHAgc2hlbGwgYW5kIGV2ZXJ5IGJ1bmRsZWQKICAgYXNzZXQgb24gaW5zdGFsbCwgdGhlbiBzZXJ2ZXMgY2FjaGUtZmlyc3Qgd2l0aCBhIG5ldHdvcmsgZmFsbGJhY2suCiAgIENETiBsaWJyYXJpZXMgKGZvbnRzLCBMZWFmbGV0LCBPTk5YIHJ1bnRpbWUpIGFyZSBhZGRlZCB0byB0aGUgc2FtZQogICBjYWNoZSBhdCBydW50aW1lIGFzIHRoZXkgbG9hZCwgc28gcmVwZWF0IHZpc2l0cyB3b3JrIG9mZmxpbmUuCiAgIE5vdGU6IHRoaXMgZmlsZSBsaXZlcyBpbiBhc3NldHMvICh0aGUgb25seSBkaXJlY3Rvcnkgc2VydmVkIHdpdGgKICAgdGhlIHBhZ2UpLCBzbyBpdHMgVVJMcyBhcmUgcmVsYXRpdmUgdG8gdGhhdCBmb2xkZXI6IC4uLyBpcyB0aGUKICAgYXBwIHJvb3Qgd2hlcmUgaW5kZXguaHRtbCBsaXZlcy4gKi8KdmFyIENBQ0hFID0gImVkZHktdjEiOwp2YXIgQ09SRSA9IFsKICAiLi4vIiwKICAiLi4vaW5kZXguaHRtbCIsCiAgIi4vbWFuaWZlc3QuanNvbiIsCiAgIi4vaWNvbi0xODAucG5nIiwKICAiLi9pY29uLTE5Mi5wbmciLAogICIuL2ljb24tNTEyLnBuZyIKXTsKdmFyIEFTU0VUUyA9IFsKICAiLi9rZXktaGN0Zi53ZWJwIiwKICAiLi9rZXktcml2ZXIucG5nIiwKICAiLi9yZWYvYW5pc29wdGVyYS0xLmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtMi5qcGciLAogICIuL3JlZi9hbmlzb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvYW5pc29wdGVyYS00LmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtNS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMi5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMy5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNC5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNS5qcGciLAogICIuL3JlZi9iYWV0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTIuanBnIiwKICAiLi9yZWYvYmFldGlkYWUtMy5qcGciLAogICIuL3JlZi9iYWV0aWRhZS00LmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTUuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtMS5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JlbG9zdG9tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtNC5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS01LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTEuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtMi5qcGciLAogICIuL3JlZi9jYWVuaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTQuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtNS5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTEuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhbWJhcmlkYWUtMy5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTQuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS00LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTEuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtMi5qcGciLAogICIuL3JlZi9jaGFvYm9yaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTQuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtNS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMi5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMy5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNC5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMi5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNC5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNS5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTIuanBnIiwKICAiLi9yZWYvY29yeWRhbGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTUuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTEuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTIuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTMuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTQuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTUuanBnIiwKICAiLi9yZWYvZGl4aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtMi5qcGciLAogICIuL3JlZi9kaXhpZGFlLTMuanBnIiwKICAiLi9yZWYvZGl4aWRhZS00LmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtNS5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTEuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2R5dGlzY2lkYWUtMy5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTQuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS01LmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtMS5qcGciLAogICIuL3JlZi9lbG1pZGFlLTIuanBnIiwKICAiLi9yZWYvZWxtaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtNC5qcGciLAogICIuL3JlZi9lbG1pZGFlLTUuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtMS5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2VwaGVtZXJlbGxpZGFlLTMuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtNC5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTEuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtMi5qcGciLAogICIuL3JlZi9nYW1tYXJ1cy0zLmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTQuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtNS5qcGciLAogICIuL3JlZi9nZXJyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2VycmlkYWUtMy5qcGciLAogICIuL3JlZi9nZXJyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTUuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTEuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTQuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTUuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTEuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTIuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTMuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTQuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTUuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtMi5qcGciLAogICIuL3JlZi9oYWxpcGxpZGFlLTMuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtNS5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTEuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2hlcHRhZ2VuaWlkYWUtMy5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTQuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0xLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0yLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0zLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS00LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS01LmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtMi5qcGciLAogICIuL3JlZi9oeWRyb3BzeWNoaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtNS5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHRpbGlkYWUtMy5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtMS5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTIuanBnIiwKICAiLi9yZWYvbGV1Y3RyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtNC5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTUuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtMi5qcGciLAogICIuL3JlZi9saW1uZXBoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtNS5qcGciLAogICIuL3JlZi9uZXBpZGFlLTEuanBnIiwKICAiLi9yZWYvbmVwaWRhZS0yLmpwZyIsCiAgIi4vcmVmL25lcGlkYWUtMy5qcGciLAogICIuL3JlZi9uZXBpZGFlLTQuanBnIiwKICAiLi9yZWYvbmVwaWRhZS01LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0zLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS00LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS01LmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTEuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtMi5qcGciLAogICIuL3JlZi9vbGlnb2NoYWV0YS0zLmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTQuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtNS5qcGciLAogICIuL3JlZi9wZXJsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTIuanBnIiwKICAiLi9yZWYvcGVybGlkYWUtMy5qcGciLAogICIuL3JlZi9wZXJsaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTUuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtMi5qcGciLAogICIuL3JlZi9wZXJsb2RpZGFlLTMuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtNS5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTIuanBnIiwKICAiLi9yZWYvcGhpbG9wb3RhbWlkYWUtMy5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTUuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtMS5qcGciLAogICIuL3JlZi9waHlzaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3BoeXNpZGFlLTMuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtNC5qcGciLAogICIuL3JlZi9waHlzaWRhZS01LmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTEuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtMi5qcGciLAogICIuL3JlZi9wbGFub3JiaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTQuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtNS5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTIuanBnIiwKICAiLi9yZWYvcHNlcGhlbmlkYWUtMy5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTUuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtMS5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3JoeWFjb3BoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtNC5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTEuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtMi5qcGciLAogICIuL3JlZi9zaWFsaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTQuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtNS5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTEuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3NpbXVsaWlkYWUtMy5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTQuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NuYWlsLTEuanBnIiwKICAiLi9yZWYvc25haWwtMi5qcGciLAogICIuL3JlZi9zbmFpbC0zLmpwZyIsCiAgIi4vcmVmL3NuYWlsLTQuanBnIiwKICAiLi9yZWYvc25haWwtNS5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTIuanBnIiwKICAiLi9yZWYvc3BoYWVyaWlkYWUtMy5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTUuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS0xLmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtMi5qcGciLAogICIuL3JlZi9zdHJhdGlvbXlpZGFlLTMuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS00LmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtNS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMi5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMy5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNC5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMi5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMy5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNC5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMi5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMy5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNC5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNS5qcGciLAogICIuL3JlZi92ZWxpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTIuanBnIiwKICAiLi9yZWYvdmVsaWlkYWUtMy5qcGciLAogICIuL3JlZi92ZWxpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTUuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTEuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTIuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTQuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTUuanBnIiwKICAiLi9yZWYvdGh1bWIvYW5pc29wdGVyYS5qcGciLAogICIuL3JlZi90aHVtYi9hc2VsbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmFldGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmVsb3N0b21hdGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYnJhY2h5Y2VudHJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhZW5pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhbWJhcmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY2FwbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoYW9ib3JpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoaXJvbm9taWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9jb3JpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY29yeWRhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY3VsaWNpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2RpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvZHl0aXNjaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9lbG1pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2VwaGVtZXJlbGxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dhbW1hcnVzLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dlcnJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dsb3Nzb3NvbWF0aWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9neXJpbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvaGFsaXBsaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oZXB0YWdlbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2hpcnVkaW5lYS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3BzeWNoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3B0aWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2lzb255Y2hpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9sZXB0b3BobGViaWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbGV1Y3RyaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9saW1uZXBoaWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL25lcGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbm90b25lY3RpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL29saWdvY2hhZXRhLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxvZGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGhpbG9wb3RhbWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGh5c2lkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGxhbm9yYmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcHNlcGhlbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcmh5YWNvcGhpbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2lhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2ltdWxpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zbmFpbC5qcGciLAogICIuL3JlZi90aHVtYi9zcGhhZXJpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zdHJhdGlvbXlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3N5cnBoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi90YWJhbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvdGlwdWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3ZlbGlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3p5Z29wdGVyYS5qcGciLAogICIuL2ludi9hc2lhbi1jbGFtLTEuanBnIiwKICAiLi9pbnYvYXNpYW4tY2xhbS0yLmpwZyIsCiAgIi4vaW52L2FzaWFuLWNsYW0tMy5qcGciLAogICIuL2ludi9iYW5kZWQtbXlzdGVyeS1zbmFpbC0xLmpwZyIsCiAgIi4vaW52L2JhbmRlZC1teXN0ZXJ5LXNuYWlsLTIuanBnIiwKICAiLi9pbnYvYmFuZGVkLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMS5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMi5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9uei1tdWRzbmFpbC0xLmpwZyIsCiAgIi4vaW52L256LW11ZHNuYWlsLTIuanBnIiwKICAiLi9pbnYvbnotbXVkc25haWwtMy5qcGciLAogICIuL2ludi9xdWFnZ2EtbXVzc2VsLTEuanBnIiwKICAiLi9pbnYvcXVhZ2dhLW11c3NlbC0yLmpwZyIsCiAgIi4vaW52L3F1YWdnYS1tdXNzZWwtMy5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMS5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMi5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMy5qcGciLAogICIuL2ludi9ydXN0eS1jcmF5ZmlzaC0xLmpwZyIsCiAgIi4vaW52L3J1c3R5LWNyYXlmaXNoLTIuanBnIiwKICAiLi9pbnYvcnVzdHktY3JheWZpc2gtMy5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMS5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMi5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMy5qcGciLAogICIuL3lvbG8vYmVzdC5vbm54IgpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJpbnN0YWxsIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgZXZlbnQud2FpdFVudGlsKAogICAgY2FjaGVzLm9wZW4oQ0FDSEUpLnRoZW4oZnVuY3Rpb24gKGNhY2hlKSB7CiAgICAgIHJldHVybiBjYWNoZS5hZGRBbGwoQ09SRSkudGhlbihmdW5jdGlvbiAoKSB7CiAgICAgICAgLyogUGVyLWZpbGUgYWRkczogb25lIG1pc3NpbmcgZmlsZSBtdXN0IG5ldmVyIHNpbmsgdGhlIGluc3RhbGwuICovCiAgICAgICAgcmV0dXJuIFByb21pc2UuYWxsKEFTU0VUUy5tYXAoZnVuY3Rpb24gKHVybCkgewogICAgICAgICAgcmV0dXJuIGNhY2hlLmFkZCh1cmwpLmNhdGNoKGZ1bmN0aW9uICgpIHsgLyogc2tpcCAqLyB9KTsKICAgICAgICB9KSk7CiAgICAgIH0pOwogICAgfSkudGhlbihmdW5jdGlvbiAoKSB7IHJldHVybiBzZWxmLnNraXBXYWl0aW5nKCk7IH0pCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoImFjdGl2YXRlIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgZXZlbnQud2FpdFVudGlsKAogICAgY2FjaGVzLmtleXMoKS50aGVuKGZ1bmN0aW9uIChrZXlzKSB7CiAgICAgIHJldHVybiBQcm9taXNlLmFsbChrZXlzLm1hcChmdW5jdGlvbiAoaykgewogICAgICAgIHJldHVybiBrID09PSBDQUNIRSA/IG51bGwgOiBjYWNoZXMuZGVsZXRlKGspOwogICAgICB9KSk7CiAgICB9KS50aGVuKGZ1bmN0aW9uICgpIHsgcmV0dXJuIHNlbGYuY2xpZW50cy5jbGFpbSgpOyB9KQogICk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJmZXRjaCIsIGZ1bmN0aW9uIChldmVudCkgewogIHZhciByZXEgPSBldmVudC5yZXF1ZXN0OwogIGlmIChyZXEubWV0aG9kICE9PSAiR0VUIikgcmV0dXJuOwogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKHJlcSwgeyBpZ25vcmVTZWFyY2g6IHRydWUgfSkudGhlbihmdW5jdGlvbiAoaGl0KSB7CiAgICAgIGlmIChoaXQpIHJldHVybiBoaXQ7CiAgICAgIHJldHVybiBmZXRjaChyZXEpLnRoZW4oZnVuY3Rpb24gKHJlcykgewogICAgICAgIGlmIChyZXMgJiYgKHJlcy5zdGF0dXMgPT09IDIwMCB8fCByZXMudHlwZSA9PT0gIm9wYXF1ZSIpKSB7CiAgICAgICAgICB2YXIgY29weSA9IHJlcy5jbG9uZSgpOwogICAgICAgICAgY2FjaGVzLm9wZW4oQ0FDSEUpLnRoZW4oZnVuY3Rpb24gKGNhY2hlKSB7IGNhY2hlLnB1dChyZXEsIGNvcHkpOyB9KTsKICAgICAgICB9CiAgICAgICAgcmV0dXJuIHJlczsKICAgICAgfSkuY2F0Y2goZnVuY3Rpb24gKCkgewogICAgICAgIGlmIChyZXEubW9kZSA9PT0gIm5hdmlnYXRlIikgewogICAgICAgICAgcmV0dXJuIGNhY2hlcy5tYXRjaCgiLi4vaW5kZXguaHRtbCIsIHsgaWdub3JlU2VhcmNoOiB0cnVlIH0pOwogICAgICAgIH0KICAgICAgICByZXR1cm4gUmVzcG9uc2UuZXJyb3IoKTsKICAgICAgfSk7CiAgICB9KQogICk7Cn0pOwo=").catch(function () {
+            /* Offline cache unavailable in this browser — the app still runs. */
+          });
+        });
+      }
+      (function () {
+        var KEY = "eddy_install_dismissed";
+        function isStandalone() {
+          return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+            window.navigator.standalone === true;
+        }
+        function isIOS() {
+          var ua = navigator.userAgent || "";
+          /* iPadOS 13+ reports a Macintosh UA — touch points give it away. */
+          return /iphone|ipad|ipod/i.test(ua) ||
+            (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+        }
+        function isIOSSafari() {
+          var ua = navigator.userAgent || "";
+          return isIOS() && /safari/i.test(ua) && !/crios|fxios|edgios|opios/i.test(ua);
+        }
+        function dismissed() {
+          try { return localStorage.getItem(KEY) === "1"; } catch (e) { return false; }
+        }
+        function show() {
+          if (document.getElementById("installBanner")) return;
+          var bar = document.createElement("div");
+          bar.className = "install-banner";
+          bar.id = "installBanner";
+          bar.setAttribute("role", "region");
+          bar.setAttribute("aria-label", "Install Eddy");
+          bar.innerHTML =
+            '<span class="ib-mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#221503" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v13"/><path d="M12 6C9.5 4.5 6.5 4 4 5c1.8 1.2 2.6 3 2.8 5.2"/><path d="M12 6c2.5-1.5 5.5-2 8-1-1.8 1.2-2.6 3-2.8 5.2"/><path d="M11 16l-3.2 5M13 16l3.2 5M12 16v5.4"/></svg></span>' +
+            '<p class="ib-txt"><strong>Install Eddy</strong> — tap ' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6"/></svg>' +
+            ' <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</p>' +
+            '<button type="button" class="ib-x" aria-label="Dismiss install banner">×</button>';
+          bar.querySelector(".ib-x").addEventListener("click", function () {
+            try { localStorage.setItem(KEY, "1"); } catch (e) { /* private mode */ }
+            bar.remove();
+          });
+          document.body.appendChild(bar);
+          bar.classList.add("show");
+        }
+        function maybeShow() {
+          if (isIOSSafari() && !isStandalone() && !dismissed()) show();
+        }
+        /* Exposed so the banner logic can be checked from devtools/tests. */
+        window.eddyInstall = { maybeShow: maybeShow, show: show, isIOS: isIOS, isStandalone: isStandalone };
+        if (document.readyState === "complete") setTimeout(maybeShow, 1600);
+        else window.addEventListener("load", function () { setTimeout(maybeShow, 1600); });
+      })();
     </script>
 
   </body>
