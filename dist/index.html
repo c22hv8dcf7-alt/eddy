@@ -1071,18 +1071,24 @@
       .boot-sub{font-size:.78rem;font-weight:600;letter-spacing:.22em;padding-left:.22em;
         text-transform:uppercase;color:#8b98a5;margin-top:10px}
       /* Dot morph: amber dots fly in from the screen edges and
-         lock into a stonefly nymph silhouette, hold, then the
-         same dots rearrange — a position morph, colour shifting
-         amber to light blue — into a mayfly nymph. Ghost dots
-         at 15% opacity preview each stonefly target until its
-         dot arrives. */
+         lock into a stonefly nymph silhouette, hold, then glide
+         into a mayfly nymph while the colour crossfades amber
+         to light blue. Two pre-positioned dot layers (amber,
+         blue) live in .boot-fly; the morph is a position glide
+         plus an opacity crossfade between those layers. The
+         dots themselves are plain solid circles positioned by
+         transform only — no shadows, filters or glow per dot —
+         and the only glow is one radial-gradient sprite per
+         colour state behind the cluster. Ghost dots at 15%
+         opacity preview each stonefly target until its dot
+         arrives. */
       .boot-fly{position:absolute;inset:0;pointer-events:none}
-      .boot-dot{position:absolute;border-radius:50%;background:#f5a623;opacity:.15;
-        box-shadow:0 0 6px rgba(245,166,35,.45)}
-      .boot-dot.flying{transition:transform .6s cubic-bezier(.215,.61,.355,1),opacity .3s ease}
-      .boot-dot.locked{animation:bootDotPulse .2s ease}
-      .boot-dot.mayfly{background:#7dd3fc;box-shadow:0 0 6px rgba(125,211,252,.5)}
-      @keyframes bootDotPulse{0%{scale:1}50%{scale:1.35}100%{scale:1}}
+      .boot-layer{position:absolute;inset:0}
+      .boot-glow{position:absolute;border-radius:50%;pointer-events:none}
+      .boot-glow.amber{background:radial-gradient(closest-side,rgba(245,166,35,.16),rgba(245,166,35,0) 72%)}
+      .boot-glow.blue{background:radial-gradient(closest-side,rgba(125,211,252,.16),rgba(125,211,252,0) 72%)}
+      .boot-dot{position:absolute;border-radius:50%;background:#f5a623;opacity:.15}
+      .boot-dot.blue{background:#7dd3fc;opacity:1}
       .boot-foot{position:relative;width:min(300px,72vw);text-align:center;margin-top:auto;
         padding-bottom:calc(46px + env(safe-area-inset-bottom,0px))}
       .boot-insect{font-size:.8rem;font-weight:700;letter-spacing:.3em;padding-left:.3em;
@@ -1367,7 +1373,12 @@
       <svg class="boot-waves w2" viewBox="0 0 2880 60" preserveAspectRatio="none" aria-hidden="true">
         <path d="M0 34 Q90 18 180 34 T360 34 T540 34 T720 34 T900 34 T1080 34 T1260 34 T1440 34 T1620 34 T1800 34 T1980 34 T2160 34 T2340 34 T2520 34 T2700 34 T2880 34" fill="none" stroke="rgba(47,191,165,.14)" stroke-width="2"/>
       </svg>
-      <div class="boot-fly" id="bootFly" aria-hidden="true"></div>
+      <div class="boot-fly" id="bootFly" aria-hidden="true">
+        <div class="boot-glow amber" id="bootGlowAmber"></div>
+        <div class="boot-glow blue" id="bootGlowBlue"></div>
+        <div class="boot-layer" id="bootLayerAmber"></div>
+        <div class="boot-layer" id="bootLayerBlue"></div>
+      </div>
       <div class="boot-center">
         <div class="boot-name">Eddy</div>
         <div class="boot-sub">Macroinvertebrate Counter</div>
@@ -1384,7 +1395,12 @@
        Amber dots fly in from the edges of the screen and lock
        into the silhouette of a stonefly nymph over drifting
        current motes and slow wave lines, while the app parses
-       its reference library and warms the AI detection model.
+       its reference library. The AI detection model is NOT
+       loaded during the sequence: its warm-up (and the
+       service worker's install precache) start only once
+       this screen has left the DOM, so the animation gets
+       the main thread and GPU to itself — the Count header's
+       "AI model loading…" badge covers the warm-up after.
        The completed stonefly holds, then the same dots morph
        — rearranging position, colour shifting amber to light
        blue — into a mayfly nymph: slimmer body, longer
@@ -1399,7 +1415,7 @@
        Purely cosmetic: the app underneath is live the moment
        the fade starts.                                    */
     (function () {
-      var noop = { active: false, setStage: function () {}, finish: function () {} };
+      var noop = { active: false, setStage: function () {}, finish: function () {}, onDismissed: function (fn) { setTimeout(fn, 0); }, perf: function () { return null; } };
       var bootEl = document.getElementById("bootScreen");
       if (!bootEl) { window.__eddyBoot = noop; return; }
       var warm = false;
@@ -1427,6 +1443,7 @@
         { label: "Ready", pct: 100 }
       ];
       var stage = 0, done = false, finishQueued = false;
+      var dismissedCbs = [], dismissedFired = false;
       var t0 = Date.now();
       var timers = [];
       function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
@@ -1476,92 +1493,105 @@
         [[138,65,1.7],[140,110,1.5]],
         [[162,85,1.7],[160,110,1.5]]
       ];
-      var dots = [];
       var lockedCount = 0, allLockedAt = 0, dismissQueued = false;
       var morphStarted = false, morphDoneAt = 0, readyAt = 0;
+      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      /* ---------- Precomputed animation state ----------
+         Everything the frame loop needs is computed ONCE,
+         before the first frame: per-dot spawn offsets,
+         launch times and flight durations, morph offsets,
+         and element handles for BOTH colour layers (amber
+         stonefly + blue mayfly). The loop further down
+         only reads numbers out of these arrays and writes
+         transforms / layer opacity — it allocates no
+         objects, arrays or closures per frame.            */
+      var ND = STONEFLY.length + EXTRA.length;
+      var amberEls = [], blueEls = [];
+      var spawnX = new Float32Array(ND), spawnY = new Float32Array(ND);
+      var morphX = new Float32Array(ND), morphY = new Float32Array(ND);
+      var launchAt = new Float32Array(ND), flyDur = new Float32Array(ND);
+      var lockAt = new Float32Array(ND);
+      var dotState = new Uint8Array(ND); /* 0 ghost · 1 flying · 2 lock pulse · 3 settled */
+      var dotsOk = false;
+      var layerAmber = document.getElementById("bootLayerAmber");
+      var layerBlue = document.getElementById("bootLayerBlue");
+      var glowAmber = document.getElementById("bootGlowAmber");
+      var glowBlue = document.getElementById("bootGlowBlue");
       function buildDots() {
-        if (!flyEl) return;
+        if (!flyEl || !layerAmber || !layerBlue) return;
         var W = bootEl.clientWidth || window.innerWidth || 360;
         var H = bootEl.clientHeight || window.innerHeight || 480;
         /* Design space is 300×220; the figure's points span
            x 115–185, y 22–164 (centre ≈ 150, 93). */
         var sc = Math.min((H * 0.42) / 142, (W * 0.6) / 70, 2);
         var cx = W / 2, cy = H * 0.5;
+        var idx = 0;
         function addDot(sp, mp) {
-          var el = document.createElement("div");
-          el.className = "boot-dot";
           var sz = Math.max(3, Math.round(sp[2] * sc * 1.8 * 2) / 2);
-          el.style.width = sz + "px"; el.style.height = sz + "px";
           var tx = cx + (sp[0] - 150) * sc, ty = cy + (sp[1] - 93) * sc;
-          el.style.left = (tx - sz / 2) + "px";
-          el.style.top = (ty - sz / 2) + "px";
-          flyEl.appendChild(el);
-          /* Morph endpoints precomputed here, once: the dot
-             rests at translate(0,0) on its stonefly target,
-             so the morph lerps (0,0) → (ex, ey). Nothing is
-             measured or derived per frame later.           */
-          var mx = cx + (mp[0] - 150) * sc, my = cy + (mp[1] - 93) * sc;
-          dots.push({ el: el, tx: tx, ty: ty, mx: mx, my: my,
-            ex: mx - tx, ey: my - ty,
-            flown: false, locked: false });
+          var left = (tx - sz / 2) + "px", top = (ty - sz / 2) + "px";
+          var a = document.createElement("div");
+          a.className = "boot-dot";
+          a.style.width = sz + "px"; a.style.height = sz + "px";
+          a.style.left = left; a.style.top = top;
+          layerAmber.appendChild(a);
+          var b = document.createElement("div");
+          b.className = "boot-dot blue";
+          b.style.width = sz + "px"; b.style.height = sz + "px";
+          b.style.left = left; b.style.top = top;
+          layerBlue.appendChild(b);
+          /* Spawn point on a random screen edge, precomputed
+             as an offset from the dot's stonefly target; the
+             morph endpoint likewise. The dot rests at
+             translate(0,0) on its stonefly target, so the
+             fly-in lerps spawn → (0,0) and the morph lerps
+             (0,0) → (morphX, morphY). Nothing is measured or
+             derived per frame later.                       */
+          var edge = Math.floor(Math.random() * 4), sx, sy;
+          if (edge === 0) { sx = Math.random() * W; sy = -8; }
+          else if (edge === 1) { sx = W + 8; sy = Math.random() * H; }
+          else if (edge === 2) { sx = Math.random() * W; sy = H + 8; }
+          else { sx = -8; sy = Math.random() * H; }
+          spawnX[idx] = sx - tx; spawnY[idx] = sy - ty;
+          morphX[idx] = (mp[0] - sp[0]) * sc;
+          morphY[idx] = (mp[1] - sp[1]) * sc;
+          launchAt[idx] = idx * 28; /* one launch every ~28 ms */
+          flyDur[idx] = reduced ? 0 : 650 + Math.round(Math.random() * 250); /* 650–900 ms */
+          amberEls.push(a); blueEls.push(b);
+          idx++;
         }
         for (var i = 0; i < STONEFLY.length; i++) addDot(STONEFLY[i], MAYFLY[i]);
         for (var j = 0; j < EXTRA.length; j++) addDot(EXTRA[j][0], EXTRA[j][1]);
+        /* One soft radial glow sprite per colour state,
+           centred on the figure — a single layer each,
+           never a per-dot shadow. Sized once, here.       */
+        var gw = 150 * sc, gh = 215 * sc;
+        if (glowAmber) {
+          glowAmber.style.left = (cx - gw / 2) + "px"; glowAmber.style.top = (cy - gh / 2) + "px";
+          glowAmber.style.width = gw + "px"; glowAmber.style.height = gh + "px";
+          glowAmber.style.opacity = "1";
+        }
+        if (glowBlue) {
+          glowBlue.style.left = (cx - gw / 2) + "px"; glowBlue.style.top = (cy - gh / 2) + "px";
+          glowBlue.style.width = gw + "px"; glowBlue.style.height = gh + "px";
+          glowBlue.style.opacity = "0";
+        }
+        layerBlue.style.opacity = "0";
+        /* Layer promotion only while the animation runs;
+           dismiss() hands the layers back (will-change:
+           auto) before the overlay leaves the DOM.        */
+        layerAmber.style.willChange = "transform";
+        layerBlue.style.willChange = "transform";
+        dotsOk = idx === ND;
       }
-      function launchDot(d) {
-        var W = bootEl.clientWidth || window.innerWidth || 360;
-        var H = bootEl.clientHeight || window.innerHeight || 480;
-        /* Random spawn point along one of the screen edges. */
-        var edge = Math.floor(Math.random() * 4), sx, sy;
-        if (edge === 0) { sx = Math.random() * W; sy = -8; }
-        else if (edge === 1) { sx = W + 8; sy = Math.random() * H; }
-        else if (edge === 2) { sx = Math.random() * W; sy = H + 8; }
-        else { sx = -8; sy = Math.random() * H; }
-        var dur = 650 + Math.round(Math.random() * 250); /* 650–900 ms */
-        d.flown = true;
-        d.el.style.transform = "translate(" + (sx - d.tx) + "px," + (sy - d.ty) + "px)";
-        void d.el.offsetWidth; /* settle at spawn before the flight */
-        d.el.classList.add("flying");
-        d.el.style.transition = "transform " + dur + "ms cubic-bezier(.215,.61,.355,1), opacity .3s ease";
-        d.el.style.opacity = "1";
-        d.el.style.transform = "translate(0px,0px)";
-        var lock = function (e) {
-          /* Only the transform transition means the dot has
-             actually arrived; opacity finishes sooner. */
-          if (e && e.propertyName && e.propertyName !== "transform") return;
-          if (d.locked) return;
-          d.locked = true;
-          d.el.removeEventListener("transitionend", lock);
-          d.el.classList.add("locked");
-          lockedCount++;
-          if (lockedCount === dots.length) {
-            allLockedAt = Date.now();
-            setStatus("stonefly complete");
-            later(startMorph, 900); /* hold the finished stonefly */
-          }
-        };
-        d.el.addEventListener("transitionend", lock);
-        later(lock, dur + 90); /* fallback if transitionend is missed */
-      }
-      /* ---------- Phase 2: the morph ----------
-         The same dots glide from their stonefly targets to
-         their mayfly targets over 1.5 s, fill shifting
-         amber → light blue as they go. A position morph,
-         not a fade. Driven by requestAnimationFrame: every
-         start/end offset and both endpoint colours were
-         precomputed before the first frame, so each frame
-         is only a lerp plus a translate3d / colour write
-         per dot — no CSS transitions, no per-dot delays,
-         no layout reads. Easing is cubic-bezier(0.4, 0,
-         0.2, 1), solved once into a lookup table. The 44
-         dots are well inside a 60 fps budget, so the count
-         stays as authored.                              */
-      var MORPH_MS = 1500;
-      var AMBER_RGB = [245, 166, 35], BLUE_RGB = [125, 211, 252];
+      /* ---------- Easing tables ----------
+         Every cubic-bezier in the sequence is solved ONCE
+         into a 241-entry lookup table before the animation
+         starts; the frame loop only indexes into them.    */
       function bezierY(x, p1x, p1y, p2x, p2y) {
         /* Solve a CSS cubic-bezier for y at a given x:
            Newton steps with a bisection fallback. Runs
-           only while the table below is built.          */
+           only while the tables below are built.          */
         var cx = 3 * p1x, bx = 3 * (p2x - p1x) - cx, ax = 1 - cx - bx;
         var cy = 3 * p1y, by = 3 * (p2y - p1y) - cy, ay = 1 - cy - by;
         function sx(t) { return ((ax * t + bx) * t + cx) * t; }
@@ -1582,132 +1612,209 @@
         }
         return sy(t);
       }
-      var EASE_TABLE = (function () {
+      function makeEase(p1x, p1y, p2x, p2y) {
         var tab = [], N = 240;
-        for (var i = 0; i <= N; i++) tab.push(bezierY(i / N, 0.4, 0, 0.2, 1));
+        for (var i = 0; i <= N; i++) tab.push(bezierY(i / N, p1x, p1y, p2x, p2y));
         return tab;
-      })();
-      function startMorph() {
-        if (done || morphStarted) return;
-        morphStarted = true;
-        setStatus("morphing…");
-        if (insectEl) { insectEl.textContent = "Mayfly Nymph"; insectEl.classList.add("mayfly"); }
-        var N = dots.length, i, d;
-        /* Kill the fly-in transitions so nothing fights the
-           per-frame writes, and promote the dots onto their
-           own layers for the duration of the morph only.  */
-        for (i = 0; i < N; i++) {
-          d = dots[i];
-          d.el.style.transition = "none";
-          d.el.classList.remove("flying");
-          d.el.style.willChange = "transform";
-        }
-        var dur = reduced ? 0 : MORPH_MS;
-        var startT = 0;
-        var frame = function (now) {
-          if (done) return;
-          if (!startT) startT = now;
-          var t = dur ? Math.min(1, (now - startT) / dur) : 1;
-          var e = EASE_TABLE[Math.round(t * (EASE_TABLE.length - 1))];
-          /* One fill for every dot this frame: lerp the
-             cached endpoint RGBs (glow alpha rides along
-             so the shadow never snaps either).           */
-          var r = Math.round(AMBER_RGB[0] + (BLUE_RGB[0] - AMBER_RGB[0]) * e);
-          var g = Math.round(AMBER_RGB[1] + (BLUE_RGB[1] - AMBER_RGB[1]) * e);
-          var b = Math.round(AMBER_RGB[2] + (BLUE_RGB[2] - AMBER_RGB[2]) * e);
-          var bg = "rgb(" + r + "," + g + "," + b + ")";
-          var sh = "0 0 6px rgba(" + r + "," + g + "," + b + "," + (0.45 + 0.05 * e).toFixed(3) + ")";
-          for (var j = 0; j < N; j++) {
-            var m = dots[j];
-            m.el.style.transform = "translate3d(" + (m.ex * e).toFixed(2) + "px," + (m.ey * e).toFixed(2) + "px,0)";
-            m.el.style.backgroundColor = bg;
-            m.el.style.boxShadow = sh;
-          }
-          if (t < 1) { requestAnimationFrame(frame); return; }
-          /* Morph complete: drop the layer promotion and
-             settle on the mayfly class (its fill and glow
-             match the final lerped values exactly).      */
-          for (var k = 0; k < N; k++) {
-            dots[k].el.style.willChange = "";
-            dots[k].el.classList.add("mayfly");
-          }
-          morphDoneAt = Date.now();
-          setStatus("mayfly complete");
-          later(function () {
-            readyAt = Date.now();
-            setStatus("ready");
-            maybeDismiss();
-          }, 220);
-        };
-        requestAnimationFrame(frame);
       }
-      buildDots();
-      setStatus("assembling…");
-      /* Fly-in: one launch every ~28 ms, each dot easing out
-         from a random screen edge to its stonefly target.   */
-      for (var n = 0; n < dots.length; n++) {
-        (function (d, idx) {
-          later(function () { if (!done) launchDot(d); }, idx * 28);
-        })(dots[n], n);
-      }
-
-      applyStage(0);
-      /* Cosmetic advance so the sequence reads even before the
-         bundle reports in; bundle-driven stages only move
-         forward from wherever the sequence has reached.      */
-      later(function () { if (!done && stage < 1) applyStage(1); }, 450);
-
-      /* Drifting current motes on the canvas behind the fly —
-         slow, faint, mostly stream-blue with a few amber.     */
-      var raf = 0;
-      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var canvas = document.getElementById("bootParticles");
-      if (!reduced && canvas && canvas.getContext) {
-        var ctx = canvas.getContext("2d");
-        var W = bootEl.clientWidth || window.innerWidth || 360;
-        var H = bootEl.clientHeight || window.innerHeight || 480;
+      var MORPH_MS = 1500;
+      var EASE_TABLE = makeEase(0.4, 0, 0.2, 1);       /* morph glide + layer crossfade */
+      var FLY_EASE = makeEase(0.215, 0.61, 0.355, 1);  /* fly-in ease-out */
+      var FADE_EASE = makeEase(0.25, 0.1, 0.25, 1);    /* CSS "ease": ghost fade-in */
+      /* ---------- Drifting current motes ----------
+         Slow, faint particles on the canvas behind the
+         fly — state preallocated once, drawn from inside
+         the single frame loop below.                     */
+      var pctx = null, parts = [], pW = 0, pH = 0, pLast = 0;
+      var MOTE_AMBER = "rgba(245,166,35,.35)", MOTE_BLUE = "rgba(150,195,230,.28)";
+      function setupParticles() {
+        var canvas = document.getElementById("bootParticles");
+        if (reduced || !canvas || !canvas.getContext) return;
+        pctx = canvas.getContext("2d");
+        pW = bootEl.clientWidth || window.innerWidth || 360;
+        pH = bootEl.clientHeight || window.innerHeight || 480;
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-        ctx.scale(dpr, dpr);
-        var parts = [];
+        canvas.width = Math.round(pW * dpr); canvas.height = Math.round(pH * dpr);
+        pctx.scale(dpr, dpr);
         for (var i = 0; i < 26; i++) {
           parts.push({
-            x: Math.random() * W, y: Math.random() * H,
+            x: Math.random() * pW, y: Math.random() * pH,
             r: 0.8 + Math.random() * 1.8,
             vx: 4 + Math.random() * 9, vy: -(2 + Math.random() * 5),
             ph: Math.random() * Math.PI * 2,
             amber: Math.random() < 0.35
           });
         }
-        var last = 0;
-        var frame = function (now) {
-          if (done) return;
-          var dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;
-          ctx.clearRect(0, 0, W, H);
-          for (var j = 0; j < parts.length; j++) {
-            var p = parts[j];
-            p.x += p.vx * dt;
-            p.y += p.vy * dt + Math.sin(now / 1600 + p.ph) * 3 * dt;
-            if (p.x > W + 6) { p.x = -6; p.y = Math.random() * H; }
-            if (p.y < -6) { p.y = H + 6; }
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = p.amber ? "rgba(245,166,35,.35)" : "rgba(150,195,230,.28)";
-            ctx.fill();
-          }
-          raf = requestAnimationFrame(frame);
-        };
-        raf = requestAnimationFrame(frame);
       }
+      function drawParticles(now) {
+        if (!pctx) return;
+        var dt = Math.min(0.05, pLast ? (now - pLast) / 1000 : 0.016); pLast = now;
+        pctx.clearRect(0, 0, pW, pH);
+        for (var j = 0; j < parts.length; j++) {
+          var p = parts[j];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt + Math.sin(now / 1600 + p.ph) * 3 * dt;
+          if (p.x > pW + 6) { p.x = -6; p.y = Math.random() * pH; }
+          if (p.y < -6) { p.y = pH + 6; }
+          pctx.beginPath();
+          pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          pctx.fillStyle = p.amber ? MOTE_AMBER : MOTE_BLUE;
+          pctx.fill();
+        }
+      }
+      /* ---------- The one frame loop ----------
+         A single requestAnimationFrame loop drives the
+         WHOLE sequence — fly-in, lock pulses, the stonefly
+         hold, the 1.5 s morph, the mayfly hold — plus the
+         motes above. Phase changes are timestamp checks
+         against the precomputed schedule, never timers,
+         and the loop body allocates nothing: positions
+         come out of the typed arrays filled by buildDots,
+         and the only writes are translate3d transforms and
+         layer opacity. The colour morph is a pure opacity
+         crossfade between the two pre-positioned dot
+         layers, eased by the same cubic-bezier(0.4, 0,
+         0.2, 1) table as the position glide — no per-dot
+         colour lerp, no shadow or filter work anywhere.
+         Frame deltas land in a preallocated ring so the
+         result is measurable, not vibes: read it back
+         through window.__eddyBoot.perf().               */
+      var raf = 0;
+      var animStart = -1, morphStartT = -1, morphBegan = false, readyT = -1;
+      var PERF_N = 900;
+      var perfDeltas = new Float32Array(PERF_N);
+      var perfCount = 0, perfLast = 0, dismissedPerfAt = 0;
+      function bootFrame(now) {
+        if (done) return;
+        if (perfLast) { if (perfCount < PERF_N) perfDeltas[perfCount] = now - perfLast; perfCount++; }
+        perfLast = now;
+        if (animStart < 0) animStart = now;
+        var t = now - animStart;
+        var i, st, p, e, tr;
+        if (dotsOk) {
+          /* Fly-in and lock pulses. */
+          if (lockedCount < ND) {
+            for (i = 0; i < ND; i++) {
+              st = dotState[i];
+              if (st === 3) continue;
+              if (st === 0) {
+                if (t < launchAt[i]) continue;
+                dotState[i] = 1; st = 1;
+              }
+              if (st === 1) {
+                var ft = t - launchAt[i];
+                p = flyDur[i] ? Math.min(1, ft / flyDur[i]) : 1;
+                e = FLY_EASE[Math.round(p * 240)];
+                tr = "translate3d(" + (spawnX[i] * (1 - e)).toFixed(2) + "px," + (spawnY[i] * (1 - e)).toFixed(2) + "px,0)";
+                amberEls[i].style.transform = tr;
+                blueEls[i].style.transform = tr;
+                if (ft < 300) amberEls[i].style.opacity = (0.15 + 0.85 * FADE_EASE[Math.round(ft / 300 * 240)]).toFixed(3);
+                if (p >= 1) {
+                  amberEls[i].style.opacity = "1";
+                  dotState[i] = 2; lockAt[i] = t; lockedCount++;
+                }
+              } else if (st === 2) {
+                var pt = (t - lockAt[i]) / 200;
+                if (pt >= 1) {
+                  tr = "translate3d(0px,0px,0)";
+                  amberEls[i].style.transform = tr;
+                  blueEls[i].style.transform = tr;
+                  dotState[i] = 3;
+                } else {
+                  tr = "translate3d(0px,0px,0) scale(" + (1 + 0.35 * Math.sin(Math.PI * pt)).toFixed(3) + ")";
+                  amberEls[i].style.transform = tr;
+                  blueEls[i].style.transform = tr;
+                }
+              }
+            }
+            if (lockedCount === ND) {
+              allLockedAt = Date.now();
+              setStatus("stonefly complete");
+              morphStartT = t + 900; /* hold the finished stonefly */
+            }
+          }
+          /* The morph: position glide + layer crossfade. */
+          if (morphStartT >= 0 && t >= morphStartT) {
+            if (!morphBegan) {
+              morphBegan = true; morphStarted = true;
+              setStatus("morphing…");
+              if (insectEl) { insectEl.textContent = "Mayfly Nymph"; insectEl.classList.add("mayfly"); }
+            }
+            if (!morphDoneAt) {
+              var mt = reduced ? 1 : Math.min(1, (t - morphStartT) / MORPH_MS);
+              var me = EASE_TABLE[Math.round(mt * 240)];
+              for (i = 0; i < ND; i++) {
+                tr = "translate3d(" + (morphX[i] * me).toFixed(2) + "px," + (morphY[i] * me).toFixed(2) + "px,0)";
+                amberEls[i].style.transform = tr;
+                blueEls[i].style.transform = tr;
+              }
+              var inv = (1 - me).toFixed(3), mes = me.toFixed(3);
+              layerAmber.style.opacity = inv;
+              layerBlue.style.opacity = mes;
+              if (glowAmber) glowAmber.style.opacity = inv;
+              if (glowBlue) glowBlue.style.opacity = mes;
+              if (mt >= 1) {
+                morphDoneAt = Date.now();
+                setStatus("mayfly complete");
+                readyT = t + 220;
+              }
+            }
+          }
+          if (readyT >= 0 && !readyAt && t >= readyT) {
+            readyAt = Date.now();
+            setStatus("ready");
+            maybeDismiss();
+          }
+        }
+        drawParticles(now);
+        raf = requestAnimationFrame(bootFrame);
+      }
+      function perfSummary() {
+        var n = Math.min(perfCount, PERF_N);
+        if (!n) return { frames: 0, medianMs: 0, maxMs: 0, over25: 0, dismissedAt: dismissedPerfAt };
+        var sorted = perfDeltas.slice(0, n).sort();
+        var over = 0, max = 0;
+        for (var i = 0; i < n; i++) { if (perfDeltas[i] > 25) over++; if (perfDeltas[i] > max) max = perfDeltas[i]; }
+        return { frames: n, medianMs: Math.round(sorted[n >> 1] * 10) / 10, maxMs: Math.round(max * 10) / 10, over25: over, dismissedAt: dismissedPerfAt };
+      }
+      buildDots();
+      setStatus("assembling…");
+      applyStage(0);
+      /* Cosmetic advance so the sequence reads even before the
+         bundle reports in; bundle-driven stages only move
+         forward from wherever the sequence has reached.      */
+      later(function () { if (!done && stage < 1) applyStage(1); }, 450);
+      setupParticles();
+      raf = requestAnimationFrame(bootFrame);
 
+      /* Callbacks registered through __eddyBoot.onDismissed
+         fire once the overlay has actually left the DOM —
+         the deferred AI warm-up and the service-worker
+         install hang off this, so nothing heavy starts a
+         frame before the animation is fully done.          */
+      function onDismissed(fn) {
+        if (dismissedFired) { setTimeout(fn, 0); return; }
+        dismissedCbs.push(fn);
+      }
+      function fireDismissed() {
+        dismissedFired = true;
+        for (var i = 0; i < dismissedCbs.length; i++) {
+          try { dismissedCbs[i](); } catch (e) { /* a failed warm-up must not break boot teardown */ }
+        }
+        dismissedCbs.length = 0;
+      }
       function dismiss() {
         if (done) return;
         done = true;
         for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]);
         if (raf) cancelAnimationFrame(raf);
+        if (layerAmber) layerAmber.style.willChange = "auto";
+        if (layerBlue) layerBlue.style.willChange = "auto";
         bootEl.classList.add("boot-done");
         setTimeout(function () {
           if (bootEl.parentNode) bootEl.parentNode.removeChild(bootEl);
+          dismissedPerfAt = performance.now();
+          fireDismissed();
         }, 340);
       }
       /* Fade only once the app has finished AND the mayfly
@@ -1732,7 +1839,9 @@
       window.__eddyBoot = {
         active: true,
         setStage: function (i) { if (!done && i > stage && i < 3) applyStage(i); },
-        finish: finish
+        finish: finish,
+        onDismissed: onDismissed,
+        perf: perfSummary
       };
       later(finish, 5000); /* ceiling: hand off even if the model lags */
       /* Hard ceiling: fade at 5 s even if dots are still flying. */
@@ -5274,12 +5383,20 @@
       refreshYoloUI();
       if (yoloEnabled()) {
         if (window.__eddyBoot && window.__eddyBoot.active) {
-          /* Cold launch under the boot screen: start the model
-             now and let the boot screen finish when it settles —
-             its own 5 s ceiling covers a slow load, and the
-             Count header badge covers any time past that.      */
+          /* Cold launch under the boot screen: the model must
+             NOT load while the boot animation is running — the
+             11 MB fetch, the ONNX session creation and the
+             WASM compile would fight the animation for the
+             main thread and the GPU. Register the warm-up to
+             start the moment the boot overlay leaves the DOM
+             and finish the boot sequence on the animation's
+             own schedule; the Count header's "AI model
+             loading…" badge covers the warm-up from there,
+             exactly as it used to cover any time past the
+             old 5 s ceiling.                                 */
           window.__eddyBoot.setStage(2);
-          yoloLoad().then(function () { window.__eddyBoot.finish(); });
+          window.__eddyBoot.onDismissed(function () { yoloLoad(); });
+          window.__eddyBoot.finish();
         }
         else if (window.requestIdleCallback) requestIdleCallback(function () { yoloLoad(); }, { timeout: 5000 });
         else setTimeout(function () { yoloLoad(); }, 2000);
@@ -14627,9 +14744,19 @@
       /* ---------- PWA: offline cache + iOS install banner ---------- */
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {
-          navigator.serviceWorker.register("data:application/javascript;base64,LyogRWRkeSBzZXJ2aWNlIHdvcmtlciDigJQgY2FjaGVzIHRoZSBhcHAgc2hlbGwgYW5kIGV2ZXJ5IGJ1bmRsZWQKICAgYXNzZXQgb24gaW5zdGFsbCwgdGhlbiBzZXJ2ZXMgY2FjaGUtZmlyc3Qgd2l0aCBhIG5ldHdvcmsgZmFsbGJhY2suCiAgIENETiBsaWJyYXJpZXMgKGZvbnRzLCBMZWFmbGV0LCBPTk5YIHJ1bnRpbWUpIGFyZSBhZGRlZCB0byB0aGUgc2FtZQogICBjYWNoZSBhdCBydW50aW1lIGFzIHRoZXkgbG9hZCwgc28gcmVwZWF0IHZpc2l0cyB3b3JrIG9mZmxpbmUuCiAgIE5vdGU6IHRoaXMgZmlsZSBsaXZlcyBpbiBhc3NldHMvICh0aGUgb25seSBkaXJlY3Rvcnkgc2VydmVkIHdpdGgKICAgdGhlIHBhZ2UpLCBzbyBpdHMgVVJMcyBhcmUgcmVsYXRpdmUgdG8gdGhhdCBmb2xkZXI6IC4uLyBpcyB0aGUKICAgYXBwIHJvb3Qgd2hlcmUgaW5kZXguaHRtbCBsaXZlcy4gKi8KdmFyIENBQ0hFID0gImVkZHktdjEiOwp2YXIgQ09SRSA9IFsKICAiLi4vIiwKICAiLi4vaW5kZXguaHRtbCIsCiAgIi4vbWFuaWZlc3QuanNvbiIsCiAgIi4vaWNvbi0xODAucG5nIiwKICAiLi9pY29uLTE5Mi5wbmciLAogICIuL2ljb24tNTEyLnBuZyIKXTsKdmFyIEFTU0VUUyA9IFsKICAiLi9rZXktaGN0Zi53ZWJwIiwKICAiLi9rZXktcml2ZXIucG5nIiwKICAiLi9yZWYvYW5pc29wdGVyYS0xLmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtMi5qcGciLAogICIuL3JlZi9hbmlzb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvYW5pc29wdGVyYS00LmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtNS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMi5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMy5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNC5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNS5qcGciLAogICIuL3JlZi9iYWV0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTIuanBnIiwKICAiLi9yZWYvYmFldGlkYWUtMy5qcGciLAogICIuL3JlZi9iYWV0aWRhZS00LmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTUuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtMS5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JlbG9zdG9tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtNC5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS01LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTEuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtMi5qcGciLAogICIuL3JlZi9jYWVuaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTQuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtNS5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTEuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhbWJhcmlkYWUtMy5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTQuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS00LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTEuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtMi5qcGciLAogICIuL3JlZi9jaGFvYm9yaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTQuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtNS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMi5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMy5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNC5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMi5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNC5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNS5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTIuanBnIiwKICAiLi9yZWYvY29yeWRhbGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTUuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTEuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTIuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTMuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTQuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTUuanBnIiwKICAiLi9yZWYvZGl4aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtMi5qcGciLAogICIuL3JlZi9kaXhpZGFlLTMuanBnIiwKICAiLi9yZWYvZGl4aWRhZS00LmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtNS5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTEuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2R5dGlzY2lkYWUtMy5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTQuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS01LmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtMS5qcGciLAogICIuL3JlZi9lbG1pZGFlLTIuanBnIiwKICAiLi9yZWYvZWxtaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtNC5qcGciLAogICIuL3JlZi9lbG1pZGFlLTUuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtMS5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2VwaGVtZXJlbGxpZGFlLTMuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtNC5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTEuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtMi5qcGciLAogICIuL3JlZi9nYW1tYXJ1cy0zLmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTQuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtNS5qcGciLAogICIuL3JlZi9nZXJyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2VycmlkYWUtMy5qcGciLAogICIuL3JlZi9nZXJyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTUuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTEuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTQuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTUuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTEuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTIuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTMuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTQuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTUuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtMi5qcGciLAogICIuL3JlZi9oYWxpcGxpZGFlLTMuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtNS5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTEuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2hlcHRhZ2VuaWlkYWUtMy5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTQuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0xLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0yLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0zLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS00LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS01LmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtMi5qcGciLAogICIuL3JlZi9oeWRyb3BzeWNoaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtNS5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHRpbGlkYWUtMy5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtMS5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTIuanBnIiwKICAiLi9yZWYvbGV1Y3RyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtNC5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTUuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtMi5qcGciLAogICIuL3JlZi9saW1uZXBoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtNS5qcGciLAogICIuL3JlZi9uZXBpZGFlLTEuanBnIiwKICAiLi9yZWYvbmVwaWRhZS0yLmpwZyIsCiAgIi4vcmVmL25lcGlkYWUtMy5qcGciLAogICIuL3JlZi9uZXBpZGFlLTQuanBnIiwKICAiLi9yZWYvbmVwaWRhZS01LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0zLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS00LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS01LmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTEuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtMi5qcGciLAogICIuL3JlZi9vbGlnb2NoYWV0YS0zLmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTQuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtNS5qcGciLAogICIuL3JlZi9wZXJsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTIuanBnIiwKICAiLi9yZWYvcGVybGlkYWUtMy5qcGciLAogICIuL3JlZi9wZXJsaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTUuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtMi5qcGciLAogICIuL3JlZi9wZXJsb2RpZGFlLTMuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtNS5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTIuanBnIiwKICAiLi9yZWYvcGhpbG9wb3RhbWlkYWUtMy5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTUuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtMS5qcGciLAogICIuL3JlZi9waHlzaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3BoeXNpZGFlLTMuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtNC5qcGciLAogICIuL3JlZi9waHlzaWRhZS01LmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTEuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtMi5qcGciLAogICIuL3JlZi9wbGFub3JiaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTQuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtNS5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTIuanBnIiwKICAiLi9yZWYvcHNlcGhlbmlkYWUtMy5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTUuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtMS5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3JoeWFjb3BoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtNC5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTEuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtMi5qcGciLAogICIuL3JlZi9zaWFsaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTQuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtNS5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTEuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3NpbXVsaWlkYWUtMy5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTQuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NuYWlsLTEuanBnIiwKICAiLi9yZWYvc25haWwtMi5qcGciLAogICIuL3JlZi9zbmFpbC0zLmpwZyIsCiAgIi4vcmVmL3NuYWlsLTQuanBnIiwKICAiLi9yZWYvc25haWwtNS5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTIuanBnIiwKICAiLi9yZWYvc3BoYWVyaWlkYWUtMy5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTUuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS0xLmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtMi5qcGciLAogICIuL3JlZi9zdHJhdGlvbXlpZGFlLTMuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS00LmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtNS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMi5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMy5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNC5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMi5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMy5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNC5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMi5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMy5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNC5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNS5qcGciLAogICIuL3JlZi92ZWxpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTIuanBnIiwKICAiLi9yZWYvdmVsaWlkYWUtMy5qcGciLAogICIuL3JlZi92ZWxpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTUuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTEuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTIuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTQuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTUuanBnIiwKICAiLi9yZWYvdGh1bWIvYW5pc29wdGVyYS5qcGciLAogICIuL3JlZi90aHVtYi9hc2VsbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmFldGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmVsb3N0b21hdGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYnJhY2h5Y2VudHJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhZW5pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhbWJhcmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY2FwbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoYW9ib3JpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoaXJvbm9taWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9jb3JpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY29yeWRhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY3VsaWNpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2RpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvZHl0aXNjaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9lbG1pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2VwaGVtZXJlbGxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dhbW1hcnVzLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dlcnJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dsb3Nzb3NvbWF0aWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9neXJpbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvaGFsaXBsaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oZXB0YWdlbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2hpcnVkaW5lYS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3BzeWNoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3B0aWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2lzb255Y2hpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9sZXB0b3BobGViaWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbGV1Y3RyaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9saW1uZXBoaWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL25lcGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbm90b25lY3RpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL29saWdvY2hhZXRhLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxvZGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGhpbG9wb3RhbWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGh5c2lkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGxhbm9yYmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcHNlcGhlbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcmh5YWNvcGhpbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2lhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2ltdWxpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zbmFpbC5qcGciLAogICIuL3JlZi90aHVtYi9zcGhhZXJpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zdHJhdGlvbXlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3N5cnBoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi90YWJhbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvdGlwdWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3ZlbGlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3p5Z29wdGVyYS5qcGciLAogICIuL2ludi9hc2lhbi1jbGFtLTEuanBnIiwKICAiLi9pbnYvYXNpYW4tY2xhbS0yLmpwZyIsCiAgIi4vaW52L2FzaWFuLWNsYW0tMy5qcGciLAogICIuL2ludi9iYW5kZWQtbXlzdGVyeS1zbmFpbC0xLmpwZyIsCiAgIi4vaW52L2JhbmRlZC1teXN0ZXJ5LXNuYWlsLTIuanBnIiwKICAiLi9pbnYvYmFuZGVkLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMS5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMi5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9uei1tdWRzbmFpbC0xLmpwZyIsCiAgIi4vaW52L256LW11ZHNuYWlsLTIuanBnIiwKICAiLi9pbnYvbnotbXVkc25haWwtMy5qcGciLAogICIuL2ludi9xdWFnZ2EtbXVzc2VsLTEuanBnIiwKICAiLi9pbnYvcXVhZ2dhLW11c3NlbC0yLmpwZyIsCiAgIi4vaW52L3F1YWdnYS1tdXNzZWwtMy5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMS5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMi5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMy5qcGciLAogICIuL2ludi9ydXN0eS1jcmF5ZmlzaC0xLmpwZyIsCiAgIi4vaW52L3J1c3R5LWNyYXlmaXNoLTIuanBnIiwKICAiLi9pbnYvcnVzdHktY3JheWZpc2gtMy5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMS5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMi5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMy5qcGciLAogICIuL3lvbG8vYmVzdC5vbm54IgpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJpbnN0YWxsIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgLyogRGVsaWJlcmF0ZWx5IE5PIHNraXBXYWl0aW5nKCkgaGVyZTogYW4gdXBkYXRlZCB3b3JrZXIgc3RheXMKICAgICBpbiB0aGUgd2FpdGluZyBzdGF0ZSBzbyB0aGUgcGFnZSBjYW4gb2ZmZXIgaXRzIHN1YnRsZQogICAgICJSZXN0YXJ0IHRvIHVwZGF0ZSIgcGlsbCAoc2lsZW50IGJhY2tncm91bmQgdXBkYXRlcykuIFRoZQogICAgIHBpbGwgcG9zdHMgU0tJUF9XQUlUSU5HIHdoZW4gdGFwcGVkOyBhbiBpZ25vcmVkIHVwZGF0ZSBzdGlsbAogICAgIGFjdGl2YXRlcyBvbiBpdHMgb3duIG9uY2UgZXZlcnkgRWRkeSB0YWIvd2luZG93IGlzIGNsb3NlZC4gKi8KICBldmVudC53YWl0VW50aWwoCiAgICBjYWNoZXMub3BlbihDQUNIRSkudGhlbihmdW5jdGlvbiAoY2FjaGUpIHsKICAgICAgcmV0dXJuIGNhY2hlLmFkZEFsbChDT1JFKS50aGVuKGZ1bmN0aW9uICgpIHsKICAgICAgICAvKiBQZXItZmlsZSBhZGRzOiBvbmUgbWlzc2luZyBmaWxlIG11c3QgbmV2ZXIgc2luayB0aGUgaW5zdGFsbC4gKi8KICAgICAgICByZXR1cm4gUHJvbWlzZS5hbGwoQVNTRVRTLm1hcChmdW5jdGlvbiAodXJsKSB7CiAgICAgICAgICByZXR1cm4gY2FjaGUuYWRkKHVybCkuY2F0Y2goZnVuY3Rpb24gKCkgeyAvKiBza2lwICovIH0pOwogICAgICAgIH0pKTsKICAgICAgfSk7CiAgICB9KQogICk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJtZXNzYWdlIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgaWYgKGV2ZW50LmRhdGEgJiYgZXZlbnQuZGF0YS50eXBlID09PSAiU0tJUF9XQUlUSU5HIikgc2VsZi5za2lwV2FpdGluZygpOwp9KTsKCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcigiYWN0aXZhdGUiLCBmdW5jdGlvbiAoZXZlbnQpIHsKICBldmVudC53YWl0VW50aWwoCiAgICBjYWNoZXMua2V5cygpLnRoZW4oZnVuY3Rpb24gKGtleXMpIHsKICAgICAgcmV0dXJuIFByb21pc2UuYWxsKGtleXMubWFwKGZ1bmN0aW9uIChrKSB7CiAgICAgICAgcmV0dXJuIGsgPT09IENBQ0hFID8gbnVsbCA6IGNhY2hlcy5kZWxldGUoayk7CiAgICAgIH0pKTsKICAgIH0pLnRoZW4oZnVuY3Rpb24gKCkgeyByZXR1cm4gc2VsZi5jbGllbnRzLmNsYWltKCk7IH0pCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoImZldGNoIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgdmFyIHJlcSA9IGV2ZW50LnJlcXVlc3Q7CiAgaWYgKHJlcS5tZXRob2QgIT09ICJHRVQiKSByZXR1cm47CiAgZXZlbnQucmVzcG9uZFdpdGgoCiAgICBjYWNoZXMubWF0Y2gocmVxLCB7IGlnbm9yZVNlYXJjaDogdHJ1ZSB9KS50aGVuKGZ1bmN0aW9uIChoaXQpIHsKICAgICAgaWYgKGhpdCkgcmV0dXJuIGhpdDsKICAgICAgcmV0dXJuIGZldGNoKHJlcSkudGhlbihmdW5jdGlvbiAocmVzKSB7CiAgICAgICAgaWYgKHJlcyAmJiAocmVzLnN0YXR1cyA9PT0gMjAwIHx8IHJlcy50eXBlID09PSAib3BhcXVlIikpIHsKICAgICAgICAgIHZhciBjb3B5ID0gcmVzLmNsb25lKCk7CiAgICAgICAgICBjYWNoZXMub3BlbihDQUNIRSkudGhlbihmdW5jdGlvbiAoY2FjaGUpIHsgY2FjaGUucHV0KHJlcSwgY29weSk7IH0pOwogICAgICAgIH0KICAgICAgICByZXR1cm4gcmVzOwogICAgICB9KS5jYXRjaChmdW5jdGlvbiAoKSB7CiAgICAgICAgaWYgKHJlcS5tb2RlID09PSAibmF2aWdhdGUiKSB7CiAgICAgICAgICByZXR1cm4gY2FjaGVzLm1hdGNoKCIuLi9pbmRleC5odG1sIiwgeyBpZ25vcmVTZWFyY2g6IHRydWUgfSk7CiAgICAgICAgfQogICAgICAgIHJldHVybiBSZXNwb25zZS5lcnJvcigpOwogICAgICB9KTsKICAgIH0pCiAgKTsKfSk7Cg==").catch(function () {
-            /* Offline cache unavailable in this browser — the app still runs. */
-          });
+          var registerSW = function () {
+            navigator.serviceWorker.register("data:application/javascript;base64,LyogRWRkeSBzZXJ2aWNlIHdvcmtlciDigJQgY2FjaGVzIHRoZSBhcHAgc2hlbGwgYW5kIGV2ZXJ5IGJ1bmRsZWQKICAgYXNzZXQgb24gaW5zdGFsbCwgdGhlbiBzZXJ2ZXMgY2FjaGUtZmlyc3Qgd2l0aCBhIG5ldHdvcmsgZmFsbGJhY2suCiAgIENETiBsaWJyYXJpZXMgKGZvbnRzLCBMZWFmbGV0LCBPTk5YIHJ1bnRpbWUpIGFyZSBhZGRlZCB0byB0aGUgc2FtZQogICBjYWNoZSBhdCBydW50aW1lIGFzIHRoZXkgbG9hZCwgc28gcmVwZWF0IHZpc2l0cyB3b3JrIG9mZmxpbmUuCiAgIE5vdGU6IHRoaXMgZmlsZSBsaXZlcyBpbiBhc3NldHMvICh0aGUgb25seSBkaXJlY3Rvcnkgc2VydmVkIHdpdGgKICAgdGhlIHBhZ2UpLCBzbyBpdHMgVVJMcyBhcmUgcmVsYXRpdmUgdG8gdGhhdCBmb2xkZXI6IC4uLyBpcyB0aGUKICAgYXBwIHJvb3Qgd2hlcmUgaW5kZXguaHRtbCBsaXZlcy4gKi8KdmFyIENBQ0hFID0gImVkZHktdjEiOwp2YXIgQ09SRSA9IFsKICAiLi4vIiwKICAiLi4vaW5kZXguaHRtbCIsCiAgIi4vbWFuaWZlc3QuanNvbiIsCiAgIi4vaWNvbi0xODAucG5nIiwKICAiLi9pY29uLTE5Mi5wbmciLAogICIuL2ljb24tNTEyLnBuZyIKXTsKdmFyIEFTU0VUUyA9IFsKICAiLi9rZXktaGN0Zi53ZWJwIiwKICAiLi9rZXktcml2ZXIucG5nIiwKICAiLi9yZWYvYW5pc29wdGVyYS0xLmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtMi5qcGciLAogICIuL3JlZi9hbmlzb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvYW5pc29wdGVyYS00LmpwZyIsCiAgIi4vcmVmL2FuaXNvcHRlcmEtNS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMS5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMi5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtMy5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNC5qcGciLAogICIuL3JlZi9hc2VsbGlkYWUtNS5qcGciLAogICIuL3JlZi9iYWV0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTIuanBnIiwKICAiLi9yZWYvYmFldGlkYWUtMy5qcGciLAogICIuL3JlZi9iYWV0aWRhZS00LmpwZyIsCiAgIi4vcmVmL2JhZXRpZGFlLTUuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtMS5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JlbG9zdG9tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvYmVsb3N0b21hdGlkYWUtNC5qcGciLAogICIuL3JlZi9iZWxvc3RvbWF0aWRhZS01LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2JyYWNoeWNlbnRyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTEuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtMi5qcGciLAogICIuL3JlZi9jYWVuaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhZW5pZGFlLTQuanBnIiwKICAiLi9yZWYvY2FlbmlkYWUtNS5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTEuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhbWJhcmlkYWUtMy5qcGciLAogICIuL3JlZi9jYW1iYXJpZGFlLTQuanBnIiwKICAiLi9yZWYvY2FtYmFyaWRhZS01LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS00LmpwZyIsCiAgIi4vcmVmL2NhcG5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTEuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtMi5qcGciLAogICIuL3JlZi9jaGFvYm9yaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2NoYW9ib3JpZGFlLTQuanBnIiwKICAiLi9yZWYvY2hhb2JvcmlkYWUtNS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMS5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMi5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtMy5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNC5qcGciLAogICIuL3JlZi9jaGlyb25vbWlkYWUtNS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMS5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMi5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNC5qcGciLAogICIuL3JlZi9jb3JpeGlkYWUtNS5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTIuanBnIiwKICAiLi9yZWYvY29yeWRhbGlkYWUtMy5qcGciLAogICIuL3JlZi9jb3J5ZGFsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2NvcnlkYWxpZGFlLTUuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTEuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTIuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTMuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTQuanBnIiwKICAiLi9yZWYvY3VsaWNpZGFlLTUuanBnIiwKICAiLi9yZWYvZGl4aWRhZS0xLmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtMi5qcGciLAogICIuL3JlZi9kaXhpZGFlLTMuanBnIiwKICAiLi9yZWYvZGl4aWRhZS00LmpwZyIsCiAgIi4vcmVmL2RpeGlkYWUtNS5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTEuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2R5dGlzY2lkYWUtMy5qcGciLAogICIuL3JlZi9keXRpc2NpZGFlLTQuanBnIiwKICAiLi9yZWYvZHl0aXNjaWRhZS01LmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtMS5qcGciLAogICIuL3JlZi9lbG1pZGFlLTIuanBnIiwKICAiLi9yZWYvZWxtaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2VsbWlkYWUtNC5qcGciLAogICIuL3JlZi9lbG1pZGFlLTUuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtMS5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2VwaGVtZXJlbGxpZGFlLTMuanBnIiwKICAiLi9yZWYvZXBoZW1lcmVsbGlkYWUtNC5qcGciLAogICIuL3JlZi9lcGhlbWVyZWxsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTEuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtMi5qcGciLAogICIuL3JlZi9nYW1tYXJ1cy0zLmpwZyIsCiAgIi4vcmVmL2dhbW1hcnVzLTQuanBnIiwKICAiLi9yZWYvZ2FtbWFydXMtNS5qcGciLAogICIuL3JlZi9nZXJyaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2VycmlkYWUtMy5qcGciLAogICIuL3JlZi9nZXJyaWRhZS00LmpwZyIsCiAgIi4vcmVmL2dlcnJpZGFlLTUuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTEuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTIuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTMuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTQuanBnIiwKICAiLi9yZWYvZ2xvc3Nvc29tYXRpZGFlLTUuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTEuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTIuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTMuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTQuanBnIiwKICAiLi9yZWYvZ3lyaW5pZGFlLTUuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtMi5qcGciLAogICIuL3JlZi9oYWxpcGxpZGFlLTMuanBnIiwKICAiLi9yZWYvaGFsaXBsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2hhbGlwbGlkYWUtNS5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTEuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS0yLmpwZyIsCiAgIi4vcmVmL2hlcHRhZ2VuaWlkYWUtMy5qcGciLAogICIuL3JlZi9oZXB0YWdlbmlpZGFlLTQuanBnIiwKICAiLi9yZWYvaGVwdGFnZW5paWRhZS01LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0xLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0yLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS0zLmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS00LmpwZyIsCiAgIi4vcmVmL2hpcnVkaW5lYS01LmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtMi5qcGciLAogICIuL3JlZi9oeWRyb3BzeWNoaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHN5Y2hpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wc3ljaGlkYWUtNS5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTEuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2h5ZHJvcHRpbGlkYWUtMy5qcGciLAogICIuL3JlZi9oeWRyb3B0aWxpZGFlLTQuanBnIiwKICAiLi9yZWYvaHlkcm9wdGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2lzb255Y2hpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xlcHRvcGhsZWJpaWRhZS01LmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtMS5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTIuanBnIiwKICAiLi9yZWYvbGV1Y3RyaWRhZS0zLmpwZyIsCiAgIi4vcmVmL2xldWN0cmlkYWUtNC5qcGciLAogICIuL3JlZi9sZXVjdHJpZGFlLTUuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtMi5qcGciLAogICIuL3JlZi9saW1uZXBoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvbGltbmVwaGlsaWRhZS00LmpwZyIsCiAgIi4vcmVmL2xpbW5lcGhpbGlkYWUtNS5qcGciLAogICIuL3JlZi9uZXBpZGFlLTEuanBnIiwKICAiLi9yZWYvbmVwaWRhZS0yLmpwZyIsCiAgIi4vcmVmL25lcGlkYWUtMy5qcGciLAogICIuL3JlZi9uZXBpZGFlLTQuanBnIiwKICAiLi9yZWYvbmVwaWRhZS01LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0xLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0yLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS0zLmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS00LmpwZyIsCiAgIi4vcmVmL25vdG9uZWN0aWRhZS01LmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTEuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtMi5qcGciLAogICIuL3JlZi9vbGlnb2NoYWV0YS0zLmpwZyIsCiAgIi4vcmVmL29saWdvY2hhZXRhLTQuanBnIiwKICAiLi9yZWYvb2xpZ29jaGFldGEtNS5qcGciLAogICIuL3JlZi9wZXJsaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTIuanBnIiwKICAiLi9yZWYvcGVybGlkYWUtMy5qcGciLAogICIuL3JlZi9wZXJsaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxpZGFlLTUuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtMi5qcGciLAogICIuL3JlZi9wZXJsb2RpZGFlLTMuanBnIiwKICAiLi9yZWYvcGVybG9kaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BlcmxvZGlkYWUtNS5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTIuanBnIiwKICAiLi9yZWYvcGhpbG9wb3RhbWlkYWUtMy5qcGciLAogICIuL3JlZi9waGlsb3BvdGFtaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BoaWxvcG90YW1pZGFlLTUuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtMS5qcGciLAogICIuL3JlZi9waHlzaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3BoeXNpZGFlLTMuanBnIiwKICAiLi9yZWYvcGh5c2lkYWUtNC5qcGciLAogICIuL3JlZi9waHlzaWRhZS01LmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTEuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtMi5qcGciLAogICIuL3JlZi9wbGFub3JiaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3BsYW5vcmJpZGFlLTQuanBnIiwKICAiLi9yZWYvcGxhbm9yYmlkYWUtNS5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTIuanBnIiwKICAiLi9yZWYvcHNlcGhlbmlkYWUtMy5qcGciLAogICIuL3JlZi9wc2VwaGVuaWRhZS00LmpwZyIsCiAgIi4vcmVmL3BzZXBoZW5pZGFlLTUuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtMS5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3JoeWFjb3BoaWxpZGFlLTMuanBnIiwKICAiLi9yZWYvcmh5YWNvcGhpbGlkYWUtNC5qcGciLAogICIuL3JlZi9yaHlhY29waGlsaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTEuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtMi5qcGciLAogICIuL3JlZi9zaWFsaWRhZS0zLmpwZyIsCiAgIi4vcmVmL3NpYWxpZGFlLTQuanBnIiwKICAiLi9yZWYvc2lhbGlkYWUtNS5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTEuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS0yLmpwZyIsCiAgIi4vcmVmL3NpbXVsaWlkYWUtMy5qcGciLAogICIuL3JlZi9zaW11bGlpZGFlLTQuanBnIiwKICAiLi9yZWYvc2ltdWxpaWRhZS01LmpwZyIsCiAgIi4vcmVmL3NuYWlsLTEuanBnIiwKICAiLi9yZWYvc25haWwtMi5qcGciLAogICIuL3JlZi9zbmFpbC0zLmpwZyIsCiAgIi4vcmVmL3NuYWlsLTQuanBnIiwKICAiLi9yZWYvc25haWwtNS5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTIuanBnIiwKICAiLi9yZWYvc3BoYWVyaWlkYWUtMy5qcGciLAogICIuL3JlZi9zcGhhZXJpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3NwaGFlcmlpZGFlLTUuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS0xLmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtMi5qcGciLAogICIuL3JlZi9zdHJhdGlvbXlpZGFlLTMuanBnIiwKICAiLi9yZWYvc3RyYXRpb215aWRhZS00LmpwZyIsCiAgIi4vcmVmL3N0cmF0aW9teWlkYWUtNS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMS5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMi5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtMy5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNC5qcGciLAogICIuL3JlZi9zeXJwaGlkYWUtNS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMS5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMi5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtMy5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNC5qcGciLAogICIuL3JlZi90YWJhbmlkYWUtNS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMS5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMi5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtMy5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNC5qcGciLAogICIuL3JlZi90aXB1bGlkYWUtNS5qcGciLAogICIuL3JlZi92ZWxpaWRhZS0xLmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTIuanBnIiwKICAiLi9yZWYvdmVsaWlkYWUtMy5qcGciLAogICIuL3JlZi92ZWxpaWRhZS00LmpwZyIsCiAgIi4vcmVmL3ZlbGlpZGFlLTUuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTEuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTIuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTMuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTQuanBnIiwKICAiLi9yZWYvenlnb3B0ZXJhLTUuanBnIiwKICAiLi9yZWYvdGh1bWIvYW5pc29wdGVyYS5qcGciLAogICIuL3JlZi90aHVtYi9hc2VsbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmFldGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYmVsb3N0b21hdGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvYnJhY2h5Y2VudHJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhZW5pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NhbWJhcmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY2FwbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoYW9ib3JpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2NoaXJvbm9taWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9jb3JpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY29yeWRhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvY3VsaWNpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2RpeGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvZHl0aXNjaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9lbG1pZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2VwaGVtZXJlbGxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dhbW1hcnVzLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dlcnJpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2dsb3Nzb3NvbWF0aWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9neXJpbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvaGFsaXBsaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oZXB0YWdlbmlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2hpcnVkaW5lYS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3BzeWNoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9oeWRyb3B0aWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL2lzb255Y2hpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9sZXB0b3BobGViaWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbGV1Y3RyaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9saW1uZXBoaWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL25lcGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvbm90b25lY3RpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL29saWdvY2hhZXRhLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3BlcmxvZGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGhpbG9wb3RhbWlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGh5c2lkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcGxhbm9yYmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcHNlcGhlbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvcmh5YWNvcGhpbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2lhbGlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvc2ltdWxpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zbmFpbC5qcGciLAogICIuL3JlZi90aHVtYi9zcGhhZXJpaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi9zdHJhdGlvbXlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3N5cnBoaWRhZS5qcGciLAogICIuL3JlZi90aHVtYi90YWJhbmlkYWUuanBnIiwKICAiLi9yZWYvdGh1bWIvdGlwdWxpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3ZlbGlpZGFlLmpwZyIsCiAgIi4vcmVmL3RodW1iL3p5Z29wdGVyYS5qcGciLAogICIuL2ludi9hc2lhbi1jbGFtLTEuanBnIiwKICAiLi9pbnYvYXNpYW4tY2xhbS0yLmpwZyIsCiAgIi4vaW52L2FzaWFuLWNsYW0tMy5qcGciLAogICIuL2ludi9iYW5kZWQtbXlzdGVyeS1zbmFpbC0xLmpwZyIsCiAgIi4vaW52L2JhbmRlZC1teXN0ZXJ5LXNuYWlsLTIuanBnIiwKICAiLi9pbnYvYmFuZGVkLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMS5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMi5qcGciLAogICIuL2ludi9jaGluZXNlLW15c3Rlcnktc25haWwtMy5qcGciLAogICIuL2ludi9uei1tdWRzbmFpbC0xLmpwZyIsCiAgIi4vaW52L256LW11ZHNuYWlsLTIuanBnIiwKICAiLi9pbnYvbnotbXVkc25haWwtMy5qcGciLAogICIuL2ludi9xdWFnZ2EtbXVzc2VsLTEuanBnIiwKICAiLi9pbnYvcXVhZ2dhLW11c3NlbC0yLmpwZyIsCiAgIi4vaW52L3F1YWdnYS1tdXNzZWwtMy5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMS5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMi5qcGciLAogICIuL2ludi9yZWQtc3dhbXAtY3JheWZpc2gtMy5qcGciLAogICIuL2ludi9ydXN0eS1jcmF5ZmlzaC0xLmpwZyIsCiAgIi4vaW52L3J1c3R5LWNyYXlmaXNoLTIuanBnIiwKICAiLi9pbnYvcnVzdHktY3JheWZpc2gtMy5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMS5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMi5qcGciLAogICIuL2ludi96ZWJyYS1tdXNzZWwtMy5qcGciLAogICIuL3lvbG8vYmVzdC5vbm54IgpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJpbnN0YWxsIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgLyogRGVsaWJlcmF0ZWx5IE5PIHNraXBXYWl0aW5nKCkgaGVyZTogYW4gdXBkYXRlZCB3b3JrZXIgc3RheXMKICAgICBpbiB0aGUgd2FpdGluZyBzdGF0ZSBzbyB0aGUgcGFnZSBjYW4gb2ZmZXIgaXRzIHN1YnRsZQogICAgICJSZXN0YXJ0IHRvIHVwZGF0ZSIgcGlsbCAoc2lsZW50IGJhY2tncm91bmQgdXBkYXRlcykuIFRoZQogICAgIHBpbGwgcG9zdHMgU0tJUF9XQUlUSU5HIHdoZW4gdGFwcGVkOyBhbiBpZ25vcmVkIHVwZGF0ZSBzdGlsbAogICAgIGFjdGl2YXRlcyBvbiBpdHMgb3duIG9uY2UgZXZlcnkgRWRkeSB0YWIvd2luZG93IGlzIGNsb3NlZC4gKi8KICBldmVudC53YWl0VW50aWwoCiAgICBjYWNoZXMub3BlbihDQUNIRSkudGhlbihmdW5jdGlvbiAoY2FjaGUpIHsKICAgICAgcmV0dXJuIGNhY2hlLmFkZEFsbChDT1JFKS50aGVuKGZ1bmN0aW9uICgpIHsKICAgICAgICAvKiBQZXItZmlsZSBhZGRzOiBvbmUgbWlzc2luZyBmaWxlIG11c3QgbmV2ZXIgc2luayB0aGUgaW5zdGFsbC4gKi8KICAgICAgICByZXR1cm4gUHJvbWlzZS5hbGwoQVNTRVRTLm1hcChmdW5jdGlvbiAodXJsKSB7CiAgICAgICAgICByZXR1cm4gY2FjaGUuYWRkKHVybCkuY2F0Y2goZnVuY3Rpb24gKCkgeyAvKiBza2lwICovIH0pOwogICAgICAgIH0pKTsKICAgICAgfSk7CiAgICB9KQogICk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJtZXNzYWdlIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgaWYgKGV2ZW50LmRhdGEgJiYgZXZlbnQuZGF0YS50eXBlID09PSAiU0tJUF9XQUlUSU5HIikgc2VsZi5za2lwV2FpdGluZygpOwp9KTsKCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcigiYWN0aXZhdGUiLCBmdW5jdGlvbiAoZXZlbnQpIHsKICBldmVudC53YWl0VW50aWwoCiAgICBjYWNoZXMua2V5cygpLnRoZW4oZnVuY3Rpb24gKGtleXMpIHsKICAgICAgcmV0dXJuIFByb21pc2UuYWxsKGtleXMubWFwKGZ1bmN0aW9uIChrKSB7CiAgICAgICAgcmV0dXJuIGsgPT09IENBQ0hFID8gbnVsbCA6IGNhY2hlcy5kZWxldGUoayk7CiAgICAgIH0pKTsKICAgIH0pLnRoZW4oZnVuY3Rpb24gKCkgeyByZXR1cm4gc2VsZi5jbGllbnRzLmNsYWltKCk7IH0pCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoImZldGNoIiwgZnVuY3Rpb24gKGV2ZW50KSB7CiAgdmFyIHJlcSA9IGV2ZW50LnJlcXVlc3Q7CiAgaWYgKHJlcS5tZXRob2QgIT09ICJHRVQiKSByZXR1cm47CiAgZXZlbnQucmVzcG9uZFdpdGgoCiAgICBjYWNoZXMubWF0Y2gocmVxLCB7IGlnbm9yZVNlYXJjaDogdHJ1ZSB9KS50aGVuKGZ1bmN0aW9uIChoaXQpIHsKICAgICAgaWYgKGhpdCkgcmV0dXJuIGhpdDsKICAgICAgcmV0dXJuIGZldGNoKHJlcSkudGhlbihmdW5jdGlvbiAocmVzKSB7CiAgICAgICAgaWYgKHJlcyAmJiAocmVzLnN0YXR1cyA9PT0gMjAwIHx8IHJlcy50eXBlID09PSAib3BhcXVlIikpIHsKICAgICAgICAgIHZhciBjb3B5ID0gcmVzLmNsb25lKCk7CiAgICAgICAgICBjYWNoZXMub3BlbihDQUNIRSkudGhlbihmdW5jdGlvbiAoY2FjaGUpIHsgY2FjaGUucHV0KHJlcSwgY29weSk7IH0pOwogICAgICAgIH0KICAgICAgICByZXR1cm4gcmVzOwogICAgICB9KS5jYXRjaChmdW5jdGlvbiAoKSB7CiAgICAgICAgaWYgKHJlcS5tb2RlID09PSAibmF2aWdhdGUiKSB7CiAgICAgICAgICByZXR1cm4gY2FjaGVzLm1hdGNoKCIuLi9pbmRleC5odG1sIiwgeyBpZ25vcmVTZWFyY2g6IHRydWUgfSk7CiAgICAgICAgfQogICAgICAgIHJldHVybiBSZXNwb25zZS5lcnJvcigpOwogICAgICB9KTsKICAgIH0pCiAgKTsKfSk7Cg==").catch(function () {
+              /* Offline cache unavailable in this browser — the app still runs. */
+            });
+          };
+          /* On a cold launch the boot animation owns the first
+             seconds, and the worker's install precache includes
+             the 11 MB AI model — hold registration until the
+             boot overlay has left the DOM so the install fetch
+             never competes with the animation. Warm starts
+             register on load exactly as before.               */
+          if (window.__eddyBoot && window.__eddyBoot.active && window.__eddyBoot.onDismissed) window.__eddyBoot.onDismissed(registerSW);
+          else registerSW();
         });
       }
       (function () {
