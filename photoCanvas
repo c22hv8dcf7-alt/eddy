@@ -1,0 +1,20 @@
+export function PhotoCanvas({ markers, zoomLevel, panOffset }) {
+  return (
+    <div className="relative overflow-hidden w-full h-full">
+      {markers.map((marker) => {
+        const scaledX = marker.x * zoomLevel + panOffset.x;
+        const scaledY = marker.y * zoomLevel + panOffset.y;
+
+        return (
+          <div 
+            key={marker.id}
+            className="absolute w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold shadow-md transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+            style={{ left: `${scaledX}px`, top: `${scaledY}px` }}
+          >
+            {marker.id}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
