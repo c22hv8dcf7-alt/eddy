@@ -138,6 +138,25 @@
       .fc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
       .fc-head h3{font-size:.95rem;margin:0}
       .fc-opt{font-size:.78rem;color:var(--ink-3)}
+      /* Field conditions accordion — the section starts collapsed to a
+         single summary row; the toggle expands the full form in place. */
+      .fc-toggle{display:flex;align-items:center;gap:10px;width:100%;min-height:32px;
+        padding:0;background:none;border:none;color:var(--ink);text-align:left}
+      .fc-toggle-title{font-size:.95rem;font-weight:700;flex:none}
+      .fc-summary{flex:1;min-width:0;display:flex;align-items:center;overflow:hidden}
+      .fc-summary .fc-badges{flex-wrap:nowrap;min-width:0}
+      .fc-summary-empty{font-size:.82rem;color:var(--ink-3)}
+      .fc-note-chip{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .fc-chev{flex:none;color:var(--ink-2);transition:transform .28s ease}
+      .fc-section.open .fc-chev{transform:rotate(180deg)}
+      .fc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+      .fc-section.open .fc-body{grid-template-rows:1fr}
+      .fc-body-in{overflow:hidden;min-height:0;visibility:hidden;transition:visibility 0s linear .3s}
+      .fc-section.open .fc-body-in{visibility:visible;transition-delay:0s}
+      .fc-body .fc-opt{display:block;margin-top:8px}
+      @media (prefers-reduced-motion: reduce){
+        .fc-body,.fc-chev,.fc-body-in{transition:none}
+      }
       .fc-group{margin-top:10px}
       .fc-lab{display:block;font-size:.66rem;font-weight:700;letter-spacing:.07em;
         text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
@@ -2353,10 +2372,14 @@
             </div>
 
             <div class="fc-section" id="fcSection">
-              <div class="fc-head">
-                <h3>Field conditions</h3>
-                <span class="fc-opt">Optional — tap to set, tap again to clear. Skip it and the sample still saves.</span>
-              </div>
+              <button type="button" class="fc-toggle" id="fcToggle" aria-expanded="false" aria-controls="fcBody">
+                <span class="fc-toggle-title">Field conditions</span>
+                <span class="fc-summary" id="fcSummary"><span class="fc-summary-empty">Optional</span></span>
+                <svg class="fc-chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="fc-body" id="fcBody">
+              <div class="fc-body-in">
+              <span class="fc-opt">Optional — tap to set, tap again to clear. Skip it and the sample still saves.</span>
               <div class="fc-group">
                 <span class="fc-lab" id="fcLabWeather">Weather</span>
                 <div class="fc-chips" role="group" aria-labelledby="fcLabWeather">
@@ -2398,6 +2421,8 @@
               <div class="fc-notes">
                 <label class="fc-lab" for="fcNotes">Conditions notes</label>
                 <input type="text" id="fcNotes" placeholder="e.g. rain upstream yesterday, ice along the banks" autocomplete="off" />
+              </div>
+              </div>
               </div>
             </div>
 
@@ -18699,7 +18724,49 @@
         $("fcAir").value = c.airTemp != null && c.airTemp !== "" ? String(c.airTemp) : "";
         $("fcWater").value = c.waterTemp != null && c.waterTemp !== "" ? String(c.waterTemp) : "";
         $("fcNotes").value = c.notes || "";
+        updateSummary();
       }
+
+      /* ---------- accordion: collapsed summary row ----------
+         The section renders collapsed (one slim row) until its
+         header is tapped; the summary mirrors the live values —
+         the same badges the library / timeline show — or reads
+         "Optional" when nothing is set. Collapsing is purely
+         presentational: the form state underneath never moves. */
+      var fcToggle = $("fcToggle");
+      var fcSummary = $("fcSummary");
+      function updateSummary() {
+        if (!fcSummary) return;
+        fcSummary.textContent = "";
+        var c = clean(readForm());
+        var badges = c ? badgesEl(c, "span") : null;
+        if (badges) badges.classList.add("mini");
+        if (c && c.notes) {
+          if (!badges) {
+            badges = document.createElement("span");
+            badges.className = "fc-badges mini";
+          }
+          var nb = document.createElement("span");
+          nb.className = "fc-badge fc-note-chip";
+          nb.textContent = c.notes;
+          badges.appendChild(nb);
+        }
+        if (badges) {
+          fcSummary.appendChild(badges);
+        } else {
+          var em = document.createElement("span");
+          em.className = "fc-summary-empty";
+          em.textContent = "Optional";
+          fcSummary.appendChild(em);
+        }
+      }
+      function setFcOpen(open) {
+        section.classList.toggle("open", open);
+        if (fcToggle) fcToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+      if (fcToggle) fcToggle.addEventListener("click", function () {
+        setFcOpen(!section.classList.contains("open"));
+      });
       function saveDraft() {
         var c = clean(readForm());
         if (c) lsSet(FC_DRAFT_KEY, JSON.stringify(c)); else lsDel(FC_DRAFT_KEY);
@@ -18714,8 +18781,11 @@
         });
         if (!wasOn) b.setAttribute("aria-pressed", "true");
         saveDraft();
+        updateSummary();
       });
       section.addEventListener("input", saveDraft);
+      section.addEventListener("input", updateSummary);
+      updateSummary();
 
       /* ---------- in-progress restore ----------
          Conditions ride their own draft key alongside the main
