@@ -1,0 +1,22 @@
+export function calculateWaterQualityIndices(tallyData) {
+  const taxaRichness = tallyData.length;
+  const totalIndividuals = tallyData.reduce((sum, row) => sum + row.count, 0);
+  
+  // Trigger warning when taxa richness is less than 2
+  const isLowConfidence = taxaRichness < 2;
+  const warningMessage = isLowConfidence 
+    ? "Low confidence — single taxon. One kind of organism can't carry a water-quality score on its own." 
+    : null;
+
+  const hbi = totalIndividuals > 0 
+    ? tallyData.reduce((sum, row) => sum + (row.toleranceValue * row.count), 0) / totalIndividuals 
+    : 0;
+
+  return {
+    taxaRichness,
+    totalIndividuals,
+    hbi: hbi.toFixed(2),
+    isLowConfidence,
+    warningMessage
+  };
+}
