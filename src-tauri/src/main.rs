@@ -4,8 +4,14 @@ use tauri_plugin_updater::UpdaterExt;
 
 #[tauri::command]
 async fn check_for_update(handle: tauri::AppHandle) -> Result<Option<serde_json::Value>, String> {
-    let updater = handle.updater().map_err(|e| format!("updater failed: {e}"))?;
-    match updater.check().await.map_err(|e| format!("check failed: {e}"))? {
+    let updater = handle
+        .updater()
+        .map_err(|e| format!("updater failed: {e}"))?;
+    match updater
+        .check()
+        .await
+        .map_err(|e| format!("check failed: {e}"))?
+    {
         Some(update) => Ok(Some(serde_json::json!({
             "version": update.version,
             "notes": update.body.unwrap_or_default(),
@@ -16,8 +22,14 @@ async fn check_for_update(handle: tauri::AppHandle) -> Result<Option<serde_json:
 
 #[tauri::command]
 async fn install_pending_update(handle: tauri::AppHandle) -> Result<(), String> {
-    let updater = handle.updater().map_err(|e| format!("updater failed: {e}"))?;
-    match updater.check().await.map_err(|e| format!("check failed: {e}"))? {
+    let updater = handle
+        .updater()
+        .map_err(|e| format!("updater failed: {e}"))?;
+    match updater
+        .check()
+        .await
+        .map_err(|e| format!("check failed: {e}"))?
+    {
         Some(update) => {
             update
                 .download_and_install(|_, _| {}, || {})
@@ -25,9 +37,8 @@ async fn install_pending_update(handle: tauri::AppHandle) -> Result<(), String> 
                 .map_err(|e| format!("install failed: {e}"))?;
             handle.restart();
         }
-        None => return Err("no update available".into()),
+        None => Err("no update available".into()),
     }
-    Ok(())
 }
 
 #[tauri::command]
@@ -47,4 +58,3 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running Eddy");
 }
-

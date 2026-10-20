@@ -1,6 +1,6 @@
 [package]
 name = "eddy"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 
 [build-dependencies]
@@ -16,4 +16,3 @@ serde_json = "1"
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
-

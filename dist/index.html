@@ -14066,7 +14066,7 @@
       var LS_LASTVER = "eddy.lastRunVersion";
       var LS_FAILS = "eddy.updateFailCount";
       var LS_CHECKED = "eddy.updateLastChecked";
-      var FALLBACK_VERSION = "0.2.40"; /* this build's version; the desktop app reports its own */
+      var FALLBACK_VERSION = "0.3.2"; /* the desktop app reports its own version */
       var IDLE_MS = 5 * 60 * 1000;
 
       var indicator = document.getElementById("updIndicator");
@@ -14187,11 +14187,16 @@
       /* ----- desktop: silent check → background download/install ----- */
       function tauriSilentCheck(manual) {
         var p = tinvoke("plugin:updater|check", {});
-        if (!p || typeof p.then !== "function") {
-          if (manual) setCheckStatus("Update checks run in the desktop app.");
-          return;
+        function failed(message) {
+          showIndicator(false);
+          recordCheck(false);
+          if (manual) setCheckStatus(message);
         }
-        p.then(function (meta) {
+        if (!p || typeof p.then !== "function") {
+          failed("Couldn't start the update check — Eddy will retry next launch.");
+          return Promise.resolve();
+        }
+        return p.then(function (meta) {
           recordCheck(true);
           if (!meta) { if (manual) setCheckStatus("You're up to date — Eddy " + state.currentVersion + "."); return; }
           var version = typeof meta.version === "string" ? meta.version : "";
@@ -14212,15 +14217,17 @@
             } catch (e) { /* no channel — the download proceeds without progress */ }
           }
           var dp = tinvoke("plugin:updater|download_and_install", args);
-          if (!dp || typeof dp.then !== "function") { onStaged(version, "tauri"); return; }
-          dp.then(function () { onStaged(version, "tauri"); }, function () {
-            showIndicator(false);
-            recordCheck(false);
-            if (manual) setCheckStatus("The update didn't finish downloading — Eddy will retry next launch.");
+          if (!dp || typeof dp.then !== "function") {
+            failed("Couldn't start the update download — Eddy will retry next launch.");
+            return;
+          }
+          return dp.then(function () {
+            onStaged(version, "tauri");
+          }, function () {
+            failed("The update didn't finish downloading — Eddy will retry next launch.");
           });
         }, function () {
-          recordCheck(false);
-          if (manual) setCheckStatus("Couldn't check just now — Eddy will retry next launch.");
+          failed("Couldn't check just now — Eddy will retry next launch.");
         });
       }
 
@@ -14299,7 +14306,7 @@
         if (state.checking) return;
         state.checking = true;
         function done() { state.checking = false; }
-        if (tauriApi()) { tauriSilentCheck(manual); done(); return; }
+        if (tauriApi()) { tauriSilentCheck(manual).then(done, done); return; }
         if (state.swReg) { swCheck(manual); done(); return; }
         /* The service worker may still be registering — one retry. */
         setTimeout(function () {

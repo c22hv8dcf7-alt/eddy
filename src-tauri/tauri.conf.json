@@ -25,6 +25,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -39,7 +40,7 @@
   },
   "identifier": "com.eddy.counter",
   "productName": "Eddy",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "plugins": {
     "updater": {
       "active": true,

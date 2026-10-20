@@ -75,9 +75,24 @@ gives Eddy its own window, dock icon, and a `.dmg` installer.
   $99/year for a signing certificate). On first launch, right-click
   Eddy.app → **Open** → click Open in the dialog. After that it opens
   normally.
-- **Updating the app.** When Eddy gets a new version, drop the fresh
-  exported HTML in place and re-run `./build.sh`. Bump `version` in
-  `src-tauri/tauri.conf.json` if you want the installer to show it.
+- **Automatic updates.** The desktop app checks quietly at startup when
+  automatic updates are enabled (the default). A downloaded update appears
+  as a **Restart to update** pill; if dismissed, it is applied after five
+  idle minutes. The updater verifies each update with the Tauri signing key;
+  this key is separate from Apple's code-signing and notarization credentials.
+- **Preparing a release.** Keep the versions in `package.json`,
+  `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` identical. The
+  release workflow builds a signed Apple Silicon updater artifact and
+  publishes it when a matching `v<version>` tag is pushed. Do not push a
+  release tag until the update and release assets are ready.
+- **Signing-key setup.** In the repository's GitHub Actions secrets, set
+  `TAURI_SIGNING_PRIVATE_KEY` to the contents of the private key that matches
+  the updater public key in `src-tauri/tauri.conf.json`, and set
+  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` to its password (or an empty value if
+  the key has no password). Keep a secure backup of the private key. Never
+  commit it or share it in chat. Replacing the key requires changing the
+  configured public key and would prevent existing installations from
+  verifying updates signed by the old key.
 - **Windows later.** The same project builds a Windows `.exe` installer on
   a Windows machine: add `"nsis"` to the `targets` list in
   `src-tauri/tauri.conf.json`, then run `npx tauri build` there.
