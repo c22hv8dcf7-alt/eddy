@@ -80,11 +80,18 @@ gives Eddy its own window, dock icon, and a `.dmg` installer.
   as a **Restart to update** pill; if dismissed, it is applied after five
   idle minutes. The updater verifies each update with the Tauri signing key;
   this key is separate from Apple's code-signing and notarization credentials.
+- **Learning from examples.** Eddy remembers confirmed group visual features
+  on this Mac and uses them to help match later groups. Confirmed organism
+  photo crops are also saved locally in the Train view's IndexedDB store and
+  can be downloaded as a ZIP backup. These examples are not uploaded or
+  synced, and collecting them does not retrain the built-in YOLO model.
+  Download a backup before clearing app data or uninstalling Eddy.
 - **Preparing a release.** Keep the versions in `package.json`,
   `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` identical. The
   release workflow builds a signed Apple Silicon updater artifact and
   publishes it when a matching `v<version>` tag is pushed. Do not push a
-  release tag until the update and release assets are ready.
+  release tag until the update and release assets are ready. A failed or
+  cancelled workflow does not publish an update.
 - **Signing-key setup.** In the repository's GitHub Actions secrets, set
   `TAURI_SIGNING_PRIVATE_KEY` to the contents of the private key that matches
   the updater public key in `src-tauri/tauri.conf.json`, and set

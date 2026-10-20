@@ -51,7 +51,8 @@ jobs:
           package_version = json.load(open("package.json"))["version"]
           tauri_version = json.load(open("src-tauri/tauri.conf.json"))["version"]
           metadata = json.loads(subprocess.check_output([
-              "cargo", "metadata", "--no-deps", "--format-version", "1"
+              "cargo", "metadata", "--manifest-path", "src-tauri/Cargo.toml",
+              "--no-deps", "--format-version", "1"
           ]))
           cargo_version = next(
               package["version"] for package in metadata["packages"]

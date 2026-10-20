@@ -3054,23 +3054,24 @@
           <section class="view" id="view-train" aria-labelledby="h-train">
             <div class="view-scroll"><div class="page-col">
               <div class="card">
-                <div class="card-head"><span class="num">R</span><h2 id="h-train">Train the recognizer</h2></div>
-                <p class="card-sub">Automatic ID is learned from labeled examples — and you're already making them. Every time you name a group on the Workbench and finish the sample, Eddy saves a small photo crop of each organism in that group, tagged with the name you gave it. That's exactly the training data a recognition model needs, collected as a by-product of normal lab work.</p>
-                <p class="card-sub">The goal is about <strong>200 crops per common name</strong> — enough for a first model. Once a few taxa hit that mark, download the set and it can be fine-tuned into a recognizer (a pretrained image model retrained on your crops, e.g. on a free Colab GPU) that suggests a name for each new group before you confirm it. Until then, Eddy is honest: it groups near-identical organisms, but <em>you</em> do the identifying.</p>
+                <div class="card-head"><span class="num">R</span><h2 id="h-train">Learning from your examples</h2></div>
+                <p class="card-sub">When you confirm a group's name, Eddy remembers its visual features on this Mac and uses them to help match similar groups in later samples. When you finish a sample, Eddy also saves a higher-resolution photo crop for each confirmed organism here, with its name and sample details. Unconfirmed suggestions are not added as training examples.</p>
+                <p class="card-sub">These saved photos build a real-world dataset for a future trained image recognizer; <strong>they do not retrain or change Eddy's built-in YOLO model by themselves.</strong> The 200-example goal is only a collection target, not a promise of accuracy. Examples from many different trays, lighting conditions, and camera angles are more useful than repeated crops from one tray.</p>
                 <p class="card-sub">About the big booklet you sent — Stroud Water Research Center's <em>Identification Guide to Freshwater Macroinvertebrates</em>: it can't add crops here, because every picture in it is a line drawing, and a photo recognizer can only learn from real photos — a sketch of a mayfly doesn't teach it what a mayfly looks like on your tray. What the booklet <em>does</em> have is a proper dichotomous key, so that is built into the ID Key view as its own tap-through key instead. Your tray crops below remain the training set.</p>
                 <div class="train-stats" aria-label="Training data collected so far">
                   <div class="metric"><div class="v" id="trTotal">0</div><div class="l">Labeled crops</div></div>
                   <div class="metric"><div class="v" id="trTaxa">0</div><div class="l">Taxa covered</div></div>
-                  <div class="metric"><div class="v" id="trReady">0</div><div class="l">Taxa at goal (200)</div></div>
+                  <div class="metric"><div class="v" id="trReady">0</div><div class="l">Taxa with 200 examples</div></div>
                 </div>
                 <div id="trainList">
                   <div class="empty">No training crops yet. Name a group on the Workbench and finish the sample — its organisms land here as labeled examples.</div>
                 </div>
                 <div class="btn-row" style="margin-top:16px">
                   <button type="button" class="btn btn-primary" id="dlTrainBtn" disabled>Download training data (.zip)</button>
+                  <button type="button" class="btn btn-ghost" id="clearTrainBtn" disabled>Clear saved examples</button>
                 </div>
                 <p class="status" id="trainStatus" role="status" aria-live="polite"></p>
-                <p class="hint" style="margin-top:6px">The zip holds one folder per common name with that taxon's crops, plus a <span class="mono">manifest.csv</span> listing every crop's name and family. Crops live in this tab only — download before you close the page.</p>
+                <p class="hint" style="margin-top:6px">Examples are stored in this app on this Mac only; they are not uploaded or synced. The zip holds one folder per common name plus a <span class="mono">manifest.csv</span> with each crop's label and sample details. Download a backup before clearing app data or uninstalling Eddy.</p>
               </div>
             </div></div>
           </section>
@@ -3560,8 +3561,11 @@
     var analysisData = null, analysisW = 0, analysisH = 0;  // downscaled photo pixels, kept for grouping features
     var analysisCv = null;    // canvas of that downscaled photo, kept for training crops
     var fullCv = null;        // the photo rendered once at (near) natural resolution onto a canvas — group close-ups crop from it, so they share the detections' coordinate space exactly
-    var crops = [];           // labeled training crops: {common, family, sampleId, date, dataUrl}
+    var crops = [];           // locally persisted labeled crops loaded from IndexedDB
     var CROP_GOAL = 200;      // crops per common name before a first recognizer can be trained
+    var TRAINING_DB_NAME = "eddy-training-data";
+    var TRAINING_DB_VERSION = 1;
+    var TRAINING_STORE = "examples";
     var groupedAt = -1;       // dets.length when groups were last built (-1 = not grouped)
     var workbook = [];        // [{date,sampleId,site,notes,photo,rows:[{common,family,feed,count}]}]
     var fileHandle = null;    // linked .xlsx the sheet auto-saves into (File System Access API)
@@ -8303,11 +8307,23 @@
       var mismatch = photoDataUrl && dets.length !== tallyTotal();
       var total = s.rows.reduce(function (a, r) { return a + r.count; }, 0);
       workbook.push(s);
-      var added = collectCrops(s);
-      if (added) {
-        $("trainStatus").textContent = "Saved " + added + " labeled crop" + (added === 1 ? "" : "s") + " from " + s.sampleId + " as training data — " + crops.length + " collected so far.";
-        $("trainStatus").className = "status good";
-      }
+      var trainingGroups = groupRowList();
+      var confirmedGroups = trainingGroups.filter(rowIsNamed).length;
+      var unconfirmedGroups = trainingGroups.length - confirmedGroups;
+      collectCrops(s).then(function (result) {
+        if (result.added) {
+          var message = "Saved " + result.added + " confirmed crop" + (result.added === 1 ? "" : "s") + " from " + s.sampleId + " on this Mac — " + crops.length + " examples saved total.";
+          if (unconfirmedGroups) message += " Skipped " + unconfirmedGroups + " unconfirmed group" + (unconfirmedGroups === 1 ? "" : "s") + ".";
+          if (result.failed) message += " " + result.failed + " crop" + (result.failed === 1 ? " could" : "s could") + " not be created.";
+          setTrainingStatus(message, result.failed ? "bad" : "good");
+        } else if (result.failed) {
+          setTrainingStatus(result.failed + " training crop" + (result.failed === 1 ? " could" : "s could") + " not be created. Check that the sample photo is still available.", "bad");
+        } else if (!confirmedGroups && trainingGroups.length) {
+          setTrainingStatus("No examples saved. Confirm the group names before finishing a sample to add them to training.", "");
+        }
+      }, function (err) {
+        setTrainingStatus("Sample saved, but its training examples could not be stored on this Mac: " + (err && err.message ? err.message : String(err)), "bad");
+      });
       renderSession();
       resetCurrent();
       scheduleAutoSave(true);
@@ -8489,55 +8505,188 @@
     $("footCsvBtn").addEventListener("click", doDownloadCsv);
 
     /* ---------------- Training data (step 5) ----------------
-       Every named group becomes labeled examples: when a sample is
-       finished, each organism in a named group is cropped out of the
-       tray photo and stored with its common name + family. Crops are
-       the raw material for a future recognizer — they live in this
-       tab only and leave as a downloadable zip (one folder per
-       taxon + manifest.csv), ready to fine-tune a pretrained model. */
+       Confirmed groups become local training examples. Visual-feature
+       prototypes already help match later groups; the photo archive is
+       kept separately for reviewing, backing up, and future model work.
+       IndexedDB is used because image crops are too large for localStorage. */
+    var trainingDb = null;
+    var trainingDbError = null;
+    var trainingStoreReady = false;
+    var trainingStatusTouched = false;
+    var trainingLoad = new Promise(function (resolve, reject) {
+      if (!window.indexedDB) {
+        reject(new Error("This app environment does not support local training storage."));
+        return;
+      }
+      var request;
+      try { request = window.indexedDB.open(TRAINING_DB_NAME, TRAINING_DB_VERSION); }
+      catch (err) { reject(err); return; }
+      request.onupgradeneeded = function () {
+        var db = request.result;
+        if (!db.objectStoreNames.contains(TRAINING_STORE)) {
+          db.createObjectStore(TRAINING_STORE, { keyPath: "id", autoIncrement: true });
+        }
+      };
+      request.onerror = function () {
+        reject(request.error || new Error("Could not open local training storage."));
+      };
+      request.onblocked = function () {
+        reject(new Error("Local training storage is busy in another Eddy window. Close the other window and try again."));
+      };
+      request.onsuccess = function () {
+        var db = request.result;
+        db.onversionchange = function () { db.close(); };
+        var tx;
+        try { tx = db.transaction(TRAINING_STORE, "readonly"); }
+        catch (err) { db.close(); reject(err); return; }
+        var read = tx.objectStore("examples").getAll();
+        read.onsuccess = function () {
+          trainingDb = db;
+          resolve(Array.isArray(read.result) ? read.result : []);
+        };
+        read.onerror = function () {
+          db.close();
+          reject(read.error || new Error("Could not read saved training examples."));
+        };
+      };
+    }).then(function (saved) {
+      crops = saved;
+      trainingStoreReady = true;
+      renderTraining();
+      if (!trainingStatusTouched && crops.length) {
+        setTrainingStatus("Loaded " + crops.length + " saved example" + (crops.length === 1 ? "" : "s") + " from this Mac.", "good");
+      }
+    }, function (err) {
+      trainingDbError = err;
+      renderTraining();
+      setTrainingStatus("Training examples could not be loaded or saved on this Mac: " + (err && err.message ? err.message : String(err)), "bad");
+    });
+    function setTrainingStatus(message, kind) {
+      trainingStatusTouched = true;
+      var el = $("trainStatus");
+      if (!el) return;
+      el.textContent = message;
+      el.className = "status" + (kind ? " " + kind : "");
+    }
+    function persistTrainingExamples(records) {
+      return trainingLoad.then(function () {
+        if (!trainingDb || !trainingStoreReady) {
+          throw trainingDbError || new Error("Local training storage is not ready.");
+        }
+        return new Promise(function (resolve, reject) {
+          var tx;
+          try { tx = trainingDb.transaction(TRAINING_STORE, "readwrite"); }
+          catch (err) { reject(err); return; }
+          var store = tx.objectStore(TRAINING_STORE);
+          var saved = [];
+          records.forEach(function (record) {
+            var request = store.add(record);
+            request.onsuccess = function () {
+              saved.push(Object.assign({ id: request.result }, record));
+            };
+            request.onerror = function () {
+              reject(request.error || new Error("Could not save a training example."));
+            };
+          });
+          tx.oncomplete = function () {
+            crops = crops.concat(saved);
+            renderTraining();
+            resolve(saved.length);
+          };
+          tx.onerror = function () {
+            reject(tx.error || new Error("Could not save training examples."));
+          };
+          tx.onabort = function () {
+            reject(tx.error || new Error("Saving training examples was interrupted."));
+          };
+        });
+      });
+    }
+    function clearTrainingExamples() {
+      return trainingLoad.then(function () {
+        if (!trainingDb || !trainingStoreReady) {
+          throw trainingDbError || new Error("Local training storage is not ready.");
+        }
+        return new Promise(function (resolve, reject) {
+          var tx;
+          try { tx = trainingDb.transaction(TRAINING_STORE, "readwrite"); }
+          catch (err) { reject(err); return; }
+          tx.objectStore(TRAINING_STORE).clear();
+          tx.oncomplete = function () {
+            crops = [];
+            renderTraining();
+            resolve();
+          };
+          tx.onerror = function () { reject(tx.error || new Error("Could not clear saved examples.")); };
+          tx.onabort = function () { reject(tx.error || new Error("Clearing saved examples was interrupted.")); };
+        });
+      });
+    }
     function cropFor(dt) {
-      if (!analysisCv) return null;
-      var side = Math.max(48, Math.min(180, Math.round(dt.r * 4)));
-      var sx = Math.max(0, Math.min(analysisW - side, Math.round(dt.x - side / 2)));
-      var sy = Math.max(0, Math.min(analysisH - side, Math.round(dt.y - side / 2)));
-      var out = document.createElement("canvas"); out.width = 96; out.height = 96;
+      var source = fullCv || analysisCv;
+      if (!source || !analysisW || !analysisH) return null;
+      var scaleX = source.width / analysisW, scaleY = source.height / analysisH;
+      var boxW = Math.max(1, Number(dt.w || dt.bw || dt.r * 2) * scaleX);
+      var boxH = Math.max(1, Number(dt.h || dt.bh || dt.r * 2) * scaleY);
+      var side = Math.min(Math.max(boxW, boxH) * 1.5, source.width, source.height);
+      side = Math.max(1, Math.round(side));
+      var cx = Number(dt.x) * scaleX, cy = Number(dt.y) * scaleY;
+      var sx = Math.max(0, Math.min(source.width - side, Math.round(cx - side / 2)));
+      var sy = Math.max(0, Math.min(source.height - side, Math.round(cy - side / 2)));
+      var out = document.createElement("canvas"); out.width = 224; out.height = 224;
       var octx = out.getContext("2d");
-      octx.fillStyle = "#ffffff"; octx.fillRect(0, 0, 96, 96);
+      octx.fillStyle = "#ffffff"; octx.fillRect(0, 0, 224, 224);
       try {
-        octx.drawImage(analysisCv, sx, sy, side, side, 0, 0, 96, 96);
-        return out.toDataURL("image/jpeg", 0.82);
+        octx.drawImage(source, sx, sy, side, side, 0, 0, 224, 224);
+        return out.toDataURL("image/jpeg", 0.9);
       } catch (err) { return null; }
     }
     function collectCrops(sample) {
-      var added = 0;
+      var records = [], failedCrops = 0;
       document.querySelectorAll(".tally-row.group-row").forEach(function (row) {
-        if (!row._members) return;
+        if (!rowIsNamed(row) || !row._members) return;
         var sels = row.querySelectorAll("select");
         var common = sels[0].value, family = sels[1].value;
         row._members.forEach(function (m) {
           if (dets.indexOf(m) < 0) return;   // dot was removed after grouping
           var url = cropFor(m);
-          if (!url) return;
-          crops.push({ common: common, family: family, sampleId: sample.sampleId, date: sample.date, dataUrl: url });
-          added++;
+          if (!url) { failedCrops++; return; }
+          records.push({
+            common: common,
+            family: family,
+            sampleId: sample.sampleId,
+            date: sample.date,
+            savedAt: new Date().toISOString(),
+            detector: m.yolo != null ? "YOLO11" : "classic-or-manual",
+            confidence: m.conf == null ? "" : m.conf,
+            dataUrl: url
+          });
         });
       });
-      if (added) renderTraining();
-      return added;
+      return (records.length ? persistTrainingExamples(records) : Promise.resolve(0)).then(function (added) {
+        return { added: added, failed: failedCrops };
+      });
     }
     function renderTraining() {
-      var byTaxon = {};
-      crops.forEach(function (c) { byTaxon[c.common] = (byTaxon[c.common] || 0) + 1; });
+      var byTaxon = {}, sampleSets = {};
+      crops.forEach(function (c) {
+        byTaxon[c.common] = (byTaxon[c.common] || 0) + 1;
+        if (!sampleSets[c.common]) sampleSets[c.common] = {};
+        sampleSets[c.common][c.sampleId || "unspecified"] = true;
+      });
       var names = Object.keys(byTaxon).sort(function (a, b) { return byTaxon[b] - byTaxon[a]; });
       var ready = names.filter(function (n) { return byTaxon[n] >= CROP_GOAL; }).length;
       $("trTotal").textContent = crops.length;
       $("trTaxa").textContent = names.length;
       $("trReady").textContent = ready;
-      $("dlTrainBtn").disabled = crops.length === 0;
+      $("dlTrainBtn").disabled = !trainingStoreReady || crops.length === 0;
+      $("clearTrainBtn").disabled = !trainingStoreReady || crops.length === 0;
       var list = $("trainList"); list.innerHTML = "";
       if (!names.length) {
         var e = document.createElement("div"); e.className = "empty";
-        e.textContent = "No training crops yet. Name a group in the Groups & tally panel and finish the sample — its organisms land here as labeled examples.";
+        e.textContent = trainingStoreReady
+          ? "No saved examples yet. Confirm a group's name in the Groups & tally panel, then finish the sample to save its organisms here."
+          : "Loading saved examples from this Mac…";
         list.appendChild(e);
         return;
       }
@@ -8553,7 +8702,8 @@
         fill.style.width = Math.min(100, byTaxon[n] / CROP_GOAL * 100) + "%";
         bar.appendChild(fill);
         var ct = document.createElement("span"); ct.className = "tcount";
-        ct.textContent = byTaxon[n] + " / " + CROP_GOAL + (byTaxon[n] >= CROP_GOAL ? " ✓ ready" : "");
+        var sampleCount = Object.keys(sampleSets[n]).length;
+        ct.textContent = byTaxon[n] + " / " + CROP_GOAL + " · " + sampleCount + (sampleCount === 1 ? " sample" : " samples");
         rowEl.appendChild(nm); rowEl.appendChild(bar); rowEl.appendChild(ct);
         list.appendChild(rowEl);
       });
@@ -8567,19 +8717,32 @@
     function taxonSlug(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
     $("dlTrainBtn").addEventListener("click", function () {
       if (!crops.length) return;
-      var counters = {}, files = [], manifest = ["file,common_name,family,sample_id,date"];
+      var counters = {}, files = [], manifest = ["file,common_name,family,sample_id,date,detector,confidence"];
       crops.forEach(function (c) {
         var slug = taxonSlug(c.common);
         counters[slug] = (counters[slug] || 0) + 1;
         var fname = slug + "/" + slug + "-" + String(counters[slug]).padStart(4, "0") + ".jpg";
         files.push({ name: fname, data: dataUrlBytes(c.dataUrl) });
         function q(v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
-        manifest.push([fname, c.common, c.family, c.sampleId, c.date].map(q).join(","));
+        manifest.push([fname, c.common, c.family, c.sampleId, c.date, c.detector || "", c.confidence].map(q).join(","));
       });
       files.push({ name: "manifest.csv", data: "\ufeff" + manifest.join("\r\n") });
       downloadBlob(zipStore(files, "application/zip"), "macro_training_data_" + todayStr() + ".zip");
-      $("trainStatus").textContent = "Downloaded " + crops.length + " labeled crops across " + Object.keys(counters).length + " taxa, with a manifest.csv. That's the dataset the recognizer will be trained from.";
-      $("trainStatus").className = "status good";
+      setTrainingStatus("Downloaded " + crops.length + " saved examples across " + Object.keys(counters).length + " taxa, with a manifest.csv.", "good");
+    });
+    $("clearTrainBtn").addEventListener("click", function () {
+      eddyConfirm({
+        title: "Clear saved training examples?",
+        text: "This permanently deletes the saved photo crops from this Mac. Download a backup first if you may need them. Eddy's visual-feature memories are managed separately in Settings.",
+        okLabel: "Clear examples"
+      }).then(function (ok) {
+        if (!ok) return;
+        clearTrainingExamples().then(function () {
+          setTrainingStatus("Saved training examples cleared from this Mac.", "good");
+        }, function (err) {
+          setTrainingStatus("Could not clear saved examples: " + (err && err.message ? err.message : String(err)), "bad");
+        });
+      });
     });
     renderTraining();
 
@@ -14066,7 +14229,7 @@
       var LS_LASTVER = "eddy.lastRunVersion";
       var LS_FAILS = "eddy.updateFailCount";
       var LS_CHECKED = "eddy.updateLastChecked";
-      var FALLBACK_VERSION = "0.3.2"; /* the desktop app reports its own version */
+      var FALLBACK_VERSION = "0.3.3"; /* the desktop app reports its own version */
       var IDLE_MS = 5 * 60 * 1000;
 
       var indicator = document.getElementById("updIndicator");
