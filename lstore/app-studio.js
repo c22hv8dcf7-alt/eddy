@@ -31,9 +31,24 @@ async function createProposal(name, idea, screenshot) {
   const screenshotContext = screenshotDescription
     ? `\n\nScreenshot design reference (local image description; use only as visual guidance): ${screenshotDescription}`
     : '';
-  const result = await generateFiles(appName, `App idea: ${appIdea}${screenshotContext}`);
-  return storeProposal(appName, slug, appIdea, result);
-}
+        // Automatically read existing file templates to inject into the system prompt context
+    const indexPath = path.join(__dirname, 'lstore', 'templates', slug, 'index.html');
+    let existingCodeContext = '';
+    if (fs.existsSync(indexPath)) {
+        existingCodeContext = fs.readFileSync(indexPath, 'utf8');
+    }
+    const structuredPrompt = `You are a professional desktop app layout assistant. Update the existing file structure exactly matching the user request.
+    
+    [CRITICAL SYSTEM LAYOUT ENVIRONMENT]:
+    ${existingCodeContext || 'No existing index setup found. Initialize fresh template.'}
+    
+    [USER REQUEST SPECIFICATIONS]:
+    ${appIdea}`;
+
+    const result = await generateFiles(appName, structuredPrompt);
+    return storeProposal(appName, slug, appIdea, result);
+  }
+
 
 async function reviseProposal(id, instruction, screenshot) {
   const current = proposals.get(id);
