@@ -60,7 +60,7 @@ async function reviseProposal(id, instruction, screenshot) {
   if (!changeRequest || changeRequest.length > MAX_IDEA_LENGTH) {
     throw requestError(400, `Describe the change in 1–${MAX_IDEA_LENGTH} characters.`);
   }
-     const targetSlug = current.slug || 'macro-mapper';
+     const targetSlug = 'macro-mapper';
     const indexPath = path.join(__dirname, 'lstore', 'templates', targetSlug, 'index.html');
     
     let existingCodeContext = '';
