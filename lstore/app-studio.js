@@ -51,15 +51,41 @@ async function createProposal(name, idea, screenshot) {
 
 
 async function reviseProposal(id, instruction, screenshot) {
-  const current = proposals.get(id);
-  if (!current || current.expiresAt < Date.now()) {
-    proposals.delete(id);
-    throw requestError(404, 'This draft expired. Please make a new draft before asking for changes.');
-  }
-  const changeRequest = String(instruction || '').trim();
-  if (!changeRequest || changeRequest.length > MAX_IDEA_LENGTH) {
-    throw requestError(400, `Describe the change in 1–${MAX_IDEA_LENGTH} characters.`);
-  }
+    const current = proposals.get(id);
+    if (!current || current.expiresAt < Date.now()) {
+        proposals.delete(id);
+        throw new Error("Proposal expired or not found");
+    }
+
+    const targetSlug = 'macro-mapper';
+    const indexPath = path.join(__dirname, 'lstore', 'templates', targetSlug, 'index.html');
+    
+    let existingCodeContext = '';
+    if (fs.existsSync(indexPath)) {
+        existingCodeContext = fs.readFileSync(indexPath, 'utf8');
+    } else {
+        const fallbackPath = path.join(__dirname, 'dist', 'index.html');
+        if (fs.existsSync(fallbackPath)) {
+            existingCodeContext = fs.readFileSync(fallbackPath, 'utf8');
+        }
+    }
+
+    const changeRequest = `Update the application template matching the instruction:
+    
+    [CODE BASELINE]:
+    ${existingCodeContext || 'No template layout file code context found.'}
+    
+    [USER INSTRUCTION]:
+    ${instruction}`;
+
+    const result = await generateFiles(current.name, changeRequest);
+    return storeProposal(current.name, current.slug, instruction, result, {
+        projectSlug: current.projectSlug,
+        projectMetadata: current.projectMetadata,
+    });
+}
+
+  
      const targetSlug = 'macro-mapper';
     const indexPath = path.join(__dirname, 'lstore', 'templates', targetSlug, 'index.html');
     
@@ -842,4 +868,6 @@ module.exports = {
   reviseProposal,
   restoreProjectRevision,
   saveProject,
+  createSlug,
 };
+

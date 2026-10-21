@@ -507,6 +507,27 @@
         "installerUrl": null,
         "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTRFZjUlc5dEZoWWl4VGNaUDZQZHNGVlRHdzVmUTc5Q0R2eWM2QkNBY1R5TzVuQllpRHdWbHhpZXdSb21uUDM5c3M4MVBmdnZLYlZTdTJHYXFNUlFQTFFlYlRKT054bFFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTE3MTMwCWZpbGU6RWRkeS5hcHAudGFyLmd6CXZlcnNpb246MC4yLjEKV3d4UFl6Yk9yTmVLM3cybjRYSnJJMWQxdzhtMVNMSmdNQUV3V3lYM1k2Z1RHL2FwYUllaktWai9BS1lCaEgxOXFXOXNTMXBFUXErVUJ3cjFqcllEQmc9PQo="
       }
+  
+  },
+  {
+    "id": "macro-tracker-fresh-dev-2026",
+    "name": "Macro-Tracker",
+    "slug": "macro-tracker",
+    "createdAt": "2026-10-20T23:00:00.000Z",
+    "releases": [
+      {
+        "id": "release-mt-0.1.0",
+        "version": "0.1.0",
+        "notes": "Initial clean build setup with interactive counter modules and manual resets",
+        "channel": "stable",
+        "platform": "darwin-aarch64",
+        "filename": "macro-tracker-0.1.0.tar.gz",
+        "installerFilename": "macro-tracker-0.1.0.dmg",
+        "createdAt": "2026-10-20T23:01:00.000Z",
+        "downloadUrl": "/api/downloads/macro-tracker/0.1.0/updater",
+        "installerUrl": "/api/downloads/macro-tracker/0.1.0/installer",
+        "signature": "mock_signature_data"
+      }
     ]
   }
 ]
