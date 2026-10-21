@@ -9720,7 +9720,11 @@
         openai: { label: "OpenAI", model: "gpt-6-sol" }
       };
       var LS_KEY = "eddy_ai_key", LS_PROV = "eddy_ai_provider", LS_MODELS = "eddy_ai_models";
-      var AI_PROMPT = "You are identifying freshwater benthic macroinvertebrates from close-up photos of specimens in a sorting tray. The photos show members of one look-alike group from a single sample, so they should all be the same kind of organism. Reply with ONLY a JSON object — no markdown, no other text — in exactly this shape: {\"common_name\": \"...\", \"family\": \"...\", \"confidence\": \"high\", \"reason\": \"...\"}. For common_name, use one of these names where it fits: Mayfly nymph, Stonefly nymph, Caddisfly larva, Midge larva, Water penny, Dragonfly nymph, Crane fly larva, Dobsonfly larva, Riffle beetle, Snail, Worm. family is the scientific family name (for example Baetidae, Perlidae, Psephenidae, Chironomidae). confidence is \"high\", \"medium\", or \"low\" — say \"low\" when the photos are blurry or several kinds look alike. reason is one short sentence naming the visible traits behind the ID.";
+      var AI_TAXON_CANDIDATES = TAXA.map(function (taxon) {
+        var families = taxon.families.filter(function (family) { return family !== "other/unidentified"; });
+        return "- " + taxon.common + (families.length ? " (families: " + families.join(", ") + ")" : "");
+      }).join("\n");
+      var AI_PROMPT = "You are identifying freshwater benthic macroinvertebrates from close-up photos of specimens in a sorting tray. The photos show members of one look-alike group from a single sample, so they should all be the same kind of organism. Use Eddy's built-in reference categories and their listed families below as your candidate list. Choose the closest supported category, not a more specific name the photo cannot support. If the specimen does not fit or the visible traits are insufficient, use common_name \"Other\", family \"other/unidentified\", and low confidence rather than guessing. Reply with ONLY a JSON object — no markdown, no other text — in exactly this shape: {\"common_name\": \"...\", \"family\": \"...\", \"confidence\": \"high\", \"reason\": \"...\"}. The common_name must exactly match one listed category, and family must be one of the families listed for that category or \"other/unidentified\". Built-in categories and families:\n" + AI_TAXON_CANDIDATES + "\nconfidence is \"high\", \"medium\", or \"low\" — say \"low\" when photos are blurry, several kinds look alike, or the image does not show the decisive traits. reason is one short sentence naming the visible traits behind the ID.";
 
       var provSel = document.getElementById("aiProvider");
       var keyInput = document.getElementById("aiKey");
@@ -9954,11 +9958,16 @@
         if (!o || typeof o !== "object") return null;
         var common = matchTaxon(typeof o.common_name === "string" ? o.common_name.trim() : "");
         if (!common) return null;
+        var taxon = TAXA.filter(function (t) { return t.common === common; })[0];
+        var family = typeof o.family === "string" ? o.family.trim() : "";
+        var allowedFamily = taxon && taxon.families.filter(function (candidate) {
+          return candidate.toLowerCase() === family.toLowerCase();
+        })[0];
         var conf = String(o.confidence || "").toLowerCase();
         if (conf !== "high" && conf !== "medium" && conf !== "low") conf = "low";
         return {
           common: common,
-          family: typeof o.family === "string" ? o.family.trim() : "",
+          family: allowedFamily || "",
           confidence: conf,
           reason: typeof o.reason === "string" ? o.reason.trim() : ""
         };

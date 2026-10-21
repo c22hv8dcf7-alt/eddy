@@ -1,0 +1,15 @@
+{
+  "name": "lstore",
+  "version": "1.0.0",
+  "description": "Self-hosted app release and update server for desktop apps",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "publish:eddy": "./scripts/publish-eddy.sh"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^2.0.2"
+  }
+}

@@ -1,0 +1,4 @@
+node_modules/
+data/admin-token
+data/releases/**
+!data/releases/.gitkeep

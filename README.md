@@ -80,26 +80,29 @@ gives Eddy its own window, dock icon, and a `.dmg` installer.
   as a **Restart to update** pill; if dismissed, it is applied after five
   idle minutes. The updater verifies each update with the Tauri signing key;
   this key is separate from Apple's code-signing and notarization credentials.
+  LStore runs locally on this Mac; keep it running for Eddy to check or install
+  updates. See [lstore/README.md](./lstore/README.md).
 - **Learning from examples.** Eddy remembers confirmed group visual features
   on this Mac and uses them to help match later groups. Confirmed organism
   photo crops are also saved locally in the Train view's IndexedDB store and
   can be downloaded as a ZIP backup. These examples are not uploaded or
   synced, and collecting them does not retrain the built-in YOLO model.
   Download a backup before clearing app data or uninstalling Eddy.
-- **Preparing a release.** Keep the versions in `package.json`,
-  `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` identical. The
-  release workflow builds a signed Apple Silicon updater artifact and
-  publishes it when a matching `v<version>` tag is pushed. Do not push a
-  release tag until the update and release assets are ready. A failed or
-  cancelled workflow does not publish an update.
-- **Signing-key setup.** In the repository's GitHub Actions secrets, set
-  `TAURI_SIGNING_PRIVATE_KEY` to the contents of the private key that matches
-  the updater public key in `src-tauri/tauri.conf.json`, and set
-  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` to its password (or an empty value if
-  the key has no password). Keep a secure backup of the private key. Never
-  commit it or share it in chat. Replacing the key requires changing the
-  configured public key and would prevent existing installations from
-  verifying updates signed by the old key.
+- **Private releases.** LStore is configured for this Mac at
+  `http://localhost:3000/api/apps/eddy/latest.json`. The local server stores
+  signed releases and is bound only to `127.0.0.1`; it is not accessible to
+  other devices. See [lstore/README.md](./lstore/README.md) for startup and
+  migration steps.
+- **Signing-key setup.** Eddy's updater verifies releases using a Tauri
+  signing key. Keep the private key only on your Mac and keep a secure,
+  offline backup. Never commit or share it. The public key goes in
+  `src-tauri/tauri.conf.json`. Replacing a key means existing installations
+  cannot accept new updates until they are manually reinstalled with a
+  version configured to trust the replacement key.
+- **Leaving GitHub.** The GitHub release workflow has been removed. The local
+  checkout already contains the full Git history and tags. Historical release
+  files can be imported to LStore; keep GitHub as a backup until those files
+  and a manually installed LStore-connected Eddy build are verified.
 - **Windows later.** The same project builds a Windows `.exe` installer on
   a Windows machine: add `"nsis"` to the `targets` list in
   `src-tauri/tauri.conf.json`, then run `npx tauri build` there.
