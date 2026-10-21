@@ -7,7 +7,7 @@
     "releases": [
       {
         "id": "b662c062-af29-4d90-82bd-8864ffba744e",
-        "version": "0.3.4",
+        "version": "0.3.7",
         "notes": "Connect Eddy updates to local LStore",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -20,7 +20,7 @@
       },
       {
         "id": "10109ccb-7b62-40a7-99b3-87e6be525408",
-        "version": "0.3.1",
+        "version": "0.3.7",
         "notes": "v0.3.1",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -33,7 +33,7 @@
       },
       {
         "id": "4abe0f2c-977b-46ea-afbb-21f5ab257977",
-        "version": "0.3.0",
+        "version": "0.3.7",
         "notes": "v0.3.0",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -46,7 +46,7 @@
       },
       {
         "id": "715aa943-9384-40e4-a650-8c493806313e",
-        "version": "0.2.43",
+        "version": "0.3.7",
         "notes": "v0.2.43",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -59,7 +59,7 @@
       },
       {
         "id": "98b7629c-38c1-43bb-970f-d7b457b53aef",
-        "version": "0.2.42",
+        "version": "0.3.7",
         "notes": "v0.2.42",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -72,7 +72,7 @@
       },
       {
         "id": "c247b9f5-0f74-4f06-8115-77f421946baa",
-        "version": "0.2.40",
+        "version": "0.3.7",
         "notes": "v0.2.40",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -85,7 +85,7 @@
       },
       {
         "id": "9e811abd-ae58-4dc8-ae20-bcb56528772f",
-        "version": "0.2.39",
+        "version": "0.3.7",
         "notes": "v0.2.39",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -98,7 +98,7 @@
       },
       {
         "id": "461f8c24-1423-4e0e-831b-50dd315a31ac",
-        "version": "0.2.38",
+        "version": "0.3.7",
         "notes": "v0.2.38",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -111,7 +111,7 @@
       },
       {
         "id": "edd787f1-efe0-4069-aef2-664463a23c05",
-        "version": "0.2.37",
+        "version": "0.3.7",
         "notes": "v0.2.37",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -124,7 +124,7 @@
       },
       {
         "id": "7ea50383-3e25-426c-8f9a-12c4b529b5ea",
-        "version": "0.2.36",
+        "version": "0.3.7",
         "notes": "v0.2.36",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -137,7 +137,7 @@
       },
       {
         "id": "6961f42e-d157-45db-8480-dfbb52b32cc6",
-        "version": "0.2.35",
+        "version": "0.3.7",
         "notes": "v0.2.35",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -150,7 +150,7 @@
       },
       {
         "id": "882f14ef-a02c-44f7-8648-a501e9decb5f",
-        "version": "0.2.34",
+        "version": "0.3.7",
         "notes": "v0.2.34",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -163,7 +163,7 @@
       },
       {
         "id": "22cf625a-09ff-4f2b-aee9-5decdf33038c",
-        "version": "0.2.33",
+        "version": "0.3.7",
         "notes": "v0.2.33",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -176,7 +176,7 @@
       },
       {
         "id": "c59fe142-79be-4a4b-a455-b5a7e5e2b292",
-        "version": "0.2.32",
+        "version": "0.3.7",
         "notes": "v0.2.32",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -189,7 +189,7 @@
       },
       {
         "id": "9d6c4073-d8a7-47bf-8507-6429fe15cda0",
-        "version": "0.2.31",
+        "version": "0.3.7",
         "notes": "v0.2.31",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -202,7 +202,7 @@
       },
       {
         "id": "606f1d0c-3fd5-4583-98ee-4be2879ab9fb",
-        "version": "0.2.30",
+        "version": "0.3.7",
         "notes": "v0.2.30",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -215,7 +215,7 @@
       },
       {
         "id": "dde4037c-9f3c-44b8-98fe-de94ea2a24ce",
-        "version": "0.2.29",
+        "version": "0.3.7",
         "notes": "v0.2.29",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -228,7 +228,7 @@
       },
       {
         "id": "66028c31-38f1-4d39-b27e-493392514be8",
-        "version": "0.2.23",
+        "version": "0.3.7",
         "notes": "v0.2.23",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -241,7 +241,7 @@
       },
       {
         "id": "0f778c0d-6a15-4417-949a-3674242cb333",
-        "version": "0.2.22",
+        "version": "0.3.7",
         "notes": "v0.2.22",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -254,7 +254,7 @@
       },
       {
         "id": "90bca1ad-c464-4289-8115-f92ecaa0eff0",
-        "version": "0.2.21",
+        "version": "0.3.7",
         "notes": "v0.2.21",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -267,7 +267,7 @@
       },
       {
         "id": "f4250b63-684d-4e8c-bb91-f234eda99e47",
-        "version": "0.2.20",
+        "version": "0.3.7",
         "notes": "v0.2.20",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -280,7 +280,7 @@
       },
       {
         "id": "fdca3f38-18c1-4ebd-a626-d101a5e8f1ea",
-        "version": "0.2.19",
+        "version": "0.3.7",
         "notes": "v0.2.19",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -293,7 +293,7 @@
       },
       {
         "id": "86ad4d7f-c290-465d-a24f-541613e822e9",
-        "version": "0.2.18",
+        "version": "0.3.7",
         "notes": "v0.2.18",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -306,7 +306,7 @@
       },
       {
         "id": "6ae053dd-7f93-480d-8cf0-55ee11432e08",
-        "version": "0.2.17",
+        "version": "0.3.7",
         "notes": "v0.2.17",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -319,7 +319,7 @@
       },
       {
         "id": "8ec00415-e68c-467d-bf9c-681b8dd0fb57",
-        "version": "0.2.15",
+        "version": "0.3.7",
         "notes": "v0.2.15",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -332,7 +332,7 @@
       },
       {
         "id": "5a09f212-692f-4953-a860-1c3641b854f0",
-        "version": "0.2.14",
+        "version": "0.3.7",
         "notes": "v0.2.14",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -345,7 +345,7 @@
       },
       {
         "id": "d6859de9-d3f2-4762-a31c-d4ec593b0ddf",
-        "version": "0.2.13",
+        "version": "0.3.7",
         "notes": "v0.2.13",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -358,7 +358,7 @@
       },
       {
         "id": "cda5bb46-d3b9-4667-a261-16bcb156f3dc",
-        "version": "0.2.11",
+        "version": "0.3.7",
         "notes": "v0.2.11",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -371,7 +371,7 @@
       },
       {
         "id": "747abb6d-7963-4b7e-ac41-389775da7b57",
-        "version": "0.2.10",
+        "version": "0.3.7",
         "notes": "v0.2.10",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -384,7 +384,7 @@
       },
       {
         "id": "2e9c6655-30e2-4d3d-ab37-81919be44c3f",
-        "version": "0.2.9",
+        "version": "0.3.7",
         "notes": "v0.2.9",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -397,7 +397,7 @@
       },
       {
         "id": "8eed9525-f4eb-4d38-8f37-f4a496bd3f90",
-        "version": "0.2.8",
+        "version": "0.3.7",
         "notes": "v0.2.8",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -410,7 +410,7 @@
       },
       {
         "id": "acdd3100-f6de-48e5-8fb7-fe0da08bcd66",
-        "version": "0.2.7",
+        "version": "0.3.7",
         "notes": "v0.2.7",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -423,7 +423,7 @@
       },
       {
         "id": "5d6b2695-787c-4069-b031-6f643b33903c",
-        "version": "0.2.6",
+        "version": "0.3.7",
         "notes": "v0.2.6",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -436,7 +436,7 @@
       },
       {
         "id": "3fd41a5f-9494-4f4a-bc7c-6e8002b926fc",
-        "version": "0.2.5",
+        "version": "0.3.7",
         "notes": "v0.2.5",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -449,7 +449,7 @@
       },
       {
         "id": "16348350-178c-4085-a114-90c88af8e99a",
-        "version": "0.2.4",
+        "version": "0.3.7",
         "notes": "v02.4",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -462,7 +462,7 @@
       },
       {
         "id": "dfef6a8d-321c-4c8a-ba8e-6c5376ada5d8",
-        "version": "0.2.3",
+        "version": "0.3.7",
         "notes": "v0.2.3",
         "channel": "stable",
         "platform": "darwin-aarch64",
@@ -475,7 +475,7 @@
       },
       {
         "id": "2f327ab4-869c-40ea-9a89-fd31bb1a5b4d",
-        "version": "0.2.1",
+        "version": "0.3.7",
         "notes": "its a big",
         "channel": "stable",
         "platform": "darwin-aarch64",
