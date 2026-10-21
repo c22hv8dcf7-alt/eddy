@@ -17,7 +17,28 @@
         "downloadUrl": "/api/downloads/eddy/0.3.4/updater",
         "installerUrl": "/api/downloads/eddy/0.3.4/installer",
         "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb1hrVnUyZlVaZVdkY3gwRnc3OE5rQ29mdlErQmJxZ0Vpekc1S0NDaDlRZGZwYkN4OHZJQnFBY0xYNDJSOTNUdnNLSUxkNC9vYm9UakxiYnR2aktCbUlqYk5FMDlvRmdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNTMyMjkxCWZpbGU6RWRkeS5hcHAudGFyLmd6CXZlcnNpb246MC4zLjQKaEhNbTBFZWpnOWw3YmhvZkdkNUQzTnY0VStnODlCVHJlK0FjZCtvbFVsOFBLMVRmVFhNbWUwcTBvQ0RSeUhLcjkvb2ZidFY0NVdyNDBjdDcxazhSQlE9PQo="
-      },
+      },  {
+    "id": "macro-mapper-8bc37-418a-92ea-d43ffbba281f",
+    "name": "Macro-Mapper",
+    "slug": "macro-mapper",
+    "createdAt": "2026-10-20T22:00:00.000Z",
+    "releases": [
+      {
+        "id": "e391b162-81da-4bc5-bf02-c94da8a211e4",
+        "version": "0.1.0",
+        "notes": "Initial release of Macro-Mapper tool",
+        "channel": "stable",
+        "platform": "darwin-aarch64",
+        "filename": "macro-mapper-0.1.0-darwin-aarch64.app.tar.gz",
+        "installerFilename": "macro-mapper-0.1.0.dmg",
+        "createdAt": "2026-10-20T22:01:00.000Z",
+        "downloadUrl": "/api/downloads/macro-mapper/0.1.0/updater",
+        "installerUrl": "/api/downloads/macro-mapper/0.1.0/installer",
+        "signature": "mock_signature_data_placeholder"
+      }
+    ]
+  }
+
       {
         "id": "10109ccb-7b62-40a7-99b3-87e6be525408",
         "version": "0.3.7",
