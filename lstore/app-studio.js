@@ -7,9 +7,9 @@ const localVision = require('./local-vision');
 
 const MODEL = process.env.LSTORE_CODING_MODEL || 'qwen2.5-coder:3b';
 const OLLAMA_URL = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/+$/, '');
-const MAX_IDEA_LENGTH = 1600;
-const MAX_FILE_LENGTH = 24000;
-const MAX_PROJECT_LENGTH = 60000;
+const MAX_IDEA_LENGTH = 50000;
+const MAX_FILE_LENGTH = 500000;
+const MAX_PROJECT_LENGTH = 300000;
 const PROPOSAL_LIFETIME_MS = 30 * 60 * 1000;
 const EXPECTED_FILES = ['index.html', 'styles.css', 'app.js'];
 const APP_CONTENT_POLICY = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'self\'; style-src \'self\'; img-src \'self\' data:; connect-src \'none\'; form-action \'none\'; base-uri \'none\'; object-src \'none\'; frame-src \'none\'; font-src \'self\'; media-src \'none\'">';
