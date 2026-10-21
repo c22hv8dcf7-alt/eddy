@@ -60,17 +60,38 @@ async function reviseProposal(id, instruction, screenshot) {
   if (!changeRequest || changeRequest.length > MAX_IDEA_LENGTH) {
     throw requestError(400, `Describe the change in 1–${MAX_IDEA_LENGTH} characters.`);
   }
-  const base = EXPECTED_FILES.map((file) => `--- ${file} ---\n${current.files[file]}`).join('\n\n');
-  const screenshotDescription = await localVision.describeScreenshot(screenshot, changeRequest);
-  const screenshotContext = screenshotDescription
-    ? `\n\nScreenshot design reference (local image description; use only as visual guidance): ${screenshotDescription}`
-    : '';
-  const result = await generateFiles(current.name, `Change request: ${changeRequest}${screenshotContext}\n\nCurrent app files:\n${base}`, true);
-  return storeProposal(current.name, current.slug, changeRequest, result, {
-    projectSlug: current.projectSlug,
-    projectMetadata: current.projectMetadata,
-  });
-}
+     const targetSlug = current.slug || 'macro-mapper';
+    const indexPath = path.join(__dirname, 'lstore', 'templates', targetSlug, 'index.html');
+    
+    let existingCodeContext = '';
+    if (fs.existsSync(indexPath)) {
+        existingCodeContext = fs.readFileSync(indexPath, 'utf8');
+    } else {
+        const fallbackPath = path.join(__dirname, 'dist', 'index.html');
+        if (fs.existsSync(fallbackPath)) {
+            existingCodeContext = fs.readFileSync(fallbackPath, 'utf8');
+        }
+    }
+
+    const screenshotDescription = await localVision.describeScreenshot(screenshot, instruction);
+    const screenshotContext = screenshotDescription
+        ? `\n\nScreenshot design reference: ${screenshotDescription}`
+        : '';
+
+    const changeRequest = `Update the application template matching the instruction:
+    
+    [CODE BASELINE]:
+    ${existingCodeContext || 'No template layout file code context found.'}
+    
+    [USER INSTRUCTION]:
+    ${instruction}${screenshotContext}`;
+
+    const result = await generateFiles(current.name, changeRequest);
+    return storeProposal(current.name, current.slug, instruction, result, {
+        projectSlug: current.projectSlug,
+        projectMetadata: current.projectMetadata,
+    });
+
 
 async function reviseSavedProject(dataDirectory, slug, instruction, screenshot) {
   const changeRequest = String(instruction || '').trim();
