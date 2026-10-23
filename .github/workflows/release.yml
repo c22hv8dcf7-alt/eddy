@@ -1,0 +1,123 @@
+# Eddy auto-release workflow.
+# Trigger: push a tag matching the versions in the app manifests.
+# Required repository secrets: TAURI_SIGNING_PRIVATE_KEY and
+# TAURI_SIGNING_PRIVATE_KEY_PASSWORD.
+
+name: Release Eddy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Apple Silicon Rust target
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli
+
+      - name: Install frontend deps
+        run: npm install
+        working-directory: .
+
+      - name: Verify release version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+
+          tag = os.environ["RELEASE_TAG"]
+          package_version = json.load(open("package.json"))["version"]
+          tauri_version = json.load(open("src-tauri/tauri.conf.json"))["version"]
+          metadata = json.loads(subprocess.check_output([
+              "cargo", "metadata", "--manifest-path", "src-tauri/Cargo.toml",
+              "--no-deps", "--format-version", "1"
+          ]))
+          cargo_version = next(
+              package["version"] for package in metadata["packages"]
+              if package["name"] == "eddy"
+          )
+
+          versions = {package_version, tauri_version, cargo_version}
+          if len(versions) != 1 or not re.fullmatch(r"v" + re.escape(package_version), tag):
+              raise SystemExit(
+                  f"Release tag {tag!r} must be v{package_version}; "
+                  f"manifest versions are {sorted(versions)}"
+              )
+          print(f"Release version verified: {package_version}")
+          PY
+
+      - name: Build Tauri app
+        run: npx tauri build --target aarch64-apple-darwin
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Generate latest.json
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 << 'PYEOF'
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          tag = os.environ["RELEASE_TAG"]
+          version = tag[1:]
+          artifact_dir = "src-tauri/target/aarch64-apple-darwin/release/bundle/macos"
+          signature_path = f"{artifact_dir}/Eddy.app.tar.gz.sig"
+          archive_path = f"{artifact_dir}/Eddy.app.tar.gz"
+          if not os.path.isfile(archive_path) or not os.path.isfile(signature_path):
+              raise SystemExit("Tauri did not produce the signed macOS updater artifacts")
+          with open(signature_path) as signature_file:
+              signature = signature_file.read().strip()
+
+          latest = {
+              "version": version,
+              "notes": f"Eddy {version}",
+              "pub_date": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+              "platforms": {
+                  "darwin-aarch64": {
+                      "signature": signature,
+                      "url": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{tag}/Eddy.app.tar.gz"
+                  }
+              }
+          }
+          with open(f"{artifact_dir}/latest.json", "w") as manifest_file:
+              json.dump(latest, manifest_file, indent=2)
+          print(f"latest.json generated for {version}")
+          PYEOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Eddy.app.tar.gz
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Eddy.app.tar.gz.sig
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/latest.json
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+          name: Eddy ${{ github.ref_name }}
+          draft: false
+          prerelease: false
