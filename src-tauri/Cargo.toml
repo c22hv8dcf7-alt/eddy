@@ -12,6 +12,12 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Go Direct (wired USB) bridge — see src/gdx.rs. `vendored` builds the
+# bundled libusb from source so local builds need no separate libusb
+# install (e.g. via Homebrew on macOS).
+rusb = { version = "0.9", features = ["vendored"] }
+futures = "0.3"
+tokio = { version = "1", features = ["sync", "time"] }
 
 [features]
 default = ["custom-protocol"]

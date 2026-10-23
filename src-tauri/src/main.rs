@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod gdx;
+
 use tauri_plugin_updater::UpdaterExt;
 
 #[tauri::command]
@@ -50,10 +52,17 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .manage(gdx::GdxState::default())
         .invoke_handler(tauri::generate_handler![
             check_for_update,
             install_pending_update,
-            dismiss_update
+            dismiss_update,
+            gdx::gdx_scan_start,
+            gdx::gdx_scan_stop,
+            gdx::gdx_connect,
+            gdx::gdx_disconnect,
+            gdx::gdx_start,
+            gdx::gdx_stop
         ])
         .run(tauri::generate_context!())
         .expect("error while running Eddy");
