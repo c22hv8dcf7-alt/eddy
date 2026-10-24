@@ -2619,7 +2619,7 @@
 
     <div class="app">
       <div id="engineBar" class="alertbar top hidden" role="alert">
-        <span>Eddy's counting engine couldn't load — connect to the internet once, then it works offline.</span>
+        <span>Eddy's spreadsheet engine couldn't load — Excel import and export are paused, but counting works as usual.</span>
         <button type="button" class="alertbar-x" id="engineDismissBtn" aria-label="Dismiss engine warning">×</button>
       </div>
       <!-- ============ TOP BAR ============ -->
@@ -13756,7 +13756,7 @@
         e.target.value = "";
         if (!f) return;
         if (typeof XLSX === "undefined") {
-          setImportStatus("The Excel reader didn't load — check your connection and try again.", "bad");
+          setImportStatus("The Excel reader didn't load — reload Eddy and try again.", "bad");
           return;
         }
         var rd = new FileReader();
@@ -14337,10 +14337,21 @@
       });
 
       /* ---------- Engine-load warning ----------
-         The one piece Eddy loads from the network at runtime is
-         the spreadsheet engine (SheetJS). If it isn't there —
-         offline on the very first run — say so plainly, once.  */
-      if (typeof XLSX === "undefined") $("engineBar").classList.remove("hidden");
+         The spreadsheet engine (SheetJS) ships inside the app
+         (assets/xlsx.full.min.js) and is precached by the service
+         worker, so it never needs the network. If it still isn't
+         there when this runs — a stalled first load — retry the
+         bundled copy once before saying anything, and warn only
+         if the retry fails too. Counting never depends on it.  */
+      if (typeof XLSX === "undefined") {
+        var engRetry = document.createElement("script");
+        engRetry.src = "assets/xlsx.full.min.js";
+        engRetry.onerror = function () { $("engineBar").classList.remove("hidden"); };
+        document.head.appendChild(engRetry);
+        setTimeout(function () {
+          if (typeof XLSX === "undefined") $("engineBar").classList.remove("hidden");
+        }, 10000);
+      }
       $("engineDismissBtn").addEventListener("click", function () {
         $("engineBar").classList.add("hidden");
       });
