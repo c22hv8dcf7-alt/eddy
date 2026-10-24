@@ -594,6 +594,11 @@
       .train-bar{height:8px;border-radius:999px;background:var(--panel-3);border:1px solid var(--line);overflow:hidden;flex:1;min-width:60px}
       .train-bar i{display:block;height:100%;background:var(--amber);width:0%}
       .train-bar.full i{background:var(--green)}
+      .tray-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+      .tray-row:last-child{border-bottom:none}
+      .tray-info{flex:1;min-width:0}
+      .tray-title{font-weight:700;font-size:.95rem;overflow-wrap:anywhere}
+      .tray-meta{font-size:.86rem;color:var(--ink-2);margin-top:1px}
       .train-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}
 
       /* ---------- Identification key ---------- */
@@ -3270,6 +3275,16 @@
                 <button type="button" class="btn btn-ghost" id="addRowBtn">+ Add taxon row</button>
                 <p class="status" id="tallyStatus" role="status" aria-live="polite"></p>
                 <p class="panel-sub" style="margin-bottom:0">Groups hold near-identical organisms only — still not an identification. Hover or tap a group row to light up its dots on the tray. If a group still mixes two kinds, use <strong>Adjust members</strong> on the row to split the odd ones into their own group or move them to the right one.</p>
+                <div class="group-box" id="trainTrayBox" style="margin-top:14px">
+                  <h3>Save this tray for YOLO training</h3>
+                  <p class="seg-note" style="margin-top:4px">Saving stores the tray photo with the corrected organisms as labelled boxes for the future YOLO v3 dataset — your hand-checked count becomes a whole-tray detection example.</p>
+                  <div style="margin-top:12px">
+                    <button type="button" class="btn btn-primary" id="saveTrainTrayBtn" disabled>Save tray for training</button>
+                  </div>
+                  <p class="hint" id="trainTrayHint" style="margin-top:8px">Count a photo and correct the dots first — a tray can be saved once it has a photo and at least one dot.</p>
+                  <p class="status" id="trainTrayStatus" role="status" aria-live="polite"></p>
+                  <p class="seg-note" style="margin-top:6px"><span id="trainTrayCountWb">Training trays: 0</span> · <button type="button" class="inv-guide-link" id="trainTrayViewBtn">View collection</button></p>
+                </div>
                 <div class="step-nav">
                   <button type="button" class="btn btn-ghost" data-goto-step="2"><span class="arr" aria-hidden="true">←</span> Back: Count</button>
                   <button type="button" class="btn btn-primary" data-goto-step="4">Next: Report <span class="arr" aria-hidden="true">→</span></button>
@@ -3742,6 +3757,19 @@
                 </div>
                 <p class="status" id="trainStatus" role="status" aria-live="polite"></p>
                 <p class="hint" style="margin-top:6px">The zip holds one folder per common name with that taxon's crops, plus a <span class="mono">manifest.csv</span> listing every crop's name and family. Crops live in this tab only — download before you close the page.</p>
+              </div>
+              <div class="card">
+                <div class="card-head"><span class="num">R2</span><h2>YOLO training trays</h2></div>
+                <p class="card-sub">Whole-tray <em>detection</em> examples collected from real lab trays — different from the crops above. Each tray saved from the Workbench keeps its full photo plus a labelled box for every organism you corrected, in the format a YOLO detector trains on. Export the set when it's time to build the YOLO v3 dataset.</p>
+                <p class="seg-note" style="margin-top:2px"><span id="trainTrayCount">Training trays: 0</span> · <span id="trainTrayOrgs">0 labelled organisms</span></p>
+                <div id="trainTrayList" style="margin-top:8px">
+                  <div class="empty">No training trays yet. Count a tray on the Workbench, correct the dots, then use “Save tray for training” in the Groups &amp; tally panel.</div>
+                </div>
+                <div class="btn-row" style="margin-top:16px">
+                  <button type="button" class="btn btn-primary" id="trainTrayExportBtn" disabled>Export training data (.zip)</button>
+                  <button type="button" class="btn btn-ghost" id="trainTrayClearBtn" disabled>Clear all</button>
+                </div>
+                <p class="status" id="trainTrayListStatus" role="status" aria-live="polite"></p>
               </div>
             </div></div>
           </section>
@@ -9639,6 +9667,343 @@
     });
     renderTraining();
 
+    /* ---------------- YOLO training trays (YOLO v3 dataset) ----------------
+       Whole-tray DETECTION examples, distinct from the crops above:
+       when a tray has been counted and hand-corrected on the
+       Workbench, "Save tray for training" (step 3) stores the full
+       tray photo plus one labelled box per organism, in the final
+       corrected state — a renamed group's name is the truth, never
+       the model's first guess. Entries live in their own IndexedDB
+       database (eddy-training / trays) so the sample library's
+       schema is untouched, and leave as a YOLO zip: images/,
+       labels/, data.yaml, metadata.json, README.txt. Boxes whose
+       det has no measured box (hand-added dots, classic-counter
+       dots) are estimated — sized from the median measured box of
+       the same class on the same tray, else a default square —
+       and are always flagged estimated, never passed off as exact. */
+    var trainDbPromise = null, trainTrayCache = null, lastTrainSig = "";
+    function trainTrayDb() {
+      if (!("indexedDB" in window)) return Promise.reject(new Error("IndexedDB unavailable"));
+      if (!trainDbPromise) {
+        trainDbPromise = new Promise(function (resolve, reject) {
+          var req;
+          try { req = indexedDB.open("eddy-training", 1); } catch (e) { reject(e); return; }
+          req.onupgradeneeded = function () { req.result.createObjectStore("trays", { keyPath: "id" }); };
+          req.onsuccess = function () { resolve(req.result); };
+          req.onerror = function () { reject(req.error); };
+        });
+      }
+      return trainDbPromise;
+    }
+    function trainTrayIdb(mode, fn) {
+      return trainTrayDb().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction("trays", mode);
+          var out = fn(tx.objectStore("trays"));
+          tx.oncomplete = function () { resolve(out && out.result !== undefined ? out.result : undefined); };
+          tx.onerror = function () { reject(tx.error); };
+        });
+      });
+    }
+    function trainTrayAll() {
+      return trainTrayIdb("readonly", function (st) { return st.getAll(); }).then(function (all) {
+        all = (all || []).slice().sort(function (a, b) { return a.savedAt < b.savedAt ? -1 : (a.savedAt > b.savedAt ? 1 : 0); });
+        trainTrayCache = all;
+        return all;
+      });
+    }
+    function ttNorm(s) { return String(s == null ? "" : s).toLowerCase().replace(/\s+/g, " ").trim(); }
+    function ttClamp(v) { return Math.min(1, Math.max(0.000001, v)); }
+    /* Resolve a tally group's final (common name, family) against
+       the YOLO class table. Tally rows carry TAXON labels from the
+       reference library ("Mayfly nymph", "Clam / mussel", …), so
+       candidates are the classes whose taxon matches the row's
+       value (the class name is kept as a key for safety), folded
+       through yoloFoldClass and deduped — exports only ever carry
+       classes 0–19. Returns { cls, subset }: a non-null subset means
+       the group cannot be settled as a whole and each member must
+       be matched against that subset by its own folded yolo class.
+       Family handling: "" and "other/unidentified" mean no family
+       was chosen. A given family that matches exactly one candidate
+       settles the whole group; a given family matching NO candidate
+       leaves the group unlabelled — the user's name points outside
+       the model's classes and is never overridden. */
+    function ttClassForGroup(common, family) {
+      var nc = ttNorm(common), nf = ttNorm(family);
+      if (!nc) return { cls: -1, subset: null };
+      var famGiven = nf !== "" && nf !== "other/unidentified";
+      var cands = [];
+      for (var i = 0; i < YOLO_CLASSES.length; i++) {
+        if (ttNorm(YOLO_CLASSES[i].taxon) === nc || ttNorm(YOLO_CLASSES[i].name) === nc) {
+          var f = yoloFoldClass(i);
+          if (cands.indexOf(f) === -1) cands.push(f);
+        }
+      }
+      if (!cands.length) return { cls: -1, subset: null };
+      if (!famGiven) {
+        return cands.length === 1 ? { cls: cands[0], subset: null } : { cls: -1, subset: cands };
+      }
+      var famMatch = cands.filter(function (c) { return ttNorm(YOLO_CLASSES[c].family) === nf; });
+      if (famMatch.length === 1) return { cls: famMatch[0], subset: null };
+      if (!famMatch.length) return { cls: -1, subset: null };
+      return { cls: -1, subset: famMatch };
+    }
+    function ttGroupClassByDet() {
+      var map = new Map();
+      document.querySelectorAll(".tally-row.group-row").forEach(function (row) {
+        if (!row._members) return;
+        var res = ttClassForGroup(
+          row._commonSel ? row._commonSel.value : "",
+          row._famSel ? row._famSel.value : "");
+        row._members.forEach(function (m) {
+          var cls = res.cls;
+          if (res.subset) {
+            cls = -1;
+            if (m.yolo != null && isFinite(m.yolo)) {
+              var f = yoloFoldClass(m.yolo);
+              if (res.subset.indexOf(f) !== -1) cls = f;
+            }
+          }
+          map.set(m, cls);
+        });
+      });
+      return map;
+    }
+    /* Build the labelled items for the tray exactly as it stands:
+       group membership decides the class first, then a det's own
+       folded yolo class; anything else is counted as skipped. */
+    function ttBuildItems() {
+      var gmap = ttGroupClassByDet();
+      var labelled = [], skipped = 0;
+      dets.forEach(function (d) {
+        var cls = -1;
+        if (gmap.has(d)) cls = gmap.get(d);
+        else if (d.yolo != null && isFinite(d.yolo)) cls = yoloFoldClass(d.yolo);
+        if (!(cls >= 0 && cls <= 19) || !YOLO_CLASSES[cls]) { skipped++; return; }
+        labelled.push({ d: d, cls: cls });
+      });
+      var exactByClass = {};
+      labelled.forEach(function (it) {
+        if (isFinite(it.d.w) && isFinite(it.d.h) && it.d.w > 0 && it.d.h > 0) {
+          (exactByClass[it.cls] = exactByClass[it.cls] || []).push(it.d);
+        }
+      });
+      var medByClass = {};
+      Object.keys(exactByClass).forEach(function (k) {
+        var arr = exactByClass[k];
+        medByClass[k] = {
+          w: medianOf(arr.map(function (d) { return d.w; })),
+          h: medianOf(arr.map(function (d) { return d.h; }))
+        };
+      });
+      var items = labelled.map(function (it) {
+        var d = it.d, item;
+        if (isFinite(d.w) && isFinite(d.h) && d.w > 0 && d.h > 0 && isFinite(d.bx) && isFinite(d.by)) {
+          item = { cls: it.cls, cx: (d.bx + d.w / 2) / imgW, cy: (d.by + d.h / 2) / imgH, w: d.w / imgW, h: d.h / imgH, estimated: false };
+        } else {
+          var m = medByClass[it.cls], ew, eh;
+          if (m) { ew = m.w; eh = m.h; }
+          else { var s = 0.06 * Math.min(imgW, imgH); ew = s; eh = s; }
+          item = { cls: it.cls, cx: d.x / imgW, cy: d.y / imgH, w: ew / imgW, h: eh / imgH, estimated: true };
+        }
+        item.cx = ttClamp(item.cx); item.cy = ttClamp(item.cy);
+        item.w = ttClamp(item.w); item.h = ttClamp(item.h);
+        return item;
+      });
+      return { items: items, skipped: skipped };
+    }
+    function ttSignature(built) {
+      var h = 0, s = photoDataUrl || "";
+      for (var i = 0; i < s.length; i += 7) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+      var parts = built.items.map(function (it) {
+        return it.cls + ":" + it.cx.toFixed(4) + "," + it.cy.toFixed(4) + "," + it.w.toFixed(4) + "," + it.h.toFixed(4) + (it.estimated ? "e" : "");
+      });
+      return s.length + ":" + h + ":" + built.skipped + ":" + parts.join(";");
+    }
+    function refreshSaveTrainBtn() {
+      var btn = $("saveTrainTrayBtn"); if (!btn) return;
+      var ok = !!photoDataUrl && imgW > 0 && imgH > 0 && dets.length > 0;
+      btn.disabled = !ok;
+      var hint = $("trainTrayHint");
+      if (hint) hint.classList.toggle("hidden", ok);
+    }
+    function onSaveTrainTray() {
+      var status = $("trainTrayStatus");
+      if (!photoDataUrl || !imgW || !imgH || !dets.length) { refreshSaveTrainBtn(); return; }
+      var built = ttBuildItems();
+      var sig = ttSignature(built);
+      if (sig === lastTrainSig) {
+        status.textContent = "This tray is already saved for training, unchanged — correct a dot or rename a group and it can be saved again.";
+        status.className = "status";
+        return;
+      }
+      var sidEl = $("sampleId");
+      var entry = {
+        id: "tray-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1e9).toString(36),
+        savedAt: new Date().toISOString(),
+        sampleId: sidEl ? String(sidEl.value || "").trim() : "",
+        photo: photoDataUrl,
+        imgW: imgW, imgH: imgH,
+        items: built.items,
+        labelled: built.items.length,
+        skipped: built.skipped
+      };
+      trainTrayIdb("readwrite", function (st) { return st.add(entry); })
+        .then(function () { lastTrainSig = sig; return trainTrayAll(); })
+        .then(function () {
+          renderTrainTrays();
+          var msg = "Saved tray for training — " + entry.labelled + " organism" + (entry.labelled === 1 ? "" : "s") + " labelled";
+          if (entry.skipped) msg += " · " + entry.skipped + " left out (no YOLO class for their name)";
+          status.textContent = msg;
+          status.className = "status good";
+        })
+        .catch(function () {
+          status.textContent = "Couldn't save the tray just now — this browser blocked the training store. The tray on the bench is unchanged.";
+          status.className = "status bad";
+        });
+    }
+    var ttClearTimer = null;
+    function ttResetClearBtn() {
+      var b = $("trainTrayClearBtn"); if (!b) return;
+      b.textContent = "Clear all"; b.setAttribute("data-armed", "");
+      if (ttClearTimer) { clearTimeout(ttClearTimer); ttClearTimer = null; }
+    }
+    function renderTrainTrays() {
+      var all = trainTrayCache || [];
+      var totalOrgs = all.reduce(function (a, e) { return a + (e.labelled || (e.items ? e.items.length : 0)); }, 0);
+      var wb = $("trainTrayCountWb"); if (wb) wb.textContent = "Training trays: " + all.length;
+      var tc = $("trainTrayCount"); if (tc) tc.textContent = "Training trays: " + all.length;
+      var to = $("trainTrayOrgs"); if (to) to.textContent = totalOrgs + " labelled organism" + (totalOrgs === 1 ? "" : "s");
+      var ex = $("trainTrayExportBtn"); if (ex) ex.disabled = all.length === 0;
+      var cl = $("trainTrayClearBtn"); if (cl) { cl.disabled = all.length === 0; ttResetClearBtn(); }
+      var list = $("trainTrayList"); if (!list) return;
+      list.innerHTML = "";
+      if (!all.length) {
+        var e0 = document.createElement("div"); e0.className = "empty";
+        e0.textContent = "No training trays yet. Count a tray on the Workbench, correct the dots, then use “Save tray for training” in the Groups & tally panel.";
+        list.appendChild(e0);
+        return;
+      }
+      all.forEach(function (entry) {
+        var rowEl = document.createElement("div"); rowEl.className = "tray-row";
+        var info = document.createElement("div"); info.className = "tray-info";
+        var title = document.createElement("div"); title.className = "tray-title";
+        title.textContent = entry.sampleId ? entry.sampleId : "Untitled sample";
+        var meta = document.createElement("div"); meta.className = "tray-meta";
+        var when = entry.savedAt;
+        try { when = new Date(entry.savedAt).toLocaleString(); } catch (err) { /* keep ISO */ }
+        var est = (entry.items || []).filter(function (it) { return it.estimated; }).length;
+        var n = entry.labelled || (entry.items ? entry.items.length : 0);
+        meta.textContent = when + " · " + n + " organism" + (n === 1 ? "" : "s") + " · " + est + " estimated box" + (est === 1 ? "" : "es");
+        info.appendChild(title); info.appendChild(meta);
+        var rm = document.createElement("button");
+        rm.type = "button"; rm.className = "btn btn-ghost btn-small"; rm.textContent = "Remove";
+        rm.addEventListener("click", function () {
+          trainTrayIdb("readwrite", function (st) { return st.delete(entry.id); })
+            .then(function () { lastTrainSig = ""; return trainTrayAll(); })
+            .then(function () {
+              renderTrainTrays();
+              var st = $("trainTrayListStatus");
+              if (st) { st.textContent = "Removed that tray from the training collection."; st.className = "status"; }
+            })
+            .catch(function () {
+              var st = $("trainTrayListStatus");
+              if (st) { st.textContent = "Couldn't remove that tray just now."; st.className = "status bad"; }
+            });
+        });
+        rowEl.appendChild(info); rowEl.appendChild(rm);
+        list.appendChild(rowEl);
+      });
+    }
+    var TT_YAML_NAMES = ["blue_winged_olive_mayfly", "flathead_mayfly", "spiny_crawler_mayfly", "common_stonefly", "spring_stonefly", "net_spinning_caddisfly", "case_building_caddisfly", "free_living_caddisfly", "midge", "black_fly", "water_penny", "hellgrammite", "zebra_mussel", "quagga_mussel", "asian_clam", "nz_mudsnail", "chinese_mystery_snail", "banded_mystery_snail", "rusty_crayfish", "red_swamp_crayfish", "common_stonefly_detailed", "spring_stonefly_detailed"];
+    function onExportTrainTrays() {
+      var all = trainTrayCache || [];
+      if (!all.length) return;
+      var files = [], meta = [], totalBoxes = 0, estBoxes = 0;
+      all.forEach(function (entry, i) {
+        var base = "tray-" + String(i + 1).padStart(4, "0");
+        files.push({ name: "images/" + base + ".jpg", data: dataUrlBytes(entry.photo) });
+        var boxes = entry.items || [];
+        var lines = boxes.map(function (it) {
+          totalBoxes++; if (it.estimated) estBoxes++;
+          return it.cls + " " + Number(it.cx).toFixed(6) + " " + Number(it.cy).toFixed(6) + " " + Number(it.w).toFixed(6) + " " + Number(it.h).toFixed(6);
+        });
+        files.push({ name: "labels/" + base + ".txt", data: lines.length ? lines.join("\n") + "\n" : "" });
+        meta.push({ file: "images/" + base + ".jpg", sample_id: entry.sampleId || "", saved_at: entry.savedAt, img_w: entry.imgW, img_h: entry.imgH, boxes: boxes });
+      });
+      var yaml = ["path: .", "train: images", "val: images", "nc: 22", "names:"];
+      TT_YAML_NAMES.forEach(function (n, i) { yaml.push("  " + i + ": " + n); });
+      files.push({ name: "data.yaml", data: yaml.join("\n") + "\n" });
+      files.push({ name: "metadata.json", data: JSON.stringify(meta, null, 2) });
+      var readme = [
+        "Eddy YOLO training trays",
+        "========================",
+        "",
+        "Collected from real lab trays with Eddy 0.5.2. Every tray was counted on",
+        "the Workbench and hand-corrected before saving, so these boxes are the",
+        "corrected truth, not the model's first guess.",
+        "",
+        "Trays: " + all.length,
+        "Labelled boxes: " + totalBoxes + " total, " + estBoxes + " of them estimated.",
+        "Estimated boxes come from hand-added dots, which carry no measured box of",
+        "their own; each was sized from the median measured box of the same class",
+        "on the same tray, or a per-taxon default size when the tray had no",
+        "measured box of that class. They are flagged \"estimated\": true in",
+        "metadata.json and are never mixed in with measured boxes silently.",
+        "",
+        "Layout:",
+        "  images/       one .jpg per tray (tray-0001, tray-0002, ... in saved order)",
+        "  labels/       one YOLO detection .txt per tray: <class> <cx> <cy> <w> <h>, normalized",
+        "  data.yaml     dataset definition",
+        "  metadata.json per-image sample id, save time, image size and boxes",
+        "",
+        "Class indices follow the YOLO v2 22-class mapping (see data.yaml). No box",
+        "in this set uses class 20 or 21: the detailed stonefly variants are folded",
+        "onto classes 3 (common stonefly) and 4 (spring stonefly), exactly as the",
+        "v2 model integration folds them."
+      ].join("\n");
+      files.push({ name: "README.txt", data: readme });
+      downloadBlob(zipStore(files, "application/zip"), "eddy-yolo-training-trays.zip");
+      var st = $("trainTrayListStatus");
+      if (st) {
+        st.textContent = "Downloaded eddy-yolo-training-trays.zip — " + all.length + " trays, " + totalBoxes + " labelled boxes (" + estBoxes + " estimated). That's the YOLO v3 training set so far.";
+        st.className = "status good";
+      }
+    }
+    $("saveTrainTrayBtn").addEventListener("click", onSaveTrainTray);
+    $("trainTrayViewBtn").addEventListener("click", function () { if (window.showView) window.showView("train"); });
+    $("trainTrayExportBtn").addEventListener("click", onExportTrainTrays);
+    $("trainTrayClearBtn").addEventListener("click", function () {
+      var b = $("trainTrayClearBtn");
+      if (b.getAttribute("data-armed") !== "1") {
+        b.setAttribute("data-armed", "1"); b.textContent = "Clear all — sure?";
+        ttClearTimer = setTimeout(ttResetClearBtn, 3500);
+        return;
+      }
+      ttResetClearBtn();
+      trainTrayIdb("readwrite", function (st) { return st.clear(); })
+        .then(function () { lastTrainSig = ""; return trainTrayAll(); })
+        .then(function () {
+          renderTrainTrays();
+          var st = $("trainTrayListStatus");
+          if (st) { st.textContent = "Cleared the training tray collection."; st.className = "status"; }
+        })
+        .catch(function () {
+          var st = $("trainTrayListStatus");
+          if (st) { st.textContent = "Couldn't clear the collection just now."; st.className = "status bad"; }
+        });
+    });
+    /* The Train view calls this hook each time it opens, so the
+       list and counters always show the stored collection. */
+    window.__eddyTrainTrayOpen = function () {
+      trainTrayAll().then(function () { renderTrainTrays(); }).catch(function () { renderTrainTrays(); });
+    };
+    trainTrayAll()
+      .then(function () { renderTrainTrays(); })
+      .catch(function () { trainTrayCache = []; renderTrainTrays(); });
+    refreshSaveTrainBtn();
+    setInterval(refreshSaveTrainBtn, 700);
+
     /* ---------------- Identification key (step 6) ----------------
        Structured from the two keys the lab sent:
        (1) HCTF Education — Freshwater Macroinvertebrate Identification Key
@@ -10064,6 +10429,7 @@
           b.classList.toggle("active", b.getAttribute("data-view") === name);
         });
         if (name === "sheet" && window.renderSheetPreview) renderSheetPreview();
+        if (name === "train" && window.__eddyTrainTrayOpen) window.__eddyTrainTrayOpen();
         if (name === "trends") selectTrendsTab(wantTab || trendsTab);
         var main = document.querySelector(".main");
         if (main) main.scrollTop = 0;
