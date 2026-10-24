@@ -745,6 +745,30 @@
         overflow:hidden;background:var(--photo-bg);cursor:zoom-in}
       .ref-photos img{width:100%;height:190px;object-fit:cover;display:block}
       .ref-photos figcaption{color:var(--ink-3);font-size:.74rem;margin-top:4px;font-family:"IBM Plex Mono",monospace}
+      /* ---------- iNaturalist photos (reference detail) ---------- */
+      .inat-box{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
+      .inat-box h4{font-size:1rem;margin:0 0 4px}
+      .inat-box .inat-sub{color:var(--ink-2);font-size:.88rem;line-height:1.45;margin:0 0 10px}
+      .inat-scope{color:var(--ink-2);font-size:.85rem;line-height:1.45;margin:0 0 10px;
+        border:1px solid var(--amber-line);background:var(--amber-soft);border-radius:9px;padding:8px 11px}
+      .inat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:12px}
+      .inat-grid figure{margin:0}
+      .inat-grid button{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:9px;
+        overflow:hidden;background:var(--photo-bg);cursor:zoom-in}
+      .inat-grid img{width:100%;height:190px;object-fit:cover;display:block}
+      .inat-grid figcaption{color:var(--ink-2);font-size:.78rem;line-height:1.4;margin-top:5px}
+      .inat-grid figcaption .inat-taxon{color:var(--ink);font-weight:600}
+      .inat-grid figcaption .inat-credit{display:block;color:var(--ink-3);font-size:.74rem;margin-top:2px}
+      .inat-grid figcaption a{color:var(--teal);font-size:.74rem}
+      .inat-status{font-size:.88rem;margin-top:10px;color:var(--ink-2)}
+      .inat-status.good{color:var(--green)}
+      .inat-status.bad{color:var(--red)}
+      .inat-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+      .inat-actions .btn{width:auto}
+      @media (max-width:560px){
+        .inat-grid{grid-template-columns:1fr 1fr}
+        .inat-grid img{height:130px}
+      }
       .ref-lightbox-card{background:var(--panel-2);border:1px solid var(--line-strong);border-radius:14px;
         box-shadow:var(--shadow);padding:14px;width:100%;max-width:860px}
       .ref-lightbox-card img{width:100%;max-height:76dvh;object-fit:contain;display:block;background:var(--photo-bg);border-radius:8px}
@@ -2846,6 +2870,17 @@
             <p class="hint" id="updCheckStatus" style="margin-top:6px" role="status"></p>
           </div>
           <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
+            <h3>Library backup &amp; restore</h3>
+            <p class="hint" style="margin-top:6px"><strong>Back up library</strong> downloads one file holding every sample you created — site, date, groups and tallies (taxon, count, stage tags), field conditions, chemistry, jar photo and notes — plus your settings, site counters, sample templates and Taxon Gallery. The header records the app version and export date. The six historical workbook samples are not included: they re-seed themselves on a fresh install, and restoring never duplicates them. Jar photos travel inside the file as data, so a backup works fully offline. Your API key is never included.</p>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+              <button type="button" class="btn btn-primary" id="setBackupBtn">Back up library</button>
+              <button type="button" class="btn btn-ghost" id="setRestoreBtn">Restore library…</button>
+            </div>
+            <input type="file" id="setRestoreInput" accept=".json,application/json" class="hidden" aria-label="Choose an Eddy backup file to restore" />
+            <p class="status" id="setBackupStatus" role="status" aria-live="polite" style="margin-top:6px"></p>
+            <p class="hint" style="margin-top:6px"><strong>Restore library</strong> replaces your current samples with the ones in the backup file — Eddy shows a confirmation first, and the historical baseline stays exactly as it is. The same controls live in the Library view.</p>
+          </div>
+          <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
             <h3>About Eddy</h3>
             <p class="hint" style="margin-top:6px">Eddy is the exclusive property of Lee Vitaly Wyszynski. This software may not be used, copied, or distributed without his authorization.</p>
             <p class="hint" style="margin-top:8px">Eddy is a stonefly nymph from the Quittapahilla who got tired of watching students count his friends by hand at midnight, so he learned to do it himself. He now lives in your tray and counts everyone who passes through — no one gets missed on his watch.</p>
@@ -3574,7 +3609,7 @@
                 <p class="card-sub">Every finished sample is saved here on this device — photo, dots, tally and all — so you can reopen it later and check what was counted. <strong>Keeps your last 100 samples on this device</strong>; older ones are dropped as new ones arrive.</p>
                 <div class="backup-panel" id="backupPanel">
                   <h3>Back up &amp; restore — thesis-data insurance</h3>
-                  <p class="hint" style="margin-top:4px">One backup file holds everything: all samples (photos, tallies, dates, sites, map pins, IDs, AI suggestions and ruler calibrations), your settings, the site counters, and your sample templates with their method list, and your Taxon Gallery catalog. <strong>Your API key is not included in backups.</strong> Keep a copy somewhere safe — restoring it brings the whole library back.</p>
+                  <p class="hint" style="margin-top:4px">One backup file holds everything: all samples (photos, tallies, dates, sites, map pins, IDs, AI suggestions and ruler calibrations), your settings, the site counters, and your sample templates with their method list, and your Taxon Gallery catalog. <strong>Your API key is not included in backups.</strong> Keep a copy somewhere safe — restoring it brings the whole library back. The six historical workbook samples aren't included — they re-seed themselves on a fresh install, and restoring never duplicates them. These controls also live in Settings.</p>
                   <div class="btn-row" style="margin-top:12px">
                     <button type="button" class="btn btn-primary" id="backupBtn">Back up library</button>
                     <button type="button" class="btn btn-ghost" id="restoreBtn">Restore from backup…</button>
@@ -3628,8 +3663,11 @@
                   <div id="libIndices"></div>
                   <div class="btn-row" style="margin-top:14px">
                     <button type="button" class="btn btn-primary" id="libReportBtn">Report — download</button>
+                    <button type="button" class="btn btn-ghost" id="libPaperBtn">Generate PDF paper</button>
                     <button type="button" class="btn btn-ghost" id="libShareBtn">Share this sample…</button>
                   </div>
+                  <p class="status" id="libPaperStatus" role="status" aria-live="polite"></p>
+                  <p class="hint" style="margin-top:6px">The PDF paper is a presentable write-up of this one sample — title block, methods note, the full taxa table (never shortened, even for a large jar), the indices with their water-quality readings, and a short discussion — built on this device as a real PDF file, ready for inquiry prep.</p>
                   <p class="hint" style="margin-top:8px">Read-only — reopening a sample doesn't change the Datasheet sheet. To count it again, take a fresh photo on the Workbench.</p>
                 </div>
               </div>
@@ -3706,6 +3744,11 @@
                       <h3 class="vault-h">Grouped &amp; identified — what's in this jar</h3>
                       <div class="sheet-scroll"><table class="sheet" id="vaultTable"></table></div>
                       <p class="hint" id="vaultNotes" style="margin-top:10px"></p>
+                      <div class="btn-row" style="margin-top:14px">
+                        <button type="button" class="btn btn-primary" id="vaultPaperBtn">Generate PDF paper</button>
+                      </div>
+                      <p class="status" id="vaultPaperStatus" role="status" aria-live="polite"></p>
+                      <p class="hint" style="margin-top:6px">A presentable PDF paper for this one jar — methods note, the full taxa table, the indices with their readings, and a discussion — generated on this device, however much data the jar holds.</p>
                     </div>
                   </div>
                 </div>
@@ -3989,6 +4032,17 @@
                   </div>
                   <p class="hidden" id="refDetailInvLink" style="margin-top:10px"><button type="button" class="inv-guide-link" id="refDetailInvBtn">See the full card in the Invasives guide →</button></p>
                   <div class="ref-photos" id="refPhotos"></div>
+                  <div class="inat-box" id="refInatBox">
+                    <h4>iNaturalist photos</h4>
+                    <p class="inat-sub">Extra field photos from iNaturalist's public photo pool — community observations, separate from Eddy's built-in reference photos above. Only openly licensed photos (CC0 / Creative Commons) are shown, each with its photographer credit and license. Fetched photos are kept on this device, so they still show offline afterward.</p>
+                    <p class="inat-scope hidden" id="refInatScope"></p>
+                    <div class="inat-actions">
+                      <button type="button" class="btn btn-primary btn-small" id="refInatFetchBtn">More photos from iNaturalist</button>
+                      <button type="button" class="btn btn-ghost btn-small hidden" id="refInatRefreshBtn">Fetch fresh photos</button>
+                    </div>
+                    <p class="inat-status" id="refInatStatus" role="status" aria-live="polite"></p>
+                    <div class="inat-grid" id="refInatGrid"></div>
+                  </div>
                 </div>
                 <div id="refInvWrap" class="hidden">
                   <p class="card-sub">Eight freshwater invasives established in, or spreading through, Pennsylvania waters. None is one of the 50 library taxa — if one turns up in a tray, tally it by family so the count, the INVASIVE tag and the Trends chart pick it up. Tap any photo to enlarge it.</p>
@@ -13543,6 +13597,442 @@
         } else done(null);
       }
 
+      /* ---------- PDF paper generator (one sample, presentable) ----------
+         "Generate PDF paper" builds a real, downloadable PDF for ONE
+         sample — the write-up a single jar deserves, especially a
+         large one — entirely on this device: no external service, no
+         print dialog. The PDF bytes are assembled here (PDF 1.4,
+         built-in Times/Helvetica fonts), so the download is a genuine
+         .pdf that opens anywhere. Structure: title block (site, date,
+         sample ID, "Generated by Eddy"), a methods note, the FULL taxa
+         table from the sample's own rows (life-stage splits kept as
+         their own rows; the table is never truncated — it paginates),
+         the indices with their readings, and a discussion written from
+         the sample's own numbers. Every figure comes from
+         computeIndices over the sample's rows — no stored-index
+         shortcuts — plus Shannon-Wiener computed from the same grouped
+         counts. Methods honesty: a recorded method is stated verbatim;
+         a sample with no method metadata says so plainly; preservation
+         in alcohol is claimed only for the historical workbook
+         samples, whose records carry that metadata. Taxa with no
+         tolerance value are flagged and excluded from the HBI, exactly
+         as everywhere else in Eddy. Verification hooks:
+         window.eddyPaper = { generate, modelFor, buildPdf, shannon,
+         hbiInfo } and window.eddyPaperLast after a download.        */
+      var PAPER_HIST_METHODS = "Collected with D-nets, preserved in 70% isopropyl alcohol, identified to family level. Indices are recomputed by Eddy from these counts using Eddy's current reference tolerances, so they can differ from the workbook's values where the tolerance tables disagree.";
+      function paperShannon(idx) {
+        if (!idx || idx.empty || !idx.total || !idx.taxa || !idx.taxa.length) return null;
+        var h = 0;
+        idx.taxa.forEach(function (t) {
+          if (t.count > 0) { var p = t.count / idx.total; h -= p * Math.log(p); }
+        });
+        return h;
+      }
+      function paperHbiInfo(hbi) {
+        if (hbi == null || isNaN(hbi)) return null;
+        var meanings = {
+          "Excellent": "On Hilsenhoff's scale that means organic pollution is unlikely — water of this quality can support a sensitive community.",
+          "Very Good": "On Hilsenhoff's scale that means slight organic pollution is possible, but water quality remains high.",
+          "Good": "On Hilsenhoff's scale that means some organic pollution is probable, though a range of taxa persists.",
+          "Fair": "On Hilsenhoff's scale that means fairly substantial organic pollution is likely, and tolerant taxa usually make up a large share of the community.",
+          "Fairly Poor": "On Hilsenhoff's scale that means substantial organic pollution is likely, and sensitive taxa are typically scarce.",
+          "Poor": "On Hilsenhoff's scale that means very substantial organic pollution is likely, and the community is usually dominated by tolerant taxa.",
+          "Very Poor": "On Hilsenhoff's scale that means severe organic pollution is likely, and only the most tolerant taxa persist in numbers."
+        };
+        var band = hbiReading(hbi);
+        return { band: band, meaning: meanings[band] || "" };
+      }
+      function paperPct(n, total) {
+        return total ? (Math.round(1000 * n / total) / 10).toFixed(1) + "%" : "0.0%";
+      }
+      function paperTolStr(tol) {
+        return tol == null ? "none" : String(Math.round(tol * 10) / 10);
+      }
+      /* The historical records' notes field is provenance + methods +
+         a site-specific extra, in that order; the extra (the SC total
+         discrepancy, the K1 sowbug note) is worth its own line in the
+         paper, so peel the two known prefixes back off.            */
+      function paperHistExtra(rec) {
+        var n = String(rec.notes || "");
+        if (!n) return "";
+        var prov = rec.provenance || (window.eddyHistoricalQwa && window.eddyHistoricalQwa.provenance) || "";
+        if (prov && n.indexOf(prov) === 0) n = n.slice(prov.length).trim();
+        if (n.indexOf(PAPER_HIST_METHODS) === 0) n = n.slice(PAPER_HIST_METHODS.length).trim();
+        return n;
+      }
+      function paperMethods(rec, anyStage) {
+        var paras = [];
+        if (rec.historical) {
+          paras.push("Provenance. " + (rec.provenance || "Historical QWA workbook data; date per workbook note 11-6-16."));
+          paras.push("As recorded for the workbook samples, the organisms were collected with D-nets, preserved in 70% isopropyl alcohol, and identified to family level. The counts in Table 1 are the workbook counts; the indices in Table 2 were recomputed by Eddy from those counts using Eddy's current reference tolerance values, so they can differ from the workbook's own figures where the tolerance tables disagree.");
+          var extra = paperHistExtra(rec);
+          if (extra) paras.push("Workbook note. " + extra);
+        } else {
+          if (rec.method) {
+            paras.push("Collection. This sample was collected using the method recorded for it in Eddy: " + rec.method + ". No preservation method was recorded for this sample.");
+          } else {
+            paras.push("Collection. No sampling method was recorded for this sample in Eddy, so no collection method is stated in this paper. No preservation method was recorded either.");
+          }
+          paras.push("Identification. The organisms were counted and identified to family level, and the counts tallied in Eddy. Table 1 lists every tallied row — family, common name, order, tolerance value and count" + (anyStage ? ", with the life stage where one was recorded" : "") + ".");
+          if (rec.notes) paras.push("Sample notes, as recorded: " + rec.notes);
+        }
+        var cond = apxCondText(rec);
+        if (cond && cond !== "—") paras.push("Field conditions recorded for this sample: " + cond + ".");
+        var chem = apxChemText(rec);
+        if (chem) paras.push("Water chemistry recorded for this sample: " + chem + ".");
+        paras.push("Index calculations. Taxa richness is the number of distinct taxa. EPT richness counts the distinct mayfly (Ephemeroptera), stonefly (Plecoptera) and caddisfly (Trichoptera) taxa, and %EPT is their share of all individuals. The Hilsenhoff Family Biotic Index (HBI) is the abundance-weighted mean of family tolerance values on the 0–10 scale (Hilsenhoff 1988); lower values indicate water less affected by organic pollution. The Shannon–Wiener index (H′) summarises diversity from the same counts, combining richness with how evenly individuals are spread among taxa. Taxa with no tolerance value in Eddy's reference table are counted in the totals, richness and diversity, but excluded from the HBI.");
+        return paras;
+      }
+      function paperIndexNotes(m) {
+        var idx = m.idx, notes = [];
+        if (idx.hbi != null && m.hbiInfo) {
+          notes.push("Hilsenhoff reading: " + idx.hbi.toFixed(2) + " — " + m.hbiInfo.band + ". " + m.hbiInfo.meaning);
+        } else if (!idx.empty) {
+          notes.push("No Hilsenhoff score could be calculated: none of this sample's taxa carries a tolerance value in Eddy's reference table.");
+        }
+        if (m.excludedTaxa.length) {
+          var names = m.excludedTaxa.map(function (t) { return t.family || t.name || "Unknown"; }).join(", ");
+          notes.push(m.excludedTaxa.length + (m.excludedTaxa.length === 1 ? " taxon" : " taxa") + " — " + names + " — had no tolerance value and " + (m.excludedTaxa.length === 1 ? "was" : "were") + " excluded from the HBI. " + (m.excludedTaxa.length === 1 ? "It is" : "They are") + " counted in the totals, richness and Shannon–Wiener index, and shown as “none” in the Tolerance column of Table 1.");
+        }
+        if (m.shannon != null) {
+          notes.push("Shannon–Wiener H′ is " + m.shannon.toFixed(2) + " across " + idx.richness + (idx.richness === 1 ? " taxon" : " taxa") + ". Higher values reflect more taxa, a more even spread of individuals among them, or both.");
+        }
+        if (idx.single) notes.push("Low confidence — single taxon. One kind of organism can't carry a water-quality score on its own, so read these indices as a description of this jar, not a verdict on the site.");
+        return notes;
+      }
+      function paperTaxonName(t) {
+        var nm = t.display || t.name || t.family || "Unknown";
+        return t.family && nm.indexOf(t.family) < 0 ? nm + " (" + t.family + ")" : nm;
+      }
+      function paperDiscussion(m) {
+        var idx = m.idx, paras = [];
+        var sorted = idx.taxa.slice().sort(function (a, b) { return b.count - a.count; });
+        var top = sorted[0];
+        if (top) {
+          var p1 = "The most abundant taxon in this sample is " + paperTaxonName(top) + ", with " + top.count + " individuals — " + paperPct(top.count, idx.total) + " of the total.";
+          if (sorted[1]) {
+            p1 += " Next is " + paperTaxonName(sorted[1]) + " (" + sorted[1].count + ", " + paperPct(sorted[1].count, idx.total) + ")";
+            if (sorted[2]) p1 += ", then " + paperTaxonName(sorted[2]) + " (" + sorted[2].count + ", " + paperPct(sorted[2].count, idx.total) + ")";
+            p1 += ".";
+          }
+          if (top.tol != null && top.tol >= 6) p1 += " The dominant taxon is relatively pollution-tolerant (tolerance " + paperTolStr(top.tol) + " of 10), so its dominance pulls the community toward the tolerant end of the scale.";
+          else if (top.tol != null && top.tol <= 3) p1 += " The dominant taxon is relatively pollution-sensitive (tolerance " + paperTolStr(top.tol) + " of 10), so its dominance is itself a favourable sign for water quality.";
+          else if (top.tol != null) p1 += " The dominant taxon sits mid-scale for tolerance (" + paperTolStr(top.tol) + " of 10), neither a strong clean-water nor a strong pollution signal on its own.";
+          if (idx.total >= 500) p1 += " This is a large sample — " + idx.total + " individuals — so these proportions rest on a substantial count rather than a handful of organisms.";
+          paras.push(p1);
+        }
+        var pct = idx.pctEpt == null ? 0 : idx.pctEpt;
+        var p2;
+        if (!m.eptInd) {
+          p2 = "No EPT individuals were recorded: none of the " + idx.total + " individuals belongs to the mayfly, stonefly or caddisfly orders, the groups most sensitive to organic pollution. The sample therefore carries no sensitive-taxa signal, which is consistent with stressed conditions at the site — though a single sample cannot establish a cause.";
+        } else if (pct >= 50) {
+          p2 = "The sensitive-taxa signal is strong. EPT taxa — mayflies, stoneflies and caddisflies, the orders most sensitive to organic pollution — account for " + m.eptInd + " of " + idx.total + " individuals (" + paperPct(m.eptInd, idx.total) + ") across " + idx.eptRich + (idx.eptRich === 1 ? " taxon" : " taxa") + ". A community in which sensitive orders make up at least half of all individuals is consistent with water carrying little organic pollution at this site.";
+        } else if (pct >= 25) {
+          p2 = "The sensitive-taxa signal is moderate. EPT taxa — mayflies, stoneflies and caddisflies, the orders most sensitive to organic pollution — account for " + m.eptInd + " of " + idx.total + " individuals (" + paperPct(m.eptInd, idx.total) + ") across " + idx.eptRich + (idx.eptRich === 1 ? " taxon" : " taxa") + ". Sensitive taxa are well represented without dominating the sample, which points to reasonably good water quality with room for tolerant taxa alongside them.";
+        } else {
+          p2 = "The sensitive-taxa signal is weak. EPT taxa — mayflies, stoneflies and caddisflies, the orders most sensitive to organic pollution — account for only " + m.eptInd + " of " + idx.total + " individuals (" + paperPct(m.eptInd, idx.total) + ") across " + idx.eptRich + (idx.eptRich === 1 ? " taxon" : " taxa") + ". When sensitive orders form such a small share, the community is being carried by more tolerant taxa, which is consistent with some organic stress at the site.";
+        }
+        paras.push(p2);
+        var p3 = "Taken together, " + (idx.hbi != null && m.hbiInfo
+          ? "an HBI of " + idx.hbi.toFixed(2) + " (" + m.hbiInfo.band + "), "
+          : "no calculable HBI, ") +
+          "a richness of " + idx.richness + (idx.richness === 1 ? " taxon" : " taxa") +
+          (m.shannon != null ? " and a Shannon–Wiener diversity of " + m.shannon.toFixed(2) : "") +
+          " describe the community in this one sample. This paper covers a single sample from a single date: it characterises conditions at " + (m.site || "the site") + " at the time of sampling, and a longer-term judgement about the site would need repeated samples across seasons.";
+        paras.push(p3);
+        return paras;
+      }
+      function paperModel(rec) {
+        if (!rec) return null;
+        var rows = rec.rows || [];
+        var idx = computeIndices(rows);
+        if (idx.empty) return null;
+        var tableRows = [];
+        rows.forEach(function (r) {
+          var n = parseInt(r.count, 10);
+          if (isNaN(n) || n <= 0) return;
+          tableRows.push({
+            family: r.family || "", common: r.common || "",
+            order: rowOrder(r) || "", tol: rowTol(r),
+            count: n, stage: r.stage ? String(r.stage) : ""
+          });
+        });
+        tableRows.sort(function (a, b) {
+          return b.count - a.count || (a.family < b.family ? -1 : a.family > b.family ? 1 : 0);
+        });
+        var anyStage = tableRows.some(function (t) { return !!t.stage; });
+        var eptInd = 0;
+        idx.taxa.forEach(function (t) { if (EPT_ORDERS[t.order]) eptInd += t.count; });
+        var m = {
+          rec: rec, idx: idx, tableRows: tableRows, anyStage: anyStage, eptInd: eptInd,
+          shannon: paperShannon(idx), hbiInfo: paperHbiInfo(idx.hbi),
+          excludedTaxa: idx.taxa.filter(function (t) { return t.tol == null; }),
+          site: rec.site || "", sampleId: rec.sampleId || "unspecified", date: rec.date || "",
+          generated: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+          pageCount: 0
+        };
+        m.methods = paperMethods(rec, anyStage);
+        m.resultsIntro = "In total, " + idx.total + " individuals from " + idx.richness + (idx.richness === 1 ? " taxon were" : " taxa were") +
+          " tallied in this sample. Table 1 lists the complete tally, most abundant first" +
+          (idx.total >= 500 ? " — because this is a large sample the table runs across pages, and it is given in full" : "") + ".";
+        m.indexRows = [
+          ["Total individuals", String(idx.total), ""],
+          ["Taxa richness", idx.richness == null ? "—" : String(idx.richness), "distinct taxa"],
+          ["EPT richness", idx.eptRich == null ? "—" : String(idx.eptRich), "distinct mayfly, stonefly & caddisfly taxa"],
+          ["%EPT individuals", idx.pctEpt == null ? "—" : idx.pctEpt.toFixed(1) + "%", eptInd + " of " + idx.total + " individuals"],
+          ["Hilsenhoff Biotic Index (HBI)", idx.hbi == null ? "not calculable" : idx.hbi.toFixed(2), m.hbiInfo ? m.hbiInfo.band : ""],
+          ["Shannon–Wiener diversity (H′)", m.shannon == null ? "—" : m.shannon.toFixed(2),
+            idx.richness > 1 && m.shannon != null ? "evenness " + (m.shannon / Math.log(idx.richness)).toFixed(2) + " of 1.00" : ""]
+        ];
+        m.indexNotes = paperIndexNotes(m);
+        m.discussion = paperDiscussion(m);
+        m.plainText = paperPlainText(m);
+        return m;
+      }
+      function paperPlainText(m) {
+        var L = [];
+        L.push("TITLE: " + (m.site || m.sampleId));
+        L.push("Site: " + (m.site || "Not recorded"));
+        L.push("Sample ID: " + m.sampleId);
+        L.push("Sample date: " + (m.date || "Not recorded"));
+        L.push("Generated by Eddy - " + m.generated);
+        L.push("1. Methods");
+        m.methods.forEach(function (p) { L.push(p); });
+        L.push("2. Results");
+        L.push(m.resultsIntro);
+        L.push("Table 1. Taxa recorded in this sample");
+        m.tableRows.forEach(function (t) {
+          L.push([t.family || "—", t.common || "—", t.order || "—", paperTolStr(t.tol), String(t.count), t.stage || ""].join(" | "));
+        });
+        L.push("3. Water-quality indices");
+        m.indexRows.forEach(function (r) { L.push(r[0] + ": " + r[1] + (r[2] ? " (" + r[2] + ")" : "")); });
+        m.indexNotes.forEach(function (p) { L.push(p); });
+        L.push("4. Discussion");
+        m.discussion.forEach(function (p) { L.push(p); });
+        return L.join("\n");
+      }
+      /* ----- minimal PDF writer (PDF 1.4, built-in fonts, ASCII) ----- */
+      var PDF_FONT_IDS = { r: "F1", b: "F2", i: "F3", h: "F4", hb: "F5" };
+      function pdfSan(s) {
+        return String(s == null ? "" : s)
+          .replace(/[‘’]/g, "'").replace(/[“”]/g, "\"")
+          .replace(/[–—]/g, "-").replace(/·/g, "-")
+          .replace(/µ/g, "u").replace(/°/g, "deg")
+          .replace(/′/g, "'").replace(/≥/g, ">=").replace(/≤/g, "<=")
+          .replace(/[^\x20-\x7E]/g, "");
+      }
+      function pdfEsc(s) {
+        return pdfSan(s).replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+      }
+      function pdfCharW(font, size) { return size * (font === "h" || font === "hb" || font === "b" ? 0.52 : font === "i" ? 0.48 : 0.49); }
+      function pdfTextW(s, font, size) { return pdfSan(s).length * pdfCharW(font, size); }
+      function pdfFit(s, font, size, maxW) {
+        s = pdfSan(s);
+        if (pdfTextW(s, font, size) <= maxW) return s;
+        var room = Math.max(1, Math.floor(maxW / pdfCharW(font, size)) - 2);
+        return s.slice(0, room) + "..";
+      }
+      function pdfWrap(text, font, size, maxW) {
+        var words = pdfSan(text).split(/\s+/).filter(Boolean);
+        var lines = [], cur = "";
+        words.forEach(function (w) {
+          while (pdfTextW(w, font, size) > maxW && w.length > 1) {
+            if (cur) { lines.push(cur); cur = ""; }
+            var room = Math.max(1, Math.floor(maxW / pdfCharW(font, size)) - 1);
+            lines.push(w.slice(0, room));
+            w = w.slice(room);
+          }
+          var trial = cur ? cur + " " + w : w;
+          if (pdfTextW(trial, font, size) <= maxW) cur = trial;
+          else { if (cur) lines.push(cur); cur = w; }
+        });
+        if (cur) lines.push(cur);
+        return lines.length ? lines : [""];
+      }
+      function PaperDoc(model) {
+        this.model = model;
+        this.pages = [[]];
+        this.y = 738;
+      }
+      PaperDoc.prototype.cur = function () { return this.pages[this.pages.length - 1]; };
+      PaperDoc.prototype.op = function (s) { this.cur().push(s); };
+      PaperDoc.prototype.newPage = function () { this.pages.push([]); this.y = 738; };
+      PaperDoc.prototype.ensure = function (h) { if (this.y - h < 58) this.newPage(); };
+      PaperDoc.prototype.text = function (str, font, size, x, y, gray) {
+        this.op((gray != null ? gray + " g " : "") + "BT /" + PDF_FONT_IDS[font] + " " + size + " Tf 1 0 0 1 " + x.toFixed(1) + " " + y.toFixed(1) + " Tm (" + pdfEsc(str) + ") Tj ET");
+      };
+      PaperDoc.prototype.line = function (txt, font, size, leading, opts) {
+        opts = opts || {};
+        if (opts.spaceBefore) { this.ensure(leading + opts.spaceBefore); this.y -= opts.spaceBefore; }
+        else this.ensure(leading);
+        var w = pdfTextW(txt, font, size), x = 54;
+        if (opts.align === "center") x = 54 + (504 - w) / 2;
+        else if (opts.align === "right") x = 54 + 504 - w;
+        if (opts.x != null) x = opts.x;
+        this.text(txt, font, size, x, this.y, opts.gray != null ? opts.gray : 0);
+        this.y -= leading;
+        if (opts.spaceAfter) this.y -= opts.spaceAfter;
+      };
+      PaperDoc.prototype.para = function (txt, font, size, leading, opts) {
+        opts = opts || {};
+        var doc = this;
+        pdfWrap(txt, font, size, 504).forEach(function (ln, i) {
+          doc.line(ln, font, size, leading, { gray: opts.gray, spaceBefore: i === 0 ? (opts.spaceBefore || 0) : 0 });
+        });
+        if (opts.spaceAfter) this.y -= opts.spaceAfter;
+      };
+      PaperDoc.prototype.rule = function (weight, gray, spaceAfter) {
+        this.ensure(10);
+        this.op((gray != null ? gray : 0) + " G " + (weight || 0.8) + " w 54 " + this.y.toFixed(1) + " m 558 " + this.y.toFixed(1) + " l S");
+        this.y -= (spaceAfter != null ? spaceAfter : 8);
+      };
+      PaperDoc.prototype.heading = function (txt) {
+        this.ensure(36);
+        this.y -= 8;
+        this.line(txt, "hb", 11.5, 15, { gray: 0.12 });
+        this.y -= 2;
+        this.op("0.7 G 0.6 w 54 " + this.y.toFixed(1) + " m 558 " + this.y.toFixed(1) + " l S");
+        this.y -= 10;
+      };
+      PaperDoc.prototype.tableHead = function (cols) {
+        this.ensure(20);
+        this.op("0.93 g 54 " + (this.y - 3).toFixed(1) + " 504 15 re f");
+        var doc = this;
+        cols.forEach(function (c) {
+          var t = String(c.label).toUpperCase();
+          var x = c.align === "right" ? c.x + c.w - pdfTextW(t, "hb", 7.8) - 2 : c.x + 2;
+          doc.text(t, "hb", 7.8, x, doc.y, 0.2);
+        });
+        this.y -= 12;
+        this.op("0 G 0.8 w 54 " + this.y.toFixed(1) + " m 558 " + this.y.toFixed(1) + " l S");
+        this.y -= 4;
+      };
+      PaperDoc.prototype.tableRow = function (cols, cells, headFn) {
+        if (this.y - 14 < 58) { this.newPage(); headFn(); }
+        var doc = this;
+        cells.forEach(function (cell, i) {
+          var c = cols[i];
+          var t = pdfFit(cell, "r", 9, c.w - 4);
+          var x = c.align === "right" ? c.x + c.w - pdfTextW(t, "r", 9) - 2 : c.x + 2;
+          doc.text(t, "r", 9, x, doc.y, 0);
+        });
+        this.y -= 11;
+        this.op("0.86 G 0.4 w 54 " + this.y.toFixed(1) + " m 558 " + this.y.toFixed(1) + " l S");
+        this.y -= 3;
+      };
+      function paperSerialize(doc) {
+        var totalPages = doc.pages.length;
+        doc.pages.forEach(function (pg, i) {
+          pg.push("0.78 G 0.4 w 54 44 m 558 44 l S");
+          pg.push("0.45 g BT /F4 7.5 Tf 1 0 0 1 54 34 Tm (" + pdfEsc("Generated by Eddy - Sample " + doc.model.sampleId + " - Page " + (i + 1) + " of " + totalPages) + ") Tj ET");
+        });
+        var fontBases = ["Times-Roman", "Times-Bold", "Times-Italic", "Helvetica", "Helvetica-Bold"];
+        var pageNums = [], next = 8;
+        doc.pages.forEach(function () { pageNums.push(next); next += 2; });
+        var objs = [];
+        objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        objs[2] = "<< /Type /Pages /Kids [" + pageNums.map(function (n) { return n + " 0 R"; }).join(" ") + "] /Count " + totalPages + " >>";
+        fontBases.forEach(function (b, i) {
+          objs[3 + i] = "<< /Type /Font /Subtype /Type1 /BaseFont /" + b + " /Encoding /WinAnsiEncoding >>";
+        });
+        doc.pages.forEach(function (pg, i) {
+          var pn = pageNums[i], cn = pn + 1;
+          objs[pn] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R /F5 7 0 R >> >> /Contents " + cn + " 0 R >>";
+          var stream = pg.join("\n");
+          objs[cn] = "<< /Length " + stream.length + " >>\nstream\n" + stream + "\nendstream";
+        });
+        var out = "%PDF-1.4\n", offsets = [0], n;
+        for (n = 1; n < next; n++) { offsets[n] = out.length; out += n + " 0 obj\n" + objs[n] + "\nendobj\n"; }
+        var xrefPos = out.length;
+        out += "xref\n0 " + next + "\n0000000000 65535 f \n";
+        for (n = 1; n < next; n++) out += ("0000000000" + offsets[n]).slice(-10) + " 00000 n \n";
+        out += "trailer\n<< /Size " + next + " /Root 1 0 R >>\nstartxref\n" + xrefPos + "\n%%EOF";
+        return new Blob([out], { type: "application/pdf" });
+      }
+      function paperBuildPdf(m) {
+        var doc = new PaperDoc(m), idx = m.idx;
+        pdfWrap(m.site || m.sampleId, "b", 19, 504).forEach(function (ln) { doc.line(ln, "b", 19, 23, {}); });
+        doc.para("Benthic macroinvertebrate sample paper", "i", 11.5, 15, { gray: 0.3, spaceAfter: 4 });
+        doc.rule(1.4, 0, 7);
+        doc.line("Site: " + (m.site || "Not recorded"), "h", 9.5, 13, { gray: 0.25 });
+        doc.line("Sample ID: " + m.sampleId, "h", 9.5, 13, { gray: 0.25 });
+        doc.line("Sample date: " + (m.date || "Not recorded"), "h", 9.5, 13, { gray: 0.25 });
+        if (m.rec.historical) doc.line("Historical baseline sample - QWA workbook, 2016", "h", 9.5, 13, { gray: 0.25 });
+        doc.line("Generated by Eddy - " + m.generated, "h", 9.5, 13, { gray: 0.25, spaceAfter: 2 });
+        doc.rule(0.6, 0.6, 5);
+        doc.para(idx.total + " individuals - " + idx.richness + (idx.richness === 1 ? " taxon" : " taxa") +
+          (idx.hbi != null ? " - Hilsenhoff Biotic Index " + idx.hbi.toFixed(2) + (m.hbiInfo ? " (" + m.hbiInfo.band + ")" : "") : ""),
+          "b", 10.5, 14, { spaceAfter: 2 });
+        doc.heading("1. Methods");
+        m.methods.forEach(function (p) { doc.para(p, "r", 10.5, 14.5, { spaceAfter: 6 }); });
+        doc.heading("2. Results");
+        doc.para(m.resultsIntro, "r", 10.5, 14.5, { spaceAfter: 6 });
+        doc.para("Table 1. Taxa recorded in this sample, most abundant first. Every tallied row is listed; the table is not shortened, however large the sample.", "i", 9.5, 13, { gray: 0.3, spaceAfter: 4 });
+        var cols = m.anyStage ? [
+          { label: "Family", x: 54, w: 116 }, { label: "Common name", x: 174, w: 102 },
+          { label: "Order", x: 280, w: 92 }, { label: "Tolerance", x: 376, w: 54, align: "right" },
+          { label: "Count", x: 434, w: 42, align: "right" }, { label: "Stage", x: 480, w: 78 }
+        ] : [
+          { label: "Family", x: 54, w: 128 }, { label: "Common name", x: 186, w: 118 },
+          { label: "Order", x: 308, w: 100 }, { label: "Tolerance", x: 412, w: 58, align: "right" },
+          { label: "Count", x: 474, w: 84, align: "right" }
+        ];
+        var headFn = function () { doc.tableHead(cols); };
+        headFn();
+        m.tableRows.forEach(function (t) {
+          var cells = m.anyStage
+            ? [t.family || "—", t.common || "—", t.order || "—", paperTolStr(t.tol), String(t.count), t.stage || ""]
+            : [t.family || "—", t.common || "—", t.order || "—", paperTolStr(t.tol), String(t.count)];
+          doc.tableRow(cols, cells, headFn);
+        });
+        doc.para("Total: " + idx.total + " individuals in " + m.tableRows.length + (m.tableRows.length === 1 ? " row" : " rows") + ". “None” in the Tolerance column means the taxon has no tolerance value in Eddy's reference table and is excluded from the HBI.", "i", 9, 12.5, { gray: 0.35, spaceBefore: 4 });
+        doc.heading("3. Water-quality indices");
+        doc.para("Table 2. Indices calculated by Eddy from this sample's own counts.", "i", 9.5, 13, { gray: 0.3, spaceAfter: 4 });
+        var icols = [
+          { label: "Index", x: 54, w: 196 }, { label: "Value", x: 254, w: 104, align: "right" },
+          { label: "Reading", x: 362, w: 196 }
+        ];
+        var iheadFn = function () { doc.tableHead(icols); };
+        iheadFn();
+        m.indexRows.forEach(function (r) { doc.tableRow(icols, [r[0], r[1], r[2]], iheadFn); });
+        doc.y -= 4;
+        m.indexNotes.forEach(function (p) { doc.para(p, "r", 10.5, 14.5, { spaceAfter: 6 }); });
+        doc.heading("4. Discussion");
+        m.discussion.forEach(function (p) { doc.para(p, "r", 10.5, 14.5, { spaceAfter: 6 }); });
+        doc.heading("References");
+        doc.para("Hilsenhoff, W. L. 1988. Rapid field assessment of organic pollution with a family-level biotic index. Journal of the North American Benthological Society 7(1): 65–68.", "r", 9.5, 13, { spaceAfter: 4 });
+        doc.para("Shannon, C. E., and W. Weaver. 1949. The Mathematical Theory of Communication. University of Illinois Press, Urbana.", "r", 9.5, 13, { spaceAfter: 4 });
+        doc.para("All counts and indices in this paper were computed by Eddy from this sample's own tally at the time the paper was generated.", "i", 9, 12.5, { gray: 0.35 });
+        m.pageCount = doc.pages.length;
+        return paperSerialize(doc);
+      }
+      function paperGenerate(rec) {
+        var m = paperModel(rec);
+        if (!m) return null;
+        var blob = paperBuildPdf(m);
+        var sid = String(m.sampleId || "sample").replace(/[^\w.\-]+/g, "_");
+        var filename = "eddy-paper-" + sid + ".pdf";
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        var info = {
+          filename: filename, size: blob.size, pages: m.pageCount,
+          total: m.idx.total, richness: m.idx.richness,
+          taxaRows: m.tableRows.length, sampleId: m.sampleId
+        };
+        window.eddyPaperLast = info;
+        return info;
+      }
+      window.eddyPaper = {
+        generate: paperGenerate,
+        modelFor: paperModel,
+        buildPdf: function (rec) { var m = paperModel(rec); return m ? paperBuildPdf(m) : null; },
+        shannon: paperShannon,
+        hbiInfo: paperHbiInfo
+      };
+
       /* Library read-only view: indices + report for the open record */
       var libCurrent = null;
       window.renderLibDetailExtras = function (rec) {
@@ -13563,6 +14053,21 @@
           calibrated: !!libCurrent.pxPerMm || libCurrent.rows.some(function (r) { return r.sizeMm != null; }),
           measurements: libCurrent.measurements || []
         });
+      });
+      $("libPaperBtn").addEventListener("click", function () {
+        if (!libCurrent) return;
+        var st = $("libPaperStatus");
+        var info = null;
+        try { info = paperGenerate(libCurrent); } catch (e) { info = null; }
+        if (!info) {
+          if (st) { st.textContent = "Nothing tallied in this sample yet — a paper needs counts first."; st.className = "status bad"; }
+          return;
+        }
+        if (st) {
+          st.textContent = "PDF paper downloaded — " + info.pages + (info.pages === 1 ? " page" : " pages") +
+            ", all " + info.taxaRows + " taxa rows and " + info.total + " individuals (" + info.filename + ").";
+          st.className = "status good";
+        }
       });
       $("libBackBtn").addEventListener("click", function () { libCurrent = null; });
 
@@ -14571,11 +15076,29 @@
         $("engineBar").classList.add("hidden");
       });
 
-      /* ================= 1) Backup & restore ================= */
+      /* ================= 1) Backup & restore =================
+         The controls live in two places — the Library view's
+         backup panel and Settings → "Library backup & restore" —
+         and both drive the one implementation below; status is
+         reported to both places so the answer lands wherever
+         the user pressed the button. The six historical QWA
+         workbook samples are NOT part of a backup: they re-seed
+         themselves on a fresh install. Restore skips any
+         historical records a file somehow carries and leaves the
+         current baseline untouched, so the library always holds
+         exactly the historical samples it already had — never
+         duplicated, never resurrected if one was deleted.       */
       function setBackupStatus(msg, cls) {
-        var el = $("backupStatus");
-        el.textContent = msg;
-        el.className = "status" + (cls ? " " + cls : "");
+        ["backupStatus", "setBackupStatus"].forEach(function (id) {
+          var el = $(id);
+          if (!el) return;
+          el.textContent = msg;
+          el.className = "status" + (cls ? " " + cls : "");
+        });
+      }
+      function isHistoricalRec(rec) {
+        return !!(rec && (rec.historical === true ||
+          (typeof rec.key === "string" && rec.key.indexOf("hist-qwa-") === 0)));
       }
       function downloadJson(text, filename) {
         var url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
@@ -14584,10 +15107,11 @@
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
       }
-      $("backupBtn").addEventListener("click", function () {
+      function runBackup() {
         if (!window.eddyLib) { setBackupStatus("The library isn't available right now — try again in a moment.", "bad"); return; }
         window.eddyLib.all().then(function (recs) {
-          var samples = (recs || []).slice().sort(function (a, b) { return a.savedAt - b.savedAt; });
+          var samples = (recs || []).filter(function (r) { return !isHistoricalRec(r); })
+            .sort(function (a, b) { return a.savedAt - b.savedAt; });
           var galArr = [];
           try { var gp = JSON.parse(localStorage.getItem("eddy_gallery_v1") || "null"); if (gp && Array.isArray(gp.entries)) galArr = gp.entries; }
           catch (e) { galArr = []; }
@@ -14611,59 +15135,109 @@
           var methodArr = [];
           try { var mp2 = JSON.parse(localStorage.getItem("eddy_methods_v1") || "null"); if (Array.isArray(mp2)) methodArr = mp2; }
           catch (e) { methodArr = []; }
+          var verEl = $("updCurVer");
+          var appVer = verEl && verEl.textContent && verEl.textContent.trim() !== "—" ? verEl.textContent.trim() : "";
           var payload = {
-            app: "eddy-backup", version: 1, exportedAt: new Date().toISOString(),
+            app: "eddy-backup", version: 1, appVersion: appVer, exportedAt: new Date().toISOString(),
             samples: samples, settings: settings, counters: counters,
             templates: tplArr, methods: methodArr, gallery: galArr
           };
           downloadJson(JSON.stringify(payload), "eddy-backup-" + todayStr() + ".json");
           setBackupStatus("Backed up " + samples.length + (samples.length === 1 ? " sample" : " samples") +
             (galArr.length ? " and " + galArr.length + " gallery " + (galArr.length === 1 ? "entry" : "entries") : "") +
-            " to eddy-backup-" + todayStr() + ".json — settings, site counters, sample templates and the Taxon Gallery included, your API key is not in the file.", "good");
+            " to eddy-backup-" + todayStr() + ".json — settings, site counters, sample templates and the Taxon Gallery included; the six historical samples aren't (they re-seed on a fresh install), and your API key is not in the file.", "good");
         }).catch(function () {
           setBackupStatus("Couldn't read the library to back it up — try again.", "bad");
         });
-      });
+      }
+      $("backupBtn").addEventListener("click", runBackup);
+      var setBackupBtn = $("setBackupBtn");
+      if (setBackupBtn) setBackupBtn.addEventListener("click", runBackup);
       $("restoreBtn").addEventListener("click", function () { $("restoreInput").click(); });
-      $("restoreInput").addEventListener("change", function (e) {
-        var f = e.target.files && e.target.files[0];
-        e.target.value = "";
-        if (!f) return;
+      var setRestoreBtn = $("setRestoreBtn");
+      if (setRestoreBtn) setRestoreBtn.addEventListener("click", function () { $("setRestoreInput").click(); });
+      function wireRestoreInput(id) {
+        var inp = $(id);
+        if (!inp) return;
+        inp.addEventListener("change", function (e) {
+          var f = e.target.files && e.target.files[0];
+          e.target.value = "";
+          if (f) handleRestoreFile(f);
+        });
+      }
+      wireRestoreInput("restoreInput");
+      wireRestoreInput("setRestoreInput");
+      /* Validate first, touch nothing yet: a corrupt or non-Eddy
+         file errors out here with the current library completely
+         untouched. Historical records inside a file are counted
+         and skipped; entries that aren't sample records at all
+         are dropped — if nothing usable remains, the file is
+         rejected as a whole.                                    */
+      function handleRestoreFile(f) {
         var rd = new FileReader();
         rd.onload = function () {
           var data = null;
           try { data = JSON.parse(rd.result); } catch (err) { data = null; }
           if (!data || data.app !== "eddy-backup" || !Array.isArray(data.samples)) {
-            setBackupStatus("That isn't an Eddy backup file — pick the .json file that “Back up library” downloaded.", "bad");
+            setBackupStatus("That isn't an Eddy backup file — pick the .json file that “Back up library” downloaded. Your library is unchanged.", "bad");
+            return;
+          }
+          var userSamples = [], skippedHist = 0, dropped = 0;
+          data.samples.forEach(function (rec) {
+            if (!rec || typeof rec !== "object" || !Array.isArray(rec.rows)) { dropped++; return; }
+            if (isHistoricalRec(rec)) { skippedHist++; return; }
+            userSamples.push(rec);
+          });
+          if (!userSamples.length && data.samples.length) {
+            setBackupStatus("That backup file holds no usable samples — it may be damaged. Your library is unchanged.", "bad");
             return;
           }
           window.eddyConfirm({
             title: "Restore this backup?",
-            text: "This replaces your current library. Back up first if unsure. The backup holds " +
-              data.samples.length + (data.samples.length === 1 ? " sample" : " samples") +
-              " — they replace your current library, along with the settings and site counters in the file." +
+            text: "Restoring REPLACES your current library — the samples you have now are removed and the backup's take their place. Back up first if unsure. The backup holds " +
+              userSamples.length + (userSamples.length === 1 ? " sample" : " samples") +
+              ", along with the settings and site counters in the file." +
+              (skippedHist ? " Its " + skippedHist + " historical workbook " + (skippedHist === 1 ? "record is" : "records are") + " skipped — the historical baseline already in your library stays exactly as it is." : " The historical baseline already in your library stays exactly as it is.") +
               (Array.isArray(data.gallery) && data.gallery.length ? " The file also holds " + data.gallery.length + " gallery " + (data.gallery.length === 1 ? "entry" : "entries") + ", which replace your current gallery." : "") +
               " Your API key is not in backups, so the one in Settings stays as it is.",
             okLabel: "Restore backup"
-          }).then(function (ok) { if (ok) doRestore(data); });
+          }).then(function (ok) { if (ok) doRestore(data, userSamples); });
         };
         rd.onerror = function () {
-          setBackupStatus("Couldn't read that file — pick the .json backup that Eddy downloaded.", "bad");
+          setBackupStatus("Couldn't read that file — pick the .json backup that Eddy downloaded. Your library is unchanged.", "bad");
         };
         rd.readAsText(f);
-      });
-      function doRestore(data) {
+      }
+      function doRestore(data, userSamples) {
         if (!window.eddyLib || !window.eddyLib.clear) {
           setBackupStatus("The library isn't available right now — try again in a moment.", "bad");
           return;
         }
         setBackupStatus("Restoring…", "");
-        window.eddyLib.clear().then(function () {
-          var chain = Promise.resolve();
-          data.samples.forEach(function (rec) {
-            chain = chain.then(function () { return window.eddyLib.put(rec); });
+        /* Read the current library first so the historical
+           baseline can be carried across the wipe untouched —
+           backups never contain it, and restore must neither
+           duplicate nor resurrect it. Indices are never stored
+           in a backup; every view recomputes them from the
+           restored counts (window.eddyIndices) on render.      */
+        window.eddyLib.all().then(function (current) {
+          var keepHist = (current || []).filter(isHistoricalRec);
+          return window.eddyLib.clear().then(function () {
+            var chain = Promise.resolve();
+            var seen = {};
+            function putUnique(rec, i) {
+              var r = rec;
+              if (!r.key || typeof r.key !== "string" || seen[r.key]) {
+                r.key = "s" + Date.now() + "-r" + i + "-" + Math.floor(Math.random() * 1e6);
+              }
+              seen[r.key] = 1;
+              if (typeof r.savedAt !== "number" || !isFinite(r.savedAt)) r.savedAt = Date.now() + i;
+              chain = chain.then(function () { return window.eddyLib.put(r); });
+            }
+            keepHist.forEach(function (rec, i) { putUnique(rec, i); });
+            (userSamples || []).forEach(function (rec, i) { putUnique(rec, keepHist.length + i); });
+            return chain;
           });
-          return chain;
         }).then(function () {
           if (data.settings) {
             var st = data.settings;
@@ -14708,8 +15282,20 @@
           if (window.eddyCompareSel) window.eddyCompareSel.clear();
           var cb = $("compareBtn");
           if (cb) { cb.disabled = true; cb.textContent = "Compare selected (0/2)"; }
+          /* Refresh every library-driven view to the restored
+             data: Library list, Specimen Vault, Trends (all three
+             tabs), Sites map and the Datasheet indices / reports.
+             Each renderer recomputes from the restored records,
+             so indices come from the restored counts, never from
+             anything stored in the file.                        */
           window.eddyLib.render();
-          setBackupStatus("Restored " + data.samples.length + (data.samples.length === 1 ? " sample" : " samples") + " from the backup" + (Array.isArray(data.templates) ? ", sample templates included" : "") + (Array.isArray(data.gallery) ? ", Taxon Gallery included." : (Array.isArray(data.templates) ? "." : ".")), "good");
+          if (window.eddyRenderVault) window.eddyRenderVault();
+          if (window.eddyRenderTrends) window.eddyRenderTrends();
+          if (window.eddyRenderTimeline) window.eddyRenderTimeline();
+          if (window.eddyRenderGraphs) window.eddyRenderGraphs();
+          if (window.eddyRenderSites) window.eddyRenderSites();
+          if (window.renderSheetPreview) window.renderSheetPreview();
+          setBackupStatus("Restored " + userSamples.length + (userSamples.length === 1 ? " sample" : " samples") + " from the backup" + (Array.isArray(data.templates) ? ", sample templates included" : "") + (Array.isArray(data.gallery) ? ", Taxon Gallery included." : (Array.isArray(data.templates) ? "." : ".")), "good");
         }).catch(function (err) {
           if (err && err.name === "QuotaExceededError") window.eddyStorageFull();
           setBackupStatus("Restore hit a problem partway — check the library; some samples may be missing. The backup file itself is unchanged.", "bad");
@@ -27385,6 +27971,26 @@
         });
       });
       $("vaultBackBtn").addEventListener("click", renderVault);
+      var vaultPaperBtn = $("vaultPaperBtn");
+      if (vaultPaperBtn) vaultPaperBtn.addEventListener("click", function () {
+        var st = $("vaultPaperStatus");
+        if (!current) return;
+        if (!window.eddyPaper) {
+          if (st) { st.textContent = "The paper generator isn't available right now — try again in a moment."; st.className = "status bad"; }
+          return;
+        }
+        var info = null;
+        try { info = window.eddyPaper.generate(current); } catch (e) { info = null; }
+        if (!info) {
+          if (st) { st.textContent = "Nothing tallied in this jar yet — a paper needs counts first."; st.className = "status bad"; }
+          return;
+        }
+        if (st) {
+          st.textContent = "PDF paper downloaded — " + info.pages + (info.pages === 1 ? " page" : " pages") +
+            ", all " + info.taxaRows + " taxa rows and " + info.total + " individuals (" + info.filename + ").";
+          st.className = "status good";
+        }
+      });
       $("vaultOpenLib").addEventListener("click", function () {
         if (!current) return;
         if (window.showView) window.showView("library");
@@ -27481,6 +28087,449 @@
           return saveRecord(rec);
         }
       };
+    })();
+    </script>
+    <script>
+    "use strict";
+    /* ================= iNaturalist photos (Reference library) =================
+       An ADDITION to the built-in reference library: each taxon in
+       the Reference detail pane gains an "iNaturalist photos"
+       section with a user-initiated fetch ("More photos from
+       iNaturalist"). Nothing is fetched until the user asks, and
+       fetching needs internet; once fetched, a taxon's photos are
+       cached on this device (photo metadata in localStorage under
+       eddy_inat_v1, the image bytes warmed into the Cache Storage
+       the service worker serves cache-first), so they render
+       offline afterward exactly like the bundled photos.
+
+       Source: the public iNaturalist API (api.inaturalist.org) —
+       no account, no key, no login; read-only. Each library family
+       is mapped to its iNaturalist taxon (family level where the
+       API has it; the two suborders, the worm/leech subclasses and
+       the snail class use their own iNaturalist taxa, labelled by
+       scope). Where a family's open-license photo pool is sparse,
+       a representative genus is fetched as well and the section
+       says so plainly; every photo's caption names the EXACT taxon
+       pictured (from its observation), so a photo is never
+       presented as a taxon it is not.
+
+       Licenses: only openly licensed photos are kept — CC0 and
+       the Creative Commons family (CC BY, BY-NC, BY-SA, BY-ND,
+       BY-NC-SA, BY-NC-ND). All-rights-reserved photos (no license
+       code) are filtered out twice: the API query asks only for
+       open photo licenses, and every returned photo is re-checked
+       here before it is shown or cached. Every displayed photo
+       carries its photographer credit and license, visibly, plus
+       a link back to its iNaturalist observation.
+
+       The bundled library, its photos and the Visual Reference
+       Browser are untouched: this script only fills #refInatBox
+       inside the existing Reference detail pane, following the
+       pane as openRefDetail() switches taxa. Verification hooks
+       live on window.eddyINat (filterPhotos / extractPhotos are
+       the pure pipeline; applyFixture runs a recorded API
+       response through the same filter → cache → render path a
+       live fetch uses).                                          */
+    (function () {
+      var box = document.getElementById("refInatBox");
+      var grid = document.getElementById("refInatGrid");
+      var statusEl = document.getElementById("refInatStatus");
+      var scopeEl = document.getElementById("refInatScope");
+      var fetchBtn = document.getElementById("refInatFetchBtn");
+      var refreshBtn = document.getElementById("refInatRefreshBtn");
+      var detail = document.getElementById("refDetail");
+      if (!box || !grid || !fetchBtn || !detail) return;
+
+      var API = "https://api.inaturalist.org/v1";
+      var LS_KEY = "eddy_inat_v1";
+      var IMG_CACHE = "eddy-inat-photos";
+      var MAX_PHOTOS = 6;
+      var MIN_PRIMARY = 4;
+
+      /* The only licenses Eddy will show or cache. Anything else
+         — above all a null license_code (all rights reserved) —
+         is dropped by filterPhotos().                            */
+      var OPEN_LICENSES = ["cc0", "cc-by", "cc-by-nc", "cc-by-sa", "cc-by-nd", "cc-by-nc-sa", "cc-by-nc-nd"];
+      var LICENSE_LABEL = {
+        "cc0": "CC0", "cc-by": "CC BY", "cc-by-nc": "CC BY-NC", "cc-by-sa": "CC BY-SA",
+        "cc-by-nd": "CC BY-ND", "cc-by-nc-sa": "CC BY-NC-SA", "cc-by-nc-nd": "CC BY-NC-ND"
+      };
+      function isOpenLicense(code) {
+        return !!code && OPEN_LICENSES.indexOf(String(code).toLowerCase()) !== -1;
+      }
+      function licenseLabel(code) {
+        return LICENSE_LABEL[String(code || "").toLowerCase()] || "";
+      }
+
+      /* Library taxa (same 50 as REF_TAXA in the shell script),
+         each with its iNaturalist query taxon, a plain scope
+         label, and a representative-genus fallback for when the
+         primary pool is sparse.                                  */
+      var TAXA = [
+        { p: "baetidae", name: "Blue-winged olive mayfly", fam: "Baetidae", ord: "Ephemeroptera", q: "Baetidae", scope: "Family Baetidae", fb: "Baetis" },
+        { p: "heptageniidae", name: "Flathead mayfly", fam: "Heptageniidae", ord: "Ephemeroptera", q: "Heptageniidae", scope: "Family Heptageniidae", fb: "Epeorus" },
+        { p: "ephemerellidae", name: "Spiny crawler mayfly", fam: "Ephemerellidae", ord: "Ephemeroptera", q: "Ephemerellidae", scope: "Family Ephemerellidae", fb: "Ephemerella" },
+        { p: "perlidae", name: "Common stonefly", fam: "Perlidae", ord: "Plecoptera", q: "Perlidae", scope: "Family Perlidae", fb: "Acroneuria" },
+        { p: "perlodidae", name: "Spring stonefly", fam: "Perlodidae", ord: "Plecoptera", q: "Perlodidae", scope: "Family Perlodidae", fb: "Isoperla" },
+        { p: "hydropsychidae", name: "Net-spinning caddisfly", fam: "Hydropsychidae", ord: "Trichoptera", q: "Hydropsychidae", scope: "Family Hydropsychidae", fb: "Hydropsyche" },
+        { p: "limnephilidae", name: "Case-building caddisfly", fam: "Limnephilidae", ord: "Trichoptera", q: "Limnephilidae", scope: "Family Limnephilidae", fb: "Limnephilus" },
+        { p: "rhyacophilidae", name: "Free-living caddisfly", fam: "Rhyacophilidae", ord: "Trichoptera", q: "Rhyacophilidae", scope: "Family Rhyacophilidae", fb: "Rhyacophila" },
+        { p: "chironomidae", name: "Midge", fam: "Chironomidae", ord: "Diptera", q: "Chironomidae", scope: "Family Chironomidae", fb: "Chironomus" },
+        { p: "simuliidae", name: "Black fly", fam: "Simuliidae", ord: "Diptera", q: "Simuliidae", scope: "Family Simuliidae", fb: "Simulium" },
+        { p: "tipulidae", name: "Crane fly", fam: "Tipulidae", ord: "Diptera", q: "Tipulidae", scope: "Family Tipulidae", fb: "Tipula" },
+        { p: "culicidae", name: "Mosquito", fam: "Culicidae", ord: "Diptera", q: "Culicidae", scope: "Family Culicidae", fb: "Culex" },
+        { p: "chaoboridae", name: "Phantom midge", fam: "Chaoboridae", ord: "Diptera", q: "Chaoboridae", scope: "Family Chaoboridae", fb: "Chaoborus" },
+        { p: "tabanidae", name: "Horse fly", fam: "Tabanidae", ord: "Diptera", q: "Tabanidae", scope: "Family Tabanidae", fb: "Tabanus" },
+        { p: "psephenidae", name: "Water penny", fam: "Psephenidae", ord: "Coleoptera", q: "Psephenidae", scope: "Family Psephenidae", fb: "Psephenus" },
+        { p: "elmidae", name: "Riffle beetle", fam: "Elmidae", ord: "Coleoptera", q: "Elmidae", scope: "Family Elmidae", fb: "Stenelmis" },
+        { p: "dytiscidae", name: "Predaceous diving beetle", fam: "Dytiscidae", ord: "Coleoptera", q: "Dytiscidae", scope: "Family Dytiscidae", fb: "Dytiscus" },
+        { p: "gyrinidae", name: "Whirligig beetle", fam: "Gyrinidae", ord: "Coleoptera", q: "Gyrinidae", scope: "Family Gyrinidae", fb: "Gyrinus" },
+        { p: "haliplidae", name: "Crawling water beetle", fam: "Haliplidae", ord: "Coleoptera", q: "Haliplidae", scope: "Family Haliplidae", fb: "Haliplus" },
+        { p: "corydalidae", name: "Hellgrammite", fam: "Corydalidae", ord: "Megaloptera", q: "Corydalidae", scope: "Family Corydalidae", fb: "Corydalus" },
+        { p: "sialidae", name: "Alderfly", fam: "Sialidae", ord: "Megaloptera", q: "Sialidae", scope: "Family Sialidae", fb: "Sialis" },
+        { p: "anisoptera", name: "Dragonfly nymph", fam: "Anisoptera", ord: "Odonata", q: "Anisoptera", scope: "Suborder Anisoptera (dragonflies)", fb: "Anax" },
+        { p: "zygoptera", name: "Damselfly nymph", fam: "Zygoptera", ord: "Odonata", q: "Zygoptera", scope: "Suborder Zygoptera (damselflies)", fb: "Calopteryx" },
+        { p: "corixidae", name: "Water boatman", fam: "Corixidae", ord: "Hemiptera", q: "Corixidae", scope: "Family Corixidae", fb: "Sigara" },
+        { p: "belostomatidae", name: "Giant water bug", fam: "Belostomatidae", ord: "Hemiptera", q: "Belostomatidae", scope: "Family Belostomatidae", fb: "Lethocerus" },
+        { p: "cambaridae", name: "Crayfish", fam: "Cambaridae", ord: "Decapoda", q: "Cambaridae", scope: "Family Cambaridae", fb: "Faxonius" },
+        { p: "gammarus", name: "Scud", fam: "Gammaridae", ord: "Amphipoda", q: "Gammaridae", scope: "Family Gammaridae", fb: "Gammarus" },
+        { p: "oligochaeta", name: "Aquatic worm", fam: "Oligochaeta", ord: "Annelida", q: "Oligochaeta", scope: "Subclass Oligochaeta (aquatic worms)", fb: "Lumbriculus" },
+        { p: "hirudinea", name: "Leech", fam: "Hirudinea", ord: "Annelida", q: "Hirudinea", scope: "Subclass Hirudinea (leeches)", fb: "Macrobdella" },
+        { p: "snail", name: "Freshwater snail", fam: "Gastropoda", ord: "Mollusca", q: "Gastropoda", scope: "Class Gastropoda — freshwater snails generally", fb: "Lymnaea" },
+        { p: "leuctridae", name: "Rolled-winged stonefly", fam: "Leuctridae", ord: "Plecoptera", q: "Leuctridae", scope: "Family Leuctridae", fb: "Leuctra" },
+        { p: "capniidae", name: "Small winter stonefly", fam: "Capniidae", ord: "Plecoptera", q: "Capniidae", scope: "Family Capniidae", fb: "Capnia" },
+        { p: "isonychiidae", name: "Brush-legged mayfly", fam: "Isonychiidae", ord: "Ephemeroptera", q: "Isonychiidae", scope: "Family Isonychiidae", fb: "Isonychia" },
+        { p: "leptophlebiidae", name: "Prong-gilled mayfly", fam: "Leptophlebiidae", ord: "Ephemeroptera", q: "Leptophlebiidae", scope: "Family Leptophlebiidae", fb: "Leptophlebia" },
+        { p: "caenidae", name: "Small square-gilled mayfly", fam: "Caenidae", ord: "Ephemeroptera", q: "Caenidae", scope: "Family Caenidae", fb: "Caenis" },
+        { p: "hydroptilidae", name: "Microcaddisfly", fam: "Hydroptilidae", ord: "Trichoptera", q: "Hydroptilidae", scope: "Family Hydroptilidae", fb: "Hydroptila" },
+        { p: "glossosomatidae", name: "Saddle-case maker caddisfly", fam: "Glossosomatidae", ord: "Trichoptera", q: "Glossosomatidae", scope: "Family Glossosomatidae", fb: "Glossosoma" },
+        { p: "philopotamidae", name: "Finger-net caddisfly", fam: "Philopotamidae", ord: "Trichoptera", q: "Philopotamidae", scope: "Family Philopotamidae", fb: "Chimarra" },
+        { p: "brachycentridae", name: "Humpless case maker caddisfly", fam: "Brachycentridae", ord: "Trichoptera", q: "Brachycentridae", scope: "Family Brachycentridae", fb: "Brachycentrus" },
+        { p: "dixidae", name: "Meniscus midge", fam: "Dixidae", ord: "Diptera", q: "Dixidae", scope: "Family Dixidae", fb: "Dixa" },
+        { p: "stratiomyidae", name: "Soldier fly larva", fam: "Stratiomyidae", ord: "Diptera", q: "Stratiomyidae", scope: "Family Stratiomyidae", fb: "Stratiomys" },
+        { p: "syrphidae", name: "Rat-tailed maggot", fam: "Syrphidae", ord: "Diptera", q: "Syrphidae", scope: "Family Syrphidae", fb: "Eristalis" },
+        { p: "gerridae", name: "Water strider", fam: "Gerridae", ord: "Hemiptera", q: "Gerridae", scope: "Family Gerridae", fb: "Gerris" },
+        { p: "veliidae", name: "Riffle bug", fam: "Veliidae", ord: "Hemiptera", q: "Veliidae", scope: "Family Veliidae", fb: "Rhagovelia" },
+        { p: "nepidae", name: "Water scorpion", fam: "Nepidae", ord: "Hemiptera", q: "Nepidae", scope: "Family Nepidae", fb: "Ranatra" },
+        { p: "notonectidae", name: "Backswimmer", fam: "Notonectidae", ord: "Hemiptera", q: "Notonectidae", scope: "Family Notonectidae", fb: "Notonecta" },
+        { p: "planorbidae", name: "Ramshorn snail", fam: "Planorbidae", ord: "Basommatophora", q: "Planorbidae", scope: "Family Planorbidae", fb: "Planorbella" },
+        { p: "physidae", name: "Pouch snail", fam: "Physidae", ord: "Basommatophora", q: "Physidae", scope: "Family Physidae", fb: "Physa" },
+        { p: "sphaeriidae", name: "Fingernail clam", fam: "Sphaeriidae", ord: "Veneroida", q: "Sphaeriidae", scope: "Family Sphaeriidae", fb: "Pisidium" },
+        { p: "asellidae", name: "Aquatic isopod", fam: "Asellidae", ord: "Isopoda", q: "Asellidae", scope: "Family Asellidae", fb: "Caecidotea" }
+      ];
+      var BY_NAME = {};
+      TAXA.forEach(function (t) { BY_NAME[t.name] = t; });
+      var BY_SLUG = {};
+      TAXA.forEach(function (t) { BY_SLUG[t.p] = t; });
+
+      /* ---------- Cache (localStorage metadata + warmed images) ---------- */
+      function cacheAll() {
+        try { var v = JSON.parse(localStorage.getItem(LS_KEY) || "null"); return (v && typeof v === "object") ? v : {}; }
+        catch (e) { return {}; }
+      }
+      function cacheGet(slug) {
+        var all = cacheAll();
+        var e = all[slug];
+        return (e && Array.isArray(e.photos) && e.photos.length) ? e : null;
+      }
+      function cachePut(slug, entry) {
+        try {
+          var all = cacheAll();
+          all[slug] = entry;
+          localStorage.setItem(LS_KEY, JSON.stringify(all));
+        } catch (e) { /* storage full/blocked — photos still show this session */ }
+        warmImages(entry.photos || []);
+      }
+      function warmImages(photos) {
+        /* Warm the image bytes into Cache Storage so the <img>s
+           render offline; the service worker's cache-first fetch
+           covers the same URLs too. Best-effort only.            */
+        if (!("caches" in window)) return;
+        caches.open(IMG_CACHE).then(function (c) {
+          photos.forEach(function (ph) {
+            if (ph.url) c.add(ph.url).catch(function () { /* one bad photo never sinks the rest */ });
+            if (ph.large && ph.large !== ph.url) c.add(ph.large).catch(function () { /* lightbox size is a bonus */ });
+          });
+        }).catch(function () { /* cache unavailable — metadata cache still records the fetch */ });
+      }
+
+      /* ---------- Pure pipeline: API JSON → displayable photos ---------- */
+      function extractPhotos(obsJson) {
+        var out = [];
+        var results = (obsJson && obsJson.results) || [];
+        results.forEach(function (obs) {
+          if (!obs || !Array.isArray(obs.photos)) return;
+          var taxonName = (obs.taxon && obs.taxon.name) || "";
+          var taxonRank = (obs.taxon && obs.taxon.rank) || "";
+          obs.photos.forEach(function (ph) {
+            if (!ph) return;
+            var url = ph.medium_url || ph.url || "";
+            if (url) url = url.replace(/square\.(jpe?g|png)/i, "medium.$1");
+            /* Photographer credit: attribution_name when the API
+               gives one; some photos carry the name only inside
+               the attribution string ("(c) Name, some rights
+               reserved (CC …)") — parse it from there so a credit
+               is never dropped to the generic fallback while the
+               API actually named the photographer.               */
+            var credit = ph.attribution_name || "";
+            if (!credit && ph.attribution) {
+              var cm = String(ph.attribution).match(/^\s*(?:\(c\)|©)\s*([^,]+?)\s*(?:,|$)/);
+              if (cm) credit = cm[1].trim();
+            }
+            out.push({
+              id: ph.id || null,
+              url: url,
+              large: ph.large_url || url,
+              license: ph.license_code || null,
+              credit: credit,
+              attribution: ph.attribution || "",
+              taxonName: taxonName,
+              taxonRank: taxonRank,
+              obsId: obs.id || null
+            });
+          });
+        });
+        return out;
+      }
+      function filterPhotos(raw) {
+        var seen = {}, out = [];
+        (raw || []).forEach(function (ph) {
+          if (!ph || !ph.url) return;
+          if (!isOpenLicense(ph.license)) return;         /* all-rights-reserved never survives */
+          var key = ph.id != null ? "id:" + ph.id : "url:" + ph.url;
+          if (seen[key]) return;
+          seen[key] = 1;
+          out.push(ph);
+        });
+        return out;
+      }
+
+      /* ---------- Live fetch ---------- */
+      function fetchJson(url) {
+        return fetch(url, { headers: { "Accept": "application/json" } }).then(function (r) {
+          if (!r.ok) throw new Error("iNaturalist answered " + r.status);
+          return r.json();
+        });
+      }
+      function resolveTaxonId(name) {
+        return fetchJson(API + "/taxa?per_page=10&q=" + encodeURIComponent(name)).then(function (j) {
+          var res = j.results || [];
+          for (var i = 0; i < res.length; i++) {
+            if (String(res[i].name || "").toLowerCase() === name.toLowerCase()) return res[i].id;
+          }
+          return res.length ? res[0].id : null;
+        });
+      }
+      function fetchObsPhotos(taxonId) {
+        var url = API + "/observations?taxon_id=" + taxonId +
+          "&photos=true&quality_grade=research,needs_id" +
+          "&photo_license=" + OPEN_LICENSES.join(",") +
+          "&per_page=30&order_by=votes";
+        return fetchJson(url).then(function (j) { return filterPhotos(extractPhotos(j)); });
+      }
+      function fetchForTaxon(t) {
+        return resolveTaxonId(t.q).then(function (id) {
+          if (!id) throw new Error("iNaturalist has no taxon named " + t.q);
+          return fetchObsPhotos(id);
+        }).then(function (primary) {
+          if (primary.length >= MIN_PRIMARY || !t.fb) {
+            return { photos: primary.slice(0, MAX_PHOTOS), fallbackTaxon: null };
+          }
+          return resolveTaxonId(t.fb).then(function (fid) {
+            if (!fid) return { photos: primary.slice(0, MAX_PHOTOS), fallbackTaxon: null };
+            return fetchObsPhotos(fid).then(function (extra) {
+              var merged = filterPhotos(primary.concat(extra));
+              return { photos: merged.slice(0, MAX_PHOTOS), fallbackTaxon: extra.length ? t.fb : null };
+            });
+          }).catch(function () {
+            return { photos: primary.slice(0, MAX_PHOTOS), fallbackTaxon: null };
+          });
+        });
+      }
+
+      /* ---------- Rendering ---------- */
+      var current = null;      // TAXA entry shown in the detail pane
+      var busy = false;
+      function setStatus(txt, cls) {
+        statusEl.textContent = txt || "";
+        statusEl.className = "inat-status" + (cls ? " " + cls : "");
+      }
+      function scopeText(t, entry) {
+        var base = "Photos below are iNaturalist observations of " + t.scope + ". " +
+          "Each caption names the exact taxon pictured — community identifications can be wrong, so check a photo against your specimen before trusting it.";
+        if (entry && entry.fallbackTaxon) {
+          base += " Openly licensed photos of " + t.scope + " were sparse on iNaturalist, so this set also includes the genus " +
+            entry.fallbackTaxon + " (a member of " + (t.fam === t.q ? "this family" : t.scope) + ") — those captions say " + entry.fallbackTaxon + ".";
+        }
+        return base;
+      }
+      function renderPhotos(t, entry) {
+        grid.innerHTML = "";
+        (entry.photos || []).forEach(function (ph) {
+          var fig = document.createElement("figure");
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.setAttribute("aria-label", "Enlarge iNaturalist photo of " + (ph.taxonName || t.fam) + " by " + (ph.credit || "an iNaturalist contributor"));
+          var im = document.createElement("img");
+          im.src = ph.url;
+          im.alt = "iNaturalist photo of " + (ph.taxonName || t.fam) + " (" + t.fam + ") by " + (ph.credit || "an iNaturalist contributor") + ", " + licenseLabel(ph.license);
+          im.loading = "lazy";
+          im.addEventListener("error", function () { fig.classList.add("hidden"); });
+          btn.appendChild(im);
+          btn.addEventListener("click", function () {
+            var lb = document.getElementById("refLightbox");
+            var li = document.getElementById("refLightboxImg");
+            var lc = document.getElementById("refLightboxCap");
+            if (!lb || !li || !lc) return;
+            li.src = ph.large || ph.url;
+            li.alt = im.alt;
+            lc.textContent = (ph.taxonName || t.fam) + " — iNaturalist photo · © " + (ph.credit || "iNaturalist contributor") + " · " + licenseLabel(ph.license) + " · via iNaturalist";
+            lb.classList.remove("hidden");
+          });
+          fig.appendChild(btn);
+          var cap = document.createElement("figcaption");
+          var tn = document.createElement("span"); tn.className = "inat-taxon";
+          tn.textContent = ph.taxonName || t.fam;
+          cap.appendChild(tn);
+          var cr = document.createElement("span"); cr.className = "inat-credit";
+          cr.textContent = "Photo © " + (ph.credit || "iNaturalist contributor") + " · " + licenseLabel(ph.license) + " · via iNaturalist";
+          cap.appendChild(cr);
+          if (ph.obsId) {
+            var a = document.createElement("a");
+            a.href = "https://www.inaturalist.org/observations/" + ph.obsId;
+            a.target = "_blank"; a.rel = "noopener";
+            a.textContent = "View observation on iNaturalist";
+            cap.appendChild(a);
+          }
+          fig.appendChild(cap);
+          grid.appendChild(fig);
+        });
+      }
+      function render(t) {
+        current = t;
+        grid.innerHTML = "";
+        scopeEl.classList.add("hidden");
+        scopeEl.textContent = "";
+        var entry = cacheGet(t.p);
+        if (entry) {
+          scopeEl.textContent = scopeText(t, entry);
+          scopeEl.classList.remove("hidden");
+          renderPhotos(t, entry);
+          fetchBtn.classList.add("hidden");
+          refreshBtn.classList.remove("hidden");
+          var when = entry.fetchedAt ? new Date(entry.fetchedAt) : null;
+          setStatus("Showing " + entry.photos.length + " iNaturalist photo" + (entry.photos.length === 1 ? "" : "s") +
+            " saved on this device" + (when ? " · fetched " + when.toLocaleDateString() : "") + " — they work offline.", "good");
+        } else {
+          fetchBtn.classList.remove("hidden");
+          refreshBtn.classList.add("hidden");
+          if (navigator.onLine === false) {
+            setStatus("iNaturalist photos need internet on first fetch — this taxon has none saved on this device yet. Connect once, tap “More photos from iNaturalist”, and they'll be kept here for offline use.", "bad");
+          } else {
+            setStatus("No iNaturalist photos saved for this taxon yet — tap “More photos from iNaturalist” to fetch some (needs internet, just this once).", "");
+          }
+        }
+      }
+      function doFetch() {
+        if (!current || busy) return;
+        if (navigator.onLine === false) {
+          setStatus("You're offline, and iNaturalist photos need internet on first fetch. Reconnect and try again — photos already saved on this device still show offline.", "bad");
+          return;
+        }
+        busy = true;
+        fetchBtn.disabled = true; refreshBtn.disabled = true;
+        setStatus("Fetching photos from iNaturalist…", "");
+        var t = current;
+        fetchForTaxon(t).then(function (res) {
+          busy = false;
+          fetchBtn.disabled = false; refreshBtn.disabled = false;
+          if (current !== t) return;
+          if (!res.photos.length) {
+            setStatus("iNaturalist returned no openly licensed photos for " + t.scope + " right now — nothing was saved. The built-in reference photos above still cover this taxon.", "bad");
+            return;
+          }
+          var entry = {
+            fetchedAt: Date.now(),
+            scope: t.scope,
+            fallbackTaxon: res.fallbackTaxon || null,
+            photos: res.photos
+          };
+          cachePut(t.p, entry);
+          render(t);
+        }).catch(function () {
+          busy = false;
+          fetchBtn.disabled = false; refreshBtn.disabled = false;
+          if (current !== t) return;
+          var entry = cacheGet(t.p);
+          setStatus(entry
+            ? "Couldn't reach iNaturalist just now — showing the photos already saved on this device instead."
+            : "Couldn't reach iNaturalist — check your connection and try again. No photos were saved.", "bad");
+        });
+      }
+      fetchBtn.addEventListener("click", doFetch);
+      refreshBtn.addEventListener("click", doFetch);
+
+      /* ---------- Follow the Reference detail pane ----------
+         openRefDetail() (shell script) fills #refDetailName and
+         unhides #refDetail; watch for that and sync the section
+         to the taxon on show. The bundled pane is not modified. */
+      function syncFromPane() {
+        if (detail.classList.contains("hidden")) return;
+        var nameEl = document.getElementById("refDetailName");
+        var nm = nameEl ? nameEl.textContent.replace(/INVASIVE\s*$/, "").trim() : "";
+        var t = BY_NAME[nm];
+        if (t && t !== current) render(t);
+      }
+      if ("MutationObserver" in window) {
+        var mo = new MutationObserver(function () { syncFromPane(); });
+        mo.observe(detail, { attributes: true, childList: true, subtree: true, characterData: true });
+      }
+      document.addEventListener("click", function (e) {
+        if (e.target && e.target.closest && e.target.closest("#refGrid")) setTimeout(syncFromPane, 0);
+      });
+      syncFromPane();
+
+      /* ---------- Verification / fixture surface ----------
+         applyFixture runs a recorded observations response (the
+         JSON shape api.inaturalist.org/v1/observations returns)
+         through the exact extract → license-filter → cache →
+         render pipeline a live fetch uses, for environments
+         where the live API cannot be reached.                  */
+      window.eddyINat = {
+        taxa: TAXA,
+        mapFor: function (slug) { return BY_SLUG[slug] || null; },
+        openLicenses: OPEN_LICENSES.slice(),
+        isOpenLicense: isOpenLicense,
+        licenseLabel: licenseLabel,
+        extractPhotos: extractPhotos,
+        filterPhotos: filterPhotos,
+        cacheGet: cacheGet,
+        cachePut: cachePut,
+        cacheClear: function () { try { localStorage.removeItem(LS_KEY); } catch (e) { /* nothing stored */ } },
+        fetchFor: function (slug) {
+          var t = BY_SLUG[slug];
+          if (!t) return Promise.reject(new Error("no such taxon: " + slug));
+          return fetchForTaxon(t).then(function (res) {
+            if (res.photos.length) {
+              cachePut(slug, { fetchedAt: Date.now(), scope: t.scope, fallbackTaxon: res.fallbackTaxon || null, photos: res.photos });
+            }
+            if (current === t) render(t);
+            return res;
+          });
+        },
+        renderFor: function (slug) { var t = BY_SLUG[slug]; if (t) render(t); return !!t; },
+        current: function () { return current; },
+        applyFixture: function (slug, obsJson, fallbackTaxon) {
+          var t = BY_SLUG[slug];
+          if (!t) return null;
+          var photos = filterPhotos(extractPhotos(obsJson)).slice(0, MAX_PHOTOS);
+          var entry = { fetchedAt: Date.now(), scope: t.scope, fallbackTaxon: fallbackTaxon || null, photos: photos };
+          if (photos.length) cachePut(slug, entry);
+          if (current === t || !current) render(t);
+          return entry;
+        }
+      };
+      window.__eddyINat = window.eddyINat;
     })();
     </script>
   </body>
