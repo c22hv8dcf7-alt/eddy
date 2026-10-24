@@ -12197,6 +12197,11 @@
           var meta = document.createElement("div"); meta.className = "meta";
           meta.textContent = (rec.date || "") + " · " + rec.rows.length + " taxa · " + total + " organisms" + (rec.site ? " · " + rec.site : "");
           grow.appendChild(sid); grow.appendChild(meta);
+          if (rec.historical) {
+            var hb = document.createElement("div"); hb.className = "meta";
+            hb.textContent = "Historical baseline · " + (rec.provenance || "Historical workbook data");
+            grow.appendChild(hb);
+          }
           var open = document.createElement("button");
           open.type = "button"; open.textContent = "Open";
           open.style.cssText = "color:var(--amber-text);border:1px solid var(--line-strong);border-radius:8px;padding:6px 10px;background:none";
@@ -12473,6 +12478,121 @@
       /* Storage access for the science-features layer (indices,
          reports, comparison, Excel import) in the next script. */
       window.eddyLib = { all: libAll, put: libPut, clear: libClearAll, render: renderLibrary };
+
+      /* ================= Historical baseline: QWA workbook, 11-6-16 =================
+         The six Quittapahilla Watershed sites from the lab's
+         Macroinvertebrate_Data-2025 workbook (tabs SC / K1 / BK /
+         BR / Q1 / Q2), seeded once into the library as ordinary
+         samples — same record shape as a finished tray, so the
+         Library, indices, Trends, Timeline, Sites map, reports,
+         comparison and exports all treat them like any other
+         sample — plus a historical flag and the provenance note
+         below so they stay distinguishable from fresh tray counts.
+         The workbook PDF of the same name is NOT the source: its
+         site labels are shuffled, so the sheet's per-site tabs win.
+         Counts are the sheet's nonzero counts (blank = 0), with
+         family names normalised onto Eddy's reference table
+         (chironomidae -> Chironomidae, Simulidae -> Simuliidae,
+         Conegrionidae -> Coenagrionidae, Hirunidae / Hirudinea ->
+         Hirudinea, Planaridae -> Planariidae, Oligochaete ->
+         Oligochaeta, Glossomatidae -> Glossosomatidae). Elmidae
+         life-stage splits are kept as separate rows carrying a
+         stage tag; indices group by family either way, so
+         richness and totals are unaffected. Limoniidae has no
+         entry in Eddy's reference table: its rows keep the family
+         name with no tolerance, so they count toward totals and
+         richness and are honestly excluded from the Hilsenhoff
+         score, exactly like an unmatched import. Tolerances,
+         feeding groups and orders come from Eddy's CURRENT
+         reference table (refFor), never from the sheet, so the
+         recomputed FBI / EPT / richness figures are comparable
+         with new samples — and can differ from the workbook's
+         hand values where the tolerance tables disagree (e.g.
+         Chironomidae: sheet 8, Eddy reference 6).
+         Seeding runs once per device (localStorage marker); a
+         historical sample the user deletes is never resurrected. */
+      (function seedHistoricalQwa() {
+        var HIST_MARK = "eddy_hist_qwa_v1";
+        try { if (localStorage.getItem(HIST_MARK) === "1") return; } catch (e) { /* no marker store — the key check below still prevents duplicates */ }
+        var HIST_DATE = "2016-11-06";
+        var HIST_PROV = "Historical QWA workbook data (Macroinvertebrate_Data-2025); date per workbook note 11-6-16.";
+        var HIST_METHODS = "Collected with D-nets, preserved in 70% isopropyl alcohol, identified to family level. Indices are recomputed by Eddy from these counts using Eddy's current reference tolerances, so they can differ from the workbook's values where the tolerance tables disagree.";
+        var HIST_SRC = "Historical workbook (Macroinvertebrate_Data-2025)";
+        /* rows: [family, count] or [family, count, stage] — sheet order, nonzero only */
+        var HIST_SITES = [
+          { code: "SC", site: "Snitz Creek at Walnut Street, south of Annville", lat: 40.331346, lng: -76.460273,
+            rows: [["Chironomidae", 28], ["Corbiculidae", 11], ["Elmidae", 8, "adult"], ["Elmidae", 14, "larva"], ["Gammaridae", 17], ["Hirudinea", 5], ["Hydropsychidae", 83], ["Planariidae", 5], ["Planorbidae", 2], ["Psephenidae", 1], ["Glossosomatidae", 1], ["Limoniidae", 2]],
+            extra: "The workbook's SC total reads 174, summed before Glossosomatidae (1) and Limoniidae (2) were added below it; Eddy's total of 177 includes them. Elmidae split in the sheet: 8 adults + 14 larvae. A stray 17 in a far column on the Pleuroceridae row is not a count and was left out." },
+          { code: "K1", site: "Killinger Creek at Killinger Road, near Cleona", lat: 40.312635, lng: -76.554315,
+            rows: [["Cambaridae", 3], ["Oligochaeta", 4], ["Asellidae", 884], ["Chironomidae", 10], ["Hydropsychidae", 14], ["Gammaridae", 254], ["Elmidae", 53, "larva"], ["Elmidae", 15, "adult"], ["Simuliidae", 17], ["Dytiscidae", 4], ["Planorbidae", 50], ["Lymnaeidae", 27], ["Hirudinea", 3], ["Ephemeroptera (order)", 2]],
+            extra: "Asellidae 884 is as written in the sheet — a sowbug-dominated sample, not a typo. Elmidae split in the sheet: 53 larvae + 15 adults." },
+          { code: "BK", site: "Beck Creek at Bricker Lane", lat: 40.323999, lng: -76.483927,
+            rows: [["Cambaridae", 5], ["Oligochaeta", 29], ["Asellidae", 18], ["Chironomidae", 5], ["Hydropsychidae", 13], ["Gammaridae", 115], ["Elmidae", 5], ["Simuliidae", 2], ["Tipulidae", 3], ["Corixidae", 8], ["Dytiscidae", 23], ["Leptophlebiidae", 2], ["Coenagrionidae", 1], ["Ephemeroptera (order)", 2], ["Lymnaeidae", 16]],
+            extra: "Dytiscidae 23 is the sheet's \"1(A) 22(L)\" — 1 adult + 22 larvae. Elmidae 5 carries no life stage in the sheet. Presence-only rows with no count were not tallied: \"Snail ? New zealnd mud snail\" and \"Unknown pupae\"." },
+          { code: "BR", site: "Bachman Run at Louser Road, south of Annville", lat: 40.317592, lng: -76.516046,
+            rows: [["Asellidae", 6], ["Chironomidae", 27], ["Hydropsychidae", 70], ["Gammaridae", 437], ["Elmidae", 23, "adult"], ["Elmidae", 60, "larva"], ["Simuliidae", 1], ["Planariidae", 2], ["Leptophlebiidae", 2], ["Corbiculidae", 4], ["Lymnaeidae", 78], ["Limoniidae", 5]],
+            extra: "Elmidae split in the sheet: 23 adults + 60 larvae. Not tallied: \"1 Ant with wings\" — terrestrial, not a macroinvertebrate sample member." },
+          { code: "Q1", site: "Quittapahilla Creek at Garfield Street", lat: 40.332464, lng: -76.471849,
+            rows: [["Oligochaeta", 5], ["Asellidae", 2], ["Chironomidae", 1], ["Hydropsychidae", 103], ["Gammaridae", 4], ["Simuliidae", 1], ["Tipulidae", 3], ["Planariidae", 5], ["Ephemeroptera (order)", 1], ["Limoniidae", 1]],
+            extra: "" },
+          { code: "Q2", site: "Quittapahilla Creek at Palmyra-Bellegrove Road", lat: 40.342592, lng: -76.56349,
+            rows: [["Oligochaeta", 11], ["Asellidae", 1], ["Chironomidae", 25], ["Hydropsychidae", 53], ["Gammaridae", 399], ["Elmidae", 8, "larva"], ["Elmidae", 5, "adult"], ["Tipulidae", 1], ["Planariidae", 1], ["Coenagrionidae", 1], ["Corbiculidae", 35], ["Planorbidae", 11]],
+            extra: "Elmidae split in the sheet: 8 larvae + 5 adults." }
+        ];
+        function histCommon(family) {
+          for (var i = 0; i < TAXA.length; i++) {
+            if (TAXA[i].families.indexOf(family) >= 0) return TAXA[i].common;
+          }
+          return "";
+        }
+        function histRow(spec) {
+          var family = spec[0], count = spec[1], stage = spec[2] || "";
+          var ref = refFor(family);
+          if (ref) {
+            return { common: histCommon(family) || family, family: family, feed: ref.f, tol: ref.t, ord: ref.o, phy: ref.p, cls: ref.c, count: count, sizeMm: null, ai: null, src: HIST_SRC, stage: stage };
+          }
+          /* No reference entry (Limoniidae): keep the family as a
+             labeled row so totals and richness stay true; no
+             tolerance, so the indices exclude it from the HBI. */
+          return { common: "Crane fly larva", family: family, feed: "", tol: "", ord: "Diptera", phy: "Arthropoda", cls: "Insecta", count: count, sizeMm: null, ai: null, src: HIST_SRC + " — no tolerance in Eddy's reference table", stage: stage };
+        }
+        function histRecord(s, savedAt) {
+          return {
+            key: "hist-qwa-" + s.code,
+            savedAt: savedAt,
+            date: HIST_DATE, site: s.site, sampleId: s.code + " (historical, 11-6-16)",
+            notes: HIST_PROV + " " + HIST_METHODS + (s.extra ? " " + s.extra : ""),
+            method: "",
+            lat: s.lat, lng: s.lng,
+            photo: "", imgW: 0, imgH: 0, dets: [], pxPerMm: null,
+            rows: s.rows.map(histRow),
+            measurements: [], chat: [],
+            historical: true, provenance: HIST_PROV
+          };
+        }
+        /* Exposed for verification (audit / console): the seeded
+           records exactly as they are written to the library. */
+        window.eddyHistoricalQwa = { date: HIST_DATE, provenance: HIST_PROV, sites: HIST_SITES };
+        libAll().then(function (existing) {
+          var have = {};
+          (existing || []).forEach(function (r) {
+            have[r.key] = 1;
+            if (r.sampleId) have["sid:" + r.sampleId] = 1;
+          });
+          var base = Date.now();
+          var chain = Promise.resolve();
+          HIST_SITES.forEach(function (s, i) {
+            var rec = histRecord(s, base + i * 1000);
+            if (have[rec.key] || have["sid:" + rec.sampleId]) return;
+            chain = chain.then(function () { return libPut(rec); });
+          });
+          return chain.then(function () {
+            try { localStorage.setItem(HIST_MARK, "1"); } catch (e) { /* marker is a nicety — keys above already prevent duplicates */ }
+            var lv = $("view-library");
+            if (lv && lv.classList.contains("active")) renderLibrary();
+          });
+        }).catch(function () { /* Seeding is best-effort: Eddy works without the baseline, and the next load retries. */ });
+      })();
       /* Lets other views (Timeline) open a saved sample in the
          Library detail pane, exactly like tapping Open there.  */
       window.eddyOpenSample = openLibSample;
