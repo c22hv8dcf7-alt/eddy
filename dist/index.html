@@ -1939,11 +1939,211 @@
       .sim-chip .n{font-family:"IBM Plex Mono",monospace;color:var(--amber-text);margin-left:4px}
       .sim-chip.lost{opacity:.42;text-decoration:line-through}
       .sim-chip.inv{border-color:var(--red);color:var(--red)}
+
+      /* ---------- Time-lapse mode + Style B creature motion ----------
+         The time-lapse is an added mode beside the live one: same
+         scene, same readouts, driven by a monthly model instead of
+         the instant abundance snap. Creature motion is written to
+         the CSS `translate` property by the animation loop, so it
+         composes with the transform the layout / .off states own
+         and never fights them.                                */
+      .sim-modebar{display:flex;gap:6px;margin:14px 0 2px;background:var(--panel-2);
+        border:1px solid var(--line);border-radius:11px;padding:5px}
+      .sim-modebar button{flex:1;min-height:40px;padding:8px 12px;border-radius:8px;cursor:pointer;
+        border:1.5px solid transparent;background:transparent;color:var(--ink-2);
+        font-family:inherit;font-size:.92rem;font-weight:700}
+      .sim-modebar button.on{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+      .sim-tl{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+      .sim-tl-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:6px}
+      .sim-tl-head h3{margin:0}
+      .sim-tl-run{font-size:.85rem;font-weight:600;color:var(--amber-text)}
+      .sim-tl-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+      .sim-select{width:100%;min-height:40px;padding:7px 10px;border-radius:9px;cursor:pointer;
+        border:1.5px solid var(--line-strong);background:var(--panel);color:var(--ink);
+        font-family:inherit;font-size:.9rem;font-weight:600}
+      .sim-tl-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+      .sim-tl-row .sim-select{flex:1 1 170px;width:auto}
+      .sim-tl-month{display:flex;align-items:center;gap:7px;font-size:.85rem;font-weight:600;color:var(--ink-2)}
+      .sim-tl-month .sim-select{flex:none;width:86px}
+      .sim-tl-events{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+      .sim-tl-evchip{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600;
+        background:var(--panel);border:1px solid var(--amber-line);color:var(--ink);
+        border-radius:999px;padding:4px 6px 4px 11px}
+      .sim-tl-evchip button{border:none;background:none;color:var(--ink-2);cursor:pointer;
+        font-size:.95rem;line-height:1;padding:3px 6px;border-radius:999px;font-family:inherit}
+      .sim-tl-evchip button:hover{color:var(--ink)}
+      .sim-tl-log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;
+        max-height:342px;overflow-y:auto;scrollbar-width:thin;padding-right:2px}
+      .sim-tl-log li{font-size:.88rem;line-height:1.5;color:var(--ink-2);background:var(--panel);
+        border:1px solid var(--line);border-radius:9px;padding:7px 10px}
+      .sim-tl-log li strong{color:var(--ink)}
+      .sim-tl-log li .tl-m{font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;
+        color:var(--amber-text);display:block;letter-spacing:.04em;text-transform:uppercase;margin-bottom:1px}
+      .sim-tl-log li.future{display:none}
+      .sim-tl-stage{margin-top:14px}
+      .sim-tl-transport{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+      .sim-tl-transport #tlPlayBtn{flex:none;min-width:104px}
+      .sim-tl-transport input[type="range"]{flex:1 1 220px;accent-color:var(--amber);min-height:30px;cursor:pointer}
+      .sim-tl-clock{font-family:"IBM Plex Mono",monospace;font-size:.88rem;font-weight:600;color:var(--ink);white-space:nowrap}
+      .sim-tl-speed{flex:none}
+      .sim-tl-speed button{min-height:34px;padding:5px 11px}
+      .sim-tl-seasons{display:flex;margin-top:10px;border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+      .sim-tl-seasons .tl-season{flex:1;text-align:center;font-size:.6rem;font-weight:700;letter-spacing:.02em;
+        text-transform:uppercase;padding:4px 0;color:var(--ink-2);white-space:nowrap;overflow:hidden}
+      .tl-season.sp{background:#2e5a3c33}.tl-season.su{background:#b98a2e33}
+      .tl-season.au{background:#a35a2438}.tl-season.wi{background:#4d7d9240}
+      .sim-tl-chartwrap{margin-top:10px}
+      .sim-tl-chart{width:100%;height:auto;display:block;background:var(--panel);
+        border:1px solid var(--line);border-radius:10px}
+      .sim-tl-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+      .tl-leg{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;cursor:pointer;
+        background:var(--panel);border:1px solid var(--line);color:var(--ink-2);
+        border-radius:999px;padding:4px 10px;font-family:inherit}
+      .tl-leg .sw{width:16px;height:0;border-top:3px solid;border-radius:2px;flex:none}
+      .tl-leg.off{opacity:.38}
+      .tl-leg.inv{border-color:var(--red);color:var(--red)}
+      .sim-tl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
+      .sim-tl-cards-head{display:flex;align-items:baseline;gap:12px;margin-top:16px}
+      .sim-tl-cards-head h3{margin:0}
+      .sim-tl-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px;margin-top:9px}
+      .tl-card{display:flex;gap:11px;background:var(--panel-2);border:1px solid var(--line);
+        border-radius:11px;padding:10px 11px;align-items:flex-start}
+      .tl-card.inv{border-color:var(--red)}
+      .tl-card img,.tl-card .tl-ph{width:52px;height:42px;flex:none;object-fit:cover;border-radius:7px;background:#0a1a28}
+      .tl-card .tl-ph{display:flex;align-items:center;justify-content:center;color:#cfe6f5;
+        font-size:.56rem;font-weight:700;text-align:center;border:1.5px dashed rgba(255,255,255,.4);padding:2px}
+      .tl-card .tl-body{min-width:0}
+      .tl-card .tl-name{font-family:"Archivo",sans-serif;font-weight:700;font-size:.92rem;color:var(--ink);line-height:1.25}
+      .tl-card .tl-fam{font-style:italic;font-size:.78rem;color:var(--ink-3)}
+      .tl-card .tl-count{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:1.22rem;color:var(--ink);margin-top:2px}
+      .tl-card .tl-delta{font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600;margin-left:7px;white-space:nowrap}
+      .tl-delta.up{color:var(--green)} .tl-delta.down{color:var(--red)} .tl-delta.flat{color:var(--ink-3)}
+      .tl-card .tl-meta{font-size:.74rem;color:var(--ink-3);margin-top:2px;line-height:1.4}
+      .tl-card .tl-tag{display:inline-block;font-size:.64rem;font-weight:800;letter-spacing:.05em;
+        color:var(--red);border:1px solid var(--red);border-radius:5px;padding:0.5px 5px;margin-left:6px;vertical-align:2px}
+      .sim-ctl.tl-dim{opacity:.45;pointer-events:none}
+      @media (max-width:760px){
+        .sim-tl-grid{grid-template-columns:1fr}
+        .sim-tl-log{max-height:260px}
+      }
+      @media (prefers-reduced-motion: reduce){
+        .sim-tl-log{scroll-behavior:auto}
+      }
       @media (max-width:760px){
         .sim-grid{grid-template-columns:1fr}
         .sim-scene{aspect-ratio:4/4.6;min-height:430px}
         .sim-critter .sc-lab{font-size:.52rem;padding:1px 5px}
         .sim-stats{grid-template-columns:repeat(2,1fr)}
+      }
+
+      /* ---------- Time-lapse restyled to the Simulator Ideas mockup ----------
+         Active only while time-lapse is on: the mode buttons add
+         .tl-on to the simulator column and the script at the end of
+         the page moves the shared stat tiles + water panel into
+         their mockup slots. Deep-green page, teal accent, serif
+         panel titles, scenario pills, one wide tank, a Run-the-year
+         control bar, four stat tiles, chart + field log side by
+         side, then the taxon-card grid. Exiting to Live removes
+         .tl-on and puts every moved node back, so Live keeps its
+         original styling exactly.                              */
+      .mk-scenarios{display:none}
+      .sim-stat .ss-sub{display:none}
+      .sim-col.tl-on{--panel:#0d1f18;--panel-2:#11251d;--panel-3:#183629;
+        --ink:#edf5f0;--ink-2:#a7bfb1;--ink-3:#7e9a89;
+        --line:#1e3a2e;--line-strong:#2d5543;
+        --amber:#5ec8b4;--amber-ink:#05231c;--amber-soft:#12362c;--amber-line:#2c6b5c;--amber-text:#6fd3bf;
+        --teal:#5ec8b4;--teal-soft:#12362c;--green-bg:#14301f;--red-bg:#38211c;
+        --shadow:0 1px 3px rgba(0,0,0,.5),0 10px 28px rgba(0,0,0,.4);
+        max-width:1180px}
+      #view-simulator .view-scroll:has(> .sim-col.tl-on){background:#060f0b}
+      .sim-col.tl-on .card{background:#0a1a13;border-color:#1c352a;display:flex;flex-direction:column}
+      .sim-col.tl-on .sim-grid{order:8}
+      .sim-col.tl-on .sim-community{order:9}
+      .sim-col.tl-on .card > p.hint{order:10}
+      .sim-col.tl-on .sim-presets{display:none}
+      .sim-col.tl-on .card-head .num{color:var(--teal)}
+      .sim-col.tl-on .mk-scenarios{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:4px 0 14px}
+      .mk-scen-lab{font-size:.92rem;color:var(--ink-2);margin-right:2px}
+      .mk-pill{min-height:40px;padding:8px 16px;border-radius:999px;cursor:pointer;
+        border:1px solid var(--line-strong);background:transparent;color:var(--ink);
+        font-family:inherit;font-size:.92rem;font-weight:600}
+      .mk-pill:hover{border-color:var(--teal)}
+      .mk-pill.on{background:var(--teal);border-color:var(--teal);color:#05231c}
+      .sim-col.tl-on .sim-modebar{background:var(--panel-2);border-color:var(--line)}
+      .sim-col.tl-on .sim-scene{border-radius:16px;border-color:#2d5543;
+        background:linear-gradient(180deg,#a9cec1 0%,#71b09d 15%,#418678 40%,#2b675a 70%,#1e4c43 100%)}
+      .sim-col.tl-on .sim-bed{background:linear-gradient(180deg,rgba(96,82,60,0) 0%,#5d4e39 38%,#483b2a 72%,#372c1f 100%)}
+      .sim-col.tl-on .sim-rocks ellipse{fill:#6d5f4e}
+      .sim-col.tl-on .sim-tl{border-top:none;margin-top:16px;padding-top:0;
+        display:flex;flex-direction:column;gap:14px}
+      .sim-col.tl-on .card-head h2{color:var(--ink)}
+      .sim-col.tl-on .sim-tl-head h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;
+        font-size:1.24rem;letter-spacing:0;text-transform:none;color:var(--ink)}
+      .sim-col.tl-on .sim-tl-head{margin-bottom:0}
+      .sim-col.tl-on .sim-tl-head + .hint{margin-top:-8px}
+      /* control bar */
+      .mk-bar{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px 12px}
+      .mk-bar-top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+      .mk-play{flex:none;min-height:52px;padding:12px 26px;border-radius:999px;cursor:pointer;border:none;
+        background:var(--teal);color:#05231c;font-family:inherit;font-size:1.02rem;font-weight:700}
+      .mk-play:hover{filter:brightness(1.07)}
+      .sim-col.tl-on .mk-bar .sim-seg{gap:0;border:1px solid var(--line-strong);border-radius:999px;overflow:hidden;flex:none;background:transparent}
+      .sim-col.tl-on .mk-bar .sim-seg button{border:none;border-radius:0;background:transparent;min-height:44px;padding:8px 15px}
+      .sim-col.tl-on .mk-bar .sim-seg button.on{background:var(--teal);border-color:var(--teal);color:#05231c}
+      .mk-month{margin-left:auto;text-align:right}
+      .mk-month-big{font-family:"Archivo",sans-serif;font-weight:800;font-size:1.5rem;color:var(--ink);line-height:1.15;white-space:nowrap}
+      .mk-month-sub{font-size:.85rem;color:var(--ink-2);margin-top:2px}
+      .mk-bar input[type="range"]{width:100%;accent-color:#eef6f1;min-height:30px;cursor:pointer;margin-top:12px}
+      .mk-ticks{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;
+        font-size:.78rem;color:var(--ink-3);margin-top:1px}
+      .mk-note{font-size:.9rem;color:var(--ink-2);line-height:1.55;margin:10px 0 2px}
+      .sim-col.tl-on .sim-tl-seasons{margin-top:10px}
+      /* stat tiles */
+      .mk-stats:empty{display:none}
+      .sim-col.tl-on .sim-stats{grid-template-columns:repeat(4,1fr);gap:12px;margin:0}
+      .sim-col.tl-on .sim-stat{display:flex;flex-direction:column;background:var(--panel-2);
+        border:1px solid var(--line);border-radius:12px;padding:15px 17px;text-align:left}
+      .sim-col.tl-on .sim-stat:nth-child(1){order:3}
+      .sim-col.tl-on .sim-stat:nth-child(2){order:4}
+      .sim-col.tl-on .sim-stat:nth-child(3){order:1}
+      .sim-col.tl-on .sim-stat:nth-child(4){order:2}
+      .sim-col.tl-on .sim-stat .ss-lab{order:0;font-size:.72rem;letter-spacing:.07em;color:var(--ink-3);margin:0 0 6px}
+      .sim-col.tl-on .sim-stat .ss-num{order:1;font-family:"Archivo",sans-serif;font-weight:800;
+        font-size:2rem;line-height:1.05;color:var(--ink)}
+      .sim-col.tl-on .sim-stat .ss-sub{display:block;order:2;font-size:.88rem;color:var(--ink-2);margin-top:5px;line-height:1.35}
+      /* panels + serif titles */
+      .sim-col.tl-on .sim-panel{background:var(--panel-2);border-color:var(--line);border-radius:14px;padding:17px 18px}
+      .sim-col.tl-on .sim-panel h3,.sim-col.tl-on .sim-tl-cards-head h3{
+        font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:1.24rem;
+        letter-spacing:0;text-transform:none;color:var(--ink)}
+      .sim-col.tl-on .sim-tl-grid{margin-top:0}
+      .sim-col.tl-on .sim-seg button.on{background:var(--teal);border-color:var(--teal);color:#05231c}
+      .sim-col.tl-on .sim-select{background:var(--panel);border-color:var(--line-strong)}
+      /* chart + field log row */
+      .mk-chartrow{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;align-items:start}
+      .sim-col.tl-on .sim-tl-chartwrap{margin-top:4px}
+      .sim-col.tl-on .sim-tl-chart{background:transparent;border:none;border-radius:0}
+      .sim-col.tl-on .tl-leg{background:transparent;border:none;padding:3px 5px;font-size:.85rem;color:var(--ink-2)}
+      .sim-col.tl-on .tl-leg .sw{width:10px;height:0;border-top-width:10px;border-radius:3px}
+      .sim-col.tl-on .sim-tl-log{max-height:430px;gap:13px}
+      .sim-col.tl-on .sim-tl-log li{background:transparent;border:none;border-left:3px solid var(--teal);
+        border-radius:0;padding:1px 0 1px 12px;font-size:.9rem}
+      .sim-col.tl-on .sim-tl-log li .tl-m{display:inline;font-family:inherit;font-size:.9rem;font-weight:800;
+        color:var(--ink);text-transform:none;letter-spacing:0;margin:0 5px 0 0}
+      /* taxon cards */
+      .sim-col.tl-on .sim-tl-cards{grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}
+      .sim-col.tl-on .tl-card{background:var(--panel-2);border-color:var(--line);border-radius:14px;padding:14px}
+      .sim-col.tl-on .tl-card img,.sim-col.tl-on .tl-card .tl-ph{width:54px;height:54px;border-radius:10px}
+      .sim-col.tl-on .tl-count{font-family:"Archivo",sans-serif;font-weight:800;font-size:1.35rem}
+      .sim-col.tl-on .tl-name{font-size:.98rem}
+      .sim-col.tl-on .sim-grid{grid-template-columns:1fr;margin-top:0}
+      @media (max-width:900px){
+        .mk-chartrow{grid-template-columns:1fr}
+      }
+      @media (max-width:760px){
+        .sim-col.tl-on .sim-stats{grid-template-columns:repeat(2,1fr)}
+        .sim-col.tl-on .sim-scene{aspect-ratio:4/3.9;min-height:420px}
+        .mk-month{margin-left:0;text-align:left}
       }
       @media (prefers-reduced-motion: reduce){
         .sim-flow{animation:none}
@@ -4106,6 +4306,20 @@
                 <div class="card-head"><span class="num">≈</span><h2 id="h-sim">Ecosystem Simulator</h2></div>
                 <p class="card-sub">A living riffle stocked with the actual organisms from Eddy's reference library — the photos below are the same specimens from the Reference view. Change the water and watch who thrives, who leaves, and who moves in. Every organism responds by its real pollution tolerance value (0 = most sensitive, 10 = most tolerant), and the score is computed with the same richness, %EPT and Hilsenhoff maths Eddy uses on real samples.</p>
 
+                <div class="sim-modebar" role="group" aria-label="Simulator mode">
+                  <button type="button" class="on" id="simModeLive" aria-pressed="true">Live conditions</button>
+                  <button type="button" id="simModeTl" aria-pressed="false">Time-lapse · 12 / 24 months</button>
+                </div>
+
+                <div class="mk-scenarios" role="group" aria-label="Try a scenario">
+                  <span class="mk-scen-lab">Try a scenario:</span>
+                  <button type="button" class="mk-pill on" data-scen="healthy">Healthy riffle</button>
+                  <button type="button" class="mk-pill" data-scen="heat">Summer heat wave</button>
+                  <button type="button" class="mk-pill" data-scen="runoff">Spring runoff &amp; road salt</button>
+                  <button type="button" class="mk-pill" data-scen="acid">Acid drainage</button>
+                  <button type="button" class="mk-pill" data-scen="algae">Algae-choked inflow</button>
+                </div>
+
                 <div class="sim-presets" role="group" aria-label="Scenario presets">
                   <button type="button" class="btn btn-ghost sim-preset on" data-preset="healthy">Healthy riffle</button>
                   <button type="button" class="btn btn-ghost sim-preset" data-preset="storm">After a storm (runoff event)</button>
@@ -4199,6 +4413,104 @@
                 <div class="sim-community">
                   <h3>Who's in the riffle</h3>
                   <div class="sim-chips" id="simChips"></div>
+                </div>
+
+                <!-- ============ TIME-LAPSE (added mode) ============ -->
+                <div class="sim-tl hidden" id="simTl">
+                  <div class="mk-bar">
+                    <div class="mk-bar-top">
+                      <button type="button" class="mk-play" id="tlPlayBtn" aria-pressed="false">&#9654; Run the year</button>
+                      <div class="sim-seg sim-tl-speed" id="tlSpeedSeg" role="group" aria-label="Playback speed">
+                        <button type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
+                        <button type="button" data-speed="1" class="on" aria-pressed="true">1×</button>
+                        <button type="button" data-speed="2" aria-pressed="false">2×</button>
+                        <button type="button" data-speed="4" aria-pressed="false">4×</button>
+                      </div>
+                      <div class="mk-month">
+                        <div class="mk-month-big" id="tlClock">Month 0 of 12</div>
+                        <div class="mk-month-sub" id="tlMonthSub">Baseline sample &#8212; conditions just set</div>
+                      </div>
+                    </div>
+                    <input type="range" id="tlScrub" min="0" max="12" step="0.05" value="0" aria-label="Scrub the timeline by month" />
+                    <div class="mk-ticks" id="mkTicks" aria-hidden="true"></div>
+                    <div class="sim-tl-seasons" id="tlSeasons" aria-hidden="true"></div>
+                    <p class="mk-note">One month passes about every 3 seconds at 1&#215;. Drag the timeline to jump &#8212; scrubbing re-runs the run at the current settings. Change a slider mid-run and the tank holds the <em>new</em> conditions from that month on.</p>
+                  </div>
+
+                  <div class="mk-stats" id="mkStatsSlot"></div>
+
+                  <div class="sim-tl-head">
+                    <h3>Time-lapse — a year in the riffle</h3>
+                    <span class="sim-tl-run" id="tlRunLabel" role="status"></span>
+                  </div>
+                  <p class="hint" style="margin:0 0 10px">The water controls above are <strong>held</strong> for the whole run. Seasons roll over them — spring runoff, summer heat, autumn leaf-fall, winter slowdown — and anything you schedule below lands on top.</p>
+
+                  <div class="sim-tl-grid">
+                    <div class="sim-panel">
+                      <h3>Run setup</h3>
+                      <div class="sim-ctl">
+                        <span class="sim-ctl-lab">Timeline length</span>
+                        <div class="sim-seg" id="tlLenSeg" role="group" aria-label="Timeline length">
+                          <button type="button" data-len="12" class="on" aria-pressed="true">12 months</button>
+                          <button type="button" data-len="24" aria-pressed="false">24 months · 2 years</button>
+                        </div>
+                      </div>
+                      <div class="sim-ctl">
+                        <label for="tlSeedSel">Start the tank from</label>
+                        <select id="tlSeedSel" class="sim-select"></select>
+                        <p class="hint" id="tlSeedNote" style="margin-top:5px"></p>
+                      </div>
+                      <div class="sim-ctl">
+                        <span class="sim-ctl-lab">Introduce an invasive</span>
+                        <div class="sim-tl-row">
+                          <select id="tlInvSel" class="sim-select" aria-label="Invasive species to introduce">
+                            <option value="">None — no introduction</option>
+                            <option value="rusty">Rusty crayfish</option>
+                            <option value="zebra">Zebra mussels</option>
+                            <option value="mud">NZ mudsnail</option>
+                          </select>
+                          <label class="sim-tl-month">in month
+                            <select id="tlInvMonth" class="sim-select" aria-label="Month to introduce the invasive"></select>
+                          </label>
+                        </div>
+                        <p class="hint" style="margin-top:5px">It arrives as a handful of individuals, spreads month by month, and pushes its native competitors out — watch the crayfish if you let the rusty in.</p>
+                      </div>
+                      <div class="sim-ctl">
+                        <span class="sim-ctl-lab">One-off events — land at the current month</span>
+                        <div class="sim-tl-row" role="group" aria-label="Trigger a one-off event">
+                          <button type="button" class="btn btn-ghost btn-small" id="tlEvStorm">Storm</button>
+                          <button type="button" class="btn btn-ghost btn-small" id="tlEvDrought">Drought month</button>
+                          <button type="button" class="btn btn-ghost btn-small" id="tlEvSpill">Spill</button>
+                        </div>
+                        <div class="sim-tl-events" id="tlEventChips"></div>
+                      </div>
+                    </div>
+                    <div class="mk-slot" id="mkWaterSlot"></div>
+                  </div>
+
+                  <div class="mk-chartrow">
+                    <div class="sim-panel mk-chartpanel">
+                      <h3>Population over the year</h3>
+                      <div class="sim-tl-chartwrap">
+                        <svg class="sim-tl-chart" id="tlChart" viewBox="0 0 960 300" preserveAspectRatio="none" role="img" aria-label="Population chart over the run — smooth lines per taxon"></svg>
+                        <div class="sim-tl-legend" id="tlLegend"></div>
+                      </div>
+                      <div class="sim-tl-actions">
+                      <button type="button" class="btn" id="tlReportBtn">Simulation report (PDF)</button>
+                      <span class="status" id="tlReportStatus" role="status" aria-live="polite"></span>
+                    </div>
+                    </div>
+                    <div class="sim-panel mk-logpanel">
+                      <h3>Field log</h3>
+                      <ul class="sim-tl-log" id="tlLog"></ul>
+                    </div>
+                  </div>
+
+                  <div class="sim-tl-cards-head">
+                    <h3>Populations</h3>
+                    <span class="hint">Counts vs the start of the run</span>
+                  </div>
+                  <div class="sim-tl-cards" id="tlCards"></div>
                 </div>
                 <p class="hint" style="margin-top:12px">A teaching model, not a prediction: abundances respond to each taxon's tolerance value, its oxygen and pH needs, and pressure from the invasives — the same traits Eddy scores in a real tray. Organism photos are the Reference library's specimens; invasive photos are from the Invasives guide.</p>
               </div>
@@ -14030,7 +14342,11 @@
         modelFor: paperModel,
         buildPdf: function (rec) { var m = paperModel(rec); return m ? paperBuildPdf(m) : null; },
         shannon: paperShannon,
-        hbiInfo: paperHbiInfo
+        hbiInfo: paperHbiInfo,
+        /* The layout machinery itself, exposed so the Ecosystem
+           Simulator's report can be built with the same on-device
+           PDF writer, fonts and page style as the sample papers. */
+        internals: { PaperDoc: PaperDoc, pdfWrap: pdfWrap, pdfFit: pdfFit, pdfTextW: pdfTextW }
       };
 
       /* Library read-only view: indices + report for the open record */
@@ -24128,35 +24444,40 @@
       var infoEl = document.getElementById("simInfo");
 
       /* p = reference photo prefix (assets/ref/<p>-N.jpg),
-         tol = midpoint of the library tolerance range,
+         tol = the family tolerance value from Eddy's own
+         reference table — the same value the HBI engine scores
+         with (refFor), so the Simulator, the population cards
+         and the readouts can never disagree with a real sample.
+         Where the scoring table has no entry (Rhyacophilidae,
+         Anisoptera), the Reference library range midpoint is used,
          tolTxt = the range as shown in the Reference view.
          photos = which library photos the scene's slots use,
          when the default 1..n order would put a distracting
          shot on a tile (see the worm). The Reference library
          itself always keeps all five photos.                  */
       var SPP = [
-        { p: "perlidae",       name: "Common stonefly",            short: "Stonefly",     fam: "Perlidae",       ord: "Plecoptera",    tol: 1,   tolTxt: "0–2",  oxy: 1, grp: "stonefly",  base: 5, sz: "md", note: "A riffle predator that breathes through tufted gills — it is one of the first to go when oxygen drops.", slots: [[45, 57], [53, 65], [38, 63]] },
+        { p: "perlidae",       name: "Common stonefly",            short: "Stonefly",     fam: "Perlidae",       ord: "Plecoptera",    tol: 1, tolTxt: "1",  oxy: 1, grp: "stonefly",  base: 5, sz: "md", note: "A riffle predator that breathes through tufted gills — it is one of the first to go when oxygen drops.", slots: [[45, 57], [53, 65], [38, 63]] },
         { p: "leuctridae",     name: "Rolled-winged stonefly",     short: "Stonefly",     fam: "Leuctridae",     ord: "Plecoptera",    tol: 0,   tolTxt: "0",    oxy: 1, grp: "stonefly",  base: 4, sz: "md", note: "Tolerance 0 — the most sensitive animal in this scene. If rolled-winged stoneflies are present, the water is genuinely clean.", slots: [[18, 59], [25, 67]] },
         { p: "capniidae",      name: "Small winter stonefly",      short: "Stonefly",     fam: "Capniidae",      ord: "Plecoptera",    tol: 1,   tolTxt: "1",    oxy: 1, grp: "stonefly",  base: 3, sz: "sm", note: "Emerges as an adult in mid-winter; the nymph needs cold, well-oxygenated water all year.", slots: [[70, 47], [64, 54]] },
-        { p: "baetidae",       name: "Blue-winged olive mayfly",   short: "Mayfly",       fam: "Baetidae",       ord: "Ephemeroptera", tol: 1.5, tolTxt: "0–3",  oxy: 1, grp: "mayfly", acid: "mayfly", base: 6, sz: "md", note: "Swims with three tails and feathery gills that fail quickly in silty or acidic water.", slots: [[74, 55], [81, 63], [69, 65]] },
-        { p: "heptageniidae",  name: "Flathead mayfly",            short: "Mayfly",       fam: "Heptageniidae",  ord: "Ephemeroptera", tol: 1.5, tolTxt: "0–3",  oxy: 1, grp: "mayfly", acid: "mayfly", base: 5, sz: "md", note: "Clings flat to rocks in the fastest current, grazing algae — it needs both clean water and low pH stress to hold on.", slots: [[42, 71], [57, 75]] },
-        { p: "hydropsychidae", name: "Net-spinning caddisfly",      short: "Caddisfly",    fam: "Hydropsychidae", ord: "Trichoptera",   tol: 2,   tolTxt: "0–4",  oxy: 1, grp: "caddisfly", base: 5, sz: "md", note: "Spins a silk net between rocks to filter food from the current — the net clogs when runoff loads the water with silt.", slots: [[50, 50], [43, 45], [58, 46]] },
+        { p: "baetidae",       name: "Blue-winged olive mayfly",   short: "Mayfly",       fam: "Baetidae",       ord: "Ephemeroptera", tol: 4, tolTxt: "4",  oxy: 1, grp: "mayfly", acid: "mayfly", base: 6, sz: "md", note: "Swims with three tails and feathery gills that fail quickly in silty or acidic water.", slots: [[74, 55], [81, 63], [69, 65]] },
+        { p: "heptageniidae",  name: "Flathead mayfly",            short: "Mayfly",       fam: "Heptageniidae",  ord: "Ephemeroptera", tol: 2, tolTxt: "2",  oxy: 1, grp: "mayfly", acid: "mayfly", base: 5, sz: "md", note: "Clings flat to rocks in the fastest current, grazing algae — it needs both clean water and low pH stress to hold on.", slots: [[42, 71], [57, 75]] },
+        { p: "hydropsychidae", name: "Net-spinning caddisfly",      short: "Caddisfly",    fam: "Hydropsychidae", ord: "Trichoptera",   tol: 4, tolTxt: "4",  oxy: 1, grp: "caddisfly", base: 5, sz: "md", note: "Spins a silk net between rocks to filter food from the current — the net clogs when runoff loads the water with silt.", slots: [[50, 50], [43, 45], [58, 46]] },
         { p: "rhyacophilidae", name: "Free-living caddisfly",       short: "Caddisfly",    fam: "Rhyacophilidae", ord: "Trichoptera",   tol: 2,   tolTxt: "0–4",  oxy: 1, grp: "caddisfly", base: 3, sz: "md", note: "A case-less hunter of cold headwater riffles; among the most pollution-sensitive of the caddisflies.", slots: [[13, 50], [21, 44]] },
-        { p: "limnephilidae",  name: "Case-building caddisfly",    short: "Caddisfly",    fam: "Limnephilidae",  ord: "Trichoptera",   tol: 2,   tolTxt: "0–4",  oxy: 1, grp: "caddisfly", base: 3, sz: "md", note: "Builds its portable case from leaf pieces in the leaf packs — shredding leaves is how nutrients enter the food web.", slots: [[12, 83], [19, 88]] },
-        { p: "corydalidae",     name: "Hellgrammite",               short: "Hellgrammite", fam: "Corydalidae",    ord: "Megaloptera",   tol: 2,   tolTxt: "0–4",  oxy: 1, grp: "hellgrammite", base: 2, sz: "lg", note: "The larva of the dobsonfly — a big, long-lived predator that needs years of clean, oxygen-rich water to grow.", slots: [[48, 81], [59, 85]] },
+        { p: "limnephilidae",  name: "Case-building caddisfly",    short: "Caddisfly",    fam: "Limnephilidae",  ord: "Trichoptera",   tol: 3, tolTxt: "3",  oxy: 1, grp: "caddisfly", base: 3, sz: "md", note: "Builds its portable case from leaf pieces in the leaf packs — shredding leaves is how nutrients enter the food web.", slots: [[12, 83], [19, 88]] },
+        { p: "corydalidae",     name: "Hellgrammite",               short: "Hellgrammite", fam: "Corydalidae",    ord: "Megaloptera",   tol: 0, tolTxt: "0",  oxy: 1, grp: "hellgrammite", base: 2, sz: "lg", note: "The larva of the dobsonfly — a big, long-lived predator that needs years of clean, oxygen-rich water to grow.", slots: [[48, 81], [59, 85]] },
         { p: "psephenidae",    name: "Water penny",                short: "Water penny",  fam: "Psephenidae",    ord: "Coleoptera",    tol: 4,   tolTxt: "4",    oxy: 1, grp: "penny",     base: 3, sz: "sm", note: "A flattened beetle larva sealed to the top of rocks in fast water — a classic clean-riffle sign.", slots: [[78, 72], [85, 78]] },
-        { p: "elmidae",        name: "Riffle beetle",              short: "Riffle beetle", fam: "Elmidae",       ord: "Coleoptera",    tol: 4.5, tolTxt: "4–5",  grp: "beetle",    base: 4, sz: "sm", note: "Walks the gravel breathing through a plastron of trapped air; moderately sensitive to enrichment.", slots: [[35, 78], [63, 70]] },
+        { p: "elmidae",        name: "Riffle beetle",              short: "Riffle beetle", fam: "Elmidae",       ord: "Coleoptera",    tol: 5, tolTxt: "5",  grp: "beetle",    base: 4, sz: "sm", note: "Walks the gravel breathing through a plastron of trapped air; moderately sensitive to enrichment.", slots: [[35, 78], [63, 70]] },
         { p: "anisoptera",     name: "Dragonfly nymph",            short: "Dragonfly",    fam: "Anisoptera",     ord: "Odonata",       tol: 4,   tolTxt: "3–5",  grp: "dragonfly", base: 2, sz: "lg", note: "An ambush predator that jets away by squirting water — moderately tolerant, but still needs prey-rich, structured habitat.", slots: [[85, 87]] },
-        { p: "cambaridae",     name: "Native crayfish",            short: "Crayfish",      fam: "Cambaridae",     ord: "Decapoda",      tol: 5,   tolTxt: "4–6",  grp: "crayfish", prey: "crayfish", base: 2, sz: "lg", note: "Omnivore and ecosystem engineer — it shreds leaves, stirs the bed, and is the rusty crayfish's first victim.", slots: [[65, 87], [72, 91]] },
-        { p: "gammarus",       name: "Scud",                       short: "Scud",         fam: "Gammaridae",     ord: "Amphipoda",     tol: 5,   tolTxt: "4–6",  grp: "scud", prey: 1, base: 6, sz: "sm", note: "A shrimp-like shredder that turns dead leaves into food for everything else — and a favourite snack of rusty crayfish.", slots: [[10, 79], [89, 91], [30, 88]] },
+        { p: "cambaridae",     name: "Native crayfish",            short: "Crayfish",      fam: "Cambaridae",     ord: "Decapoda",      tol: 6, tolTxt: "6",  grp: "crayfish", prey: "crayfish", base: 2, sz: "lg", note: "Omnivore and ecosystem engineer — it shreds leaves, stirs the bed, and is the rusty crayfish's first victim.", slots: [[65, 87], [72, 91]] },
+        { p: "gammarus",       name: "Scud",                       short: "Scud",         fam: "Gammaridae",     ord: "Amphipoda",     tol: 4, tolTxt: "4",  grp: "scud", prey: 1, base: 6, sz: "sm", note: "A shrimp-like shredder that turns dead leaves into food for everything else — and a favourite snack of rusty crayfish.", slots: [[10, 79], [89, 91], [30, 88]] },
         { p: "simuliidae",     name: "Black fly larva",            short: "Black fly",    fam: "Simuliidae",     ord: "Diptera",       tol: 6,   tolTxt: "6",    grp: "blackfly",  base: 5, sz: "sm", note: "Anchors to rock tops in the current and filters the water with head fans — tougher than the EPT taxa, gone only when things get bad.", slots: [[51, 42], [27, 40], [77, 42]] },
-        { p: "chironomidae",   name: "Midge larva",                short: "Midge",        fam: "Chironomidae",   ord: "Diptera",       tol: 8,   tolTxt: "6–10", grp: "midge",     base: 8, sz: "sm", note: "Many midges carry haemoglobin, so they thrive where oxygen crashes — a stream of mostly midges is a stream in trouble.", slots: [[30, 92], [41, 94], [58, 92], [68, 94]] },
-        { p: "physidae",       name: "Pouch snail",                short: "Snail",        fam: "Physidae",       ord: "Basommatophora", tol: 8,  tolTxt: "8",    grp: "mollusk", moll: 1, base: 5, sz: "sm", note: "Tolerates polluted water well — but its shell is calcium carbonate, and acid water dissolves it.", slots: [[91, 59], [94, 69], [87, 51]] },
+        { p: "chironomidae",   name: "Midge larva",                short: "Midge",        fam: "Chironomidae",   ord: "Diptera",       tol: 6, tolTxt: "6", grp: "midge",     base: 8, sz: "sm", note: "Many midges carry haemoglobin, so they thrive where oxygen crashes — a stream of mostly midges is a stream in trouble.", slots: [[30, 92], [41, 94], [58, 92], [68, 94]] },
+        { p: "physidae",       name: "Pouch snail",                short: "Snail",        fam: "Physidae",       ord: "Basommatophora", tol: 1, tolTxt: "1",    grp: "mollusk", moll: 1, base: 5, sz: "sm", note: "Eddy's reference table scores the pouch snail at tolerance 1, so here it fades early as runoff rises — and acid water dissolves its calcium-carbonate shell.", slots: [[91, 59], [94, 69], [87, 51]] },
         { p: "planorbidae",    name: "Ramshorn snail",             short: "Snail",        fam: "Planorbidae",    ord: "Basommatophora", tol: 7,  tolTxt: "7",    grp: "mollusk", moll: 1, base: 4, sz: "sm", note: "A grazer that scrapes algae off rocks; like all snails here, it cannot build a shell in acidic water.", slots: [[6, 65], [8, 75]] },
-        { p: "sphaeriidae",    name: "Fingernail clam",            short: "Clam",         fam: "Sphaeriidae",    ord: "Veneroida",      tol: 7,   tolTxt: "7",    grp: "mollusk", moll: 1, base: 3, sz: "sm", note: "A tiny filter-feeding bivalve half-buried in gravel — acid water and zebra mussel competition both hit it hard.", slots: [[34, 86], [45, 90]] },
+        { p: "sphaeriidae",    name: "Fingernail clam",            short: "Clam",         fam: "Sphaeriidae",    ord: "Veneroida",      tol: 8, tolTxt: "8",    grp: "mollusk", moll: 1, base: 3, sz: "sm", note: "A tiny filter-feeding bivalve half-buried in gravel — acid water and zebra mussel competition both hit it hard.", slots: [[34, 86], [45, 90]] },
         { p: "asellidae",      name: "Aquatic isopod",             short: "Isopod",       fam: "Asellidae",      ord: "Isopoda",       tol: 8,   tolTxt: "8",    grp: "isopod", prey: 1, base: 4, sz: "sm", note: "A sowbug relative that works through leaf packs; tolerant of enrichment, but easy prey for rusty crayfish.", slots: [[16, 92], [24, 94]] },
-        { p: "oligochaeta",    name: "Aquatic worm",               short: "Worm",         fam: "Oligochaeta",    ord: "Annelida",       tol: 9,   tolTxt: "8–10", grp: "worm",      base: 6, sz: "sm", note: "Lives head-down in the sediment eating organic matter — it booms exactly when the sensitive taxa crash.", photos: [1, 2, 5, 4], slots: [[36, 96], [52, 96], [63, 96], [26, 90]] },
-        { p: "hirudinea",      name: "Leech",                     short: "Leech",        fam: "Hirudinea",      ord: "Annelida",       tol: 9,   tolTxt: "8–10", grp: "leech",     base: 2, sz: "sm", note: "A tolerant predator of worms and snails that does well in enriched, slow, silty water.", slots: [[55, 88]] }
+        { p: "oligochaeta",    name: "Aquatic worm",               short: "Worm",         fam: "Oligochaeta",    ord: "Annelida",       tol: 10, tolTxt: "10", grp: "worm",      base: 6, sz: "sm", note: "Lives head-down in the sediment eating organic matter — it booms exactly when the sensitive taxa crash.", photos: [1, 2, 5, 4], slots: [[36, 96], [52, 96], [63, 96], [26, 90]] },
+        { p: "hirudinea",      name: "Leech",                     short: "Leech",        fam: "Hirudinea",      ord: "Annelida",       tol: 8, tolTxt: "8", grp: "leech",     base: 2, sz: "sm", note: "A tolerant predator of worms and snails that does well in enriched, slow, silty water.", slots: [[55, 88]] }
       ];
       var INV = [
         { key: "rusty", name: "Rusty crayfish", short: "Rusty crayfish", fam: "Cambaridae", sci: "Faxonius rusticus", img: "data:image/jpeg;base64,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", sz: "lg",
@@ -24194,7 +24515,13 @@
         var acid = clamp((6.6 - st.ph) / 2.6, 0, 1);
         var alk = clamp((st.ph - 8.4) / 0.6, 0, 1) * 0.5;
         var m = sp.tol, sens = (10 - m) / 10;
-        var fPoll = m >= 6.5 ? 0.6 + 0.85 * P : clamp(1 - P * (0.35 + 1.15 * sens), 0, 1);
+        /* Tolerant taxa (tol >= 6 on the aligned scale) hold or
+           boom as runoff rises; everyone else declines with
+           sensitivity. The boom grows with tolerance: worms (10)
+           surge, isopods and leeches (8) gain modestly, midges
+           and black flies (6) roughly hold their ground while
+           the sensitive taxa crash around them.               */
+        var fPoll = m >= 6 ? 1 + P * (0.55 * (m - 6) / 4 - 0.25 * (1 - (m - 6) / 4)) : clamp(1 - P * (0.35 + 1.15 * sens), 0, 1);
         var fTemp = sp.oxy ? 1 - 0.85 * warm : 1 - 0.3 * warm * sens;
         var fPh;
         if (sp.moll) fPh = 1 - 1.15 * acid;
@@ -24670,7 +24997,11 @@
       function schedule() {
         if (rafPending) return;
         rafPending = true;
-        requestAnimationFrame(function () { rafPending = false; update(true); });
+        requestAnimationFrame(function () {
+          rafPending = false;
+          if (typeof TL !== "undefined" && TL && TL.on) { tlCaptureConditions(); tlCompute(); tlRender(true); }
+          else update(true);
+        });
       }
       pollSeg.addEventListener("click", function (e) {
         var b = e.target.closest ? e.target.closest("button[data-poll]") : null;
@@ -24693,7 +25024,9 @@
       function applyState(s, presetName) {
         state = { poll: s.poll, temp: s.temp, ph: s.ph, inv: { rusty: !!s.inv.rusty, zebra: !!s.inv.zebra, mud: !!s.inv.mud } };
         presetBtns.forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-preset") === presetName); });
-        syncControls(); update(true);
+        syncControls();
+        if (typeof TL !== "undefined" && TL && TL.on) { tlCaptureConditions(); tlCompute(); tlRender(true); }
+        else update(true);
       }
       presetBtns.forEach(function (b) {
         b.addEventListener("click", function () { applyState(PRESETS[b.getAttribute("data-preset")], b.getAttribute("data-preset")); });
@@ -24711,6 +25044,1083 @@
       syncControls();
       update(false);
 
+      /* ================= Time-lapse mode =================
+         An added mode beside the live one. The water controls
+         are HELD as a baseline; a monthly model then runs 12
+         or 24 months over it:
+
+         - Seasons modulate the baseline (the run opens in
+           March): spring runoff pulses sediment through, summer
+           adds heat and low water, autumn leaf-fall subsidises
+           the shredders, winter slows every rate down. Year 2
+           echoes year 1 because the seasons, not the calendar
+           count, drive the modulation.
+         - Each taxon chases a monthly target set by the SAME
+           abundance maths as the live mode (same tolerance
+           values — Eddy's reference table), under the month's
+           effective conditions. Declines run faster than
+           recoveries, and sensitive taxa decline fastest, so
+           crashes land in tolerance order while comebacks lag.
+         - A taxon at zero has no local growth at all: it can
+           only return on the drift — a small immigration term
+           from upstream, strongest in spring — so local
+           extinction needs sustained bad conditions, and
+           recovery is possible but slower than the crash.
+         - An invasive can be introduced in a chosen month: it
+           starts at a handful of individuals, grows logistically
+           toward its carrying capacity, and its pressure on the
+           natives scales with its density — the same pressure
+           factors the live mode applies, ramped over time.
+         - One-off events (storm / drought / spill) land at the
+           current month with a three-month start-and-recovery
+           envelope.
+
+         The whole run is deterministic: history is recomputed
+         from (seed, held conditions, invasive plan, events)
+         whenever any of them change, so scrubbing is exact and
+         the field log below is derived from the same history —
+         never written twice. Nothing here touches the counting
+         pipeline or any saved sample.                        */
+      var TL = {
+        on: false, months: 12, pos: 0, playing: false, speed: 1,
+        cond: { poll: 0, temp: 55, ph: 7.4 },
+        seedKey: "healthy", seedLabel: "Model riffle — Eddy's reference community",
+        startPops: [], K: [], visRef: [], invScale: 1,
+        invPlan: { key: "", month: 6 },
+        events: [],
+        history: [], log: [],
+        hiddenSeries: {}, lastWhole: -1, cardsKey: ""
+      };
+      var TL_START_MOY = 3;   // the run opens in March — spring runoff first
+      var TL_MOYNAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      function tlMoy(d) { return ((TL_START_MOY - 1 + (d - 1)) % 12) + 1; }
+      function tlSeasonOf(d) { var m = tlMoy(d); return m >= 3 && m <= 5 ? "Spring" : m >= 6 && m <= 8 ? "Summer" : m >= 9 && m <= 11 ? "Autumn" : "Winter"; }
+      function tlSeasonFx(season) {
+        if (season === "Spring") return { temp: 0, poll: 0.6, rate: 1, drift: 1.6 };
+        if (season === "Summer") return { temp: 9, poll: 0.25, rate: 1, drift: 0.8 };
+        if (season === "Autumn") return { temp: 1, poll: 0, rate: 1, drift: 1 };
+        return { temp: -12, poll: 0, rate: 0.5, drift: 0.4 };   // Winter
+      }
+      var TL_SEASON_TXT = {
+        Spring: "<strong>Spring runoff.</strong> Rain and snowmelt pulse sediment through the riffle — a muddy squeeze that clogs nets and gills even in a held-conditions run.",
+        Summer: "<strong>Summer.</strong> Warmer, lower water holds less dissolved oxygen. This is the season that tests the sensitive taxa.",
+        Autumn: "<strong>Autumn leaf-fall.</strong> Leaves pack into the riffle — a food subsidy for the shredders: stoneflies, case-building caddis, scuds and isopods.",
+        Winter: "<strong>Winter slowdown.</strong> Cold water and slow metabolisms: populations barely move until spring, and the drift all but stops."
+      };
+      var TL_SHRED = { Leuctridae: 1, Capniidae: 1, Limnephilidae: 1, Gammaridae: 1, Asellidae: 1, Cambaridae: 1 };
+      var TL_EVENTS = {
+        storm: { name: "Storm", start: "<strong>Storm hits.</strong> A sediment slug scours the riffle — nets clog, gills foul, beds shift. The pulse takes about three months to fully settle.", back: "<strong>Storm passed.</strong> The sediment has settled out; whatever survived the scour starts the slow work of recovery." },
+        drought: { name: "Drought month", start: "<strong>Drought month.</strong> Low, hot water: oxygen thins at exactly the time of year everything needs it most.", back: "<strong>The drought breaks.</strong> Cooler, fuller water returns to the riffle." },
+        spill: { name: "Spill", start: "<strong>Spill.</strong> An acute acidic pulse hits the riffle — the kind of month that rewrites a community.", back: "<strong>Spill flushed through.</strong> The pH is back at the held baseline; the damage, though, is in the counts." }
+      };
+      function tlEventFx(type, s, eff) {
+        if (type === "storm") { eff.poll += 1.7 * s; eff.temp += 2 * s; }
+        else if (type === "drought") { eff.temp += 11 * s; eff.poll += 0.4 * s; }
+        else if (type === "spill") { eff.ph -= 1.9 * s; }
+      }
+      /* Invasive dynamics in the time-lapse. tol values are the
+         family values from Eddy's scoring table (Cambaridae 6,
+         Dreissenidae 6, Hydrobiidae 6); K is in individuals at
+         model-riffle scale and is rescaled for seeded runs.   */
+      var TL_INV = {
+        rusty: { pop0: 2, K: 26, r: 0.55, tol: 6, ord: "Decapoda", competitor: "cambaridae", compName: "native crayfish" },
+        zebra: { pop0: 15, K: 320, r: 0.8, tol: 6, ord: "Myida", competitor: "sphaeriidae", compName: "fingernail clams" },
+        mud: { pop0: 8, K: 240, r: 0.85, tol: 6, ord: "Littorinimorpha", competitor: "physidae", compName: "pouch snails" }
+      };
+      function tlInvPressure(sp, key, frac) {
+        if (key === "rusty") { if (sp.prey === "crayfish") return 0.92 * frac; if (sp.oxy || sp.prey) return 0.38 * frac; return 0.08 * frac; }
+        if (key === "zebra") { if (sp.moll) return 0.30 * frac; if (sp.p === "gammarus") return 0.22 * frac; return 0.05 * frac; }
+        if (key === "mud") { if (sp.moll) return 0.55 * frac; if (sp.acid) return 0.28 * frac; return 0.06 * frac; }
+        return 0;
+      }
+      function tlInvByKey(key) { for (var i = 0; i < INV.length; i++) if (INV[i].key === key) return INV[i]; return null; }
+
+      function tlCaptureConditions() { TL.cond = { poll: state.poll, temp: state.temp, ph: state.ph }; }
+      function tlIndices(popsArr, invP) {
+        var rows = SPP.map(function (sp, i) { return { count: Math.round(popsArr[i]), tol: sp.tol, ord: sp.ord }; });
+        if (invP >= 0.5 && TL.invPlan.key && TL_INV[TL.invPlan.key]) {
+          var iv = TL_INV[TL.invPlan.key];
+          rows.push({ count: Math.round(invP), tol: iv.tol, ord: iv.ord });
+        }
+        return localIndices(rows);
+      }
+
+      /* ---- run seeds: model riffle, the six historical sites,
+         or any Library sample ---- */
+      var tlSeedLib = {};   // key -> {label, pops, K, visRef, note}
+      function tlSeedFromRows(famCounts, label, note) {
+        var pops = [], K = [], visRef = [], matched = {}, unmatched = [];
+        SPP.forEach(function (sp, i) {
+          var c = famCounts[sp.fam] || 0;
+          pops.push(c); matched[sp.fam] = 1;
+          K.push(Math.max(c * 1.35, sp.base * 4));
+          visRef.push(Math.max(c, sp.base));
+        });
+        Object.keys(famCounts).forEach(function (f) { if (!matched[f]) unmatched.push(f); });
+        return { label: label, pops: pops, K: K, visRef: visRef, note: note, unmatched: unmatched };
+      }
+      function tlHealthySeed() {
+        return {
+          label: "Model riffle — Eddy's reference community",
+          pops: SPP.map(function (sp) { return sp.base * 4; }),
+          K: SPP.map(function (sp) { return sp.base * 6.4; }),
+          visRef: SPP.map(function (sp) { return sp.base * 4; }),
+          note: "Eddy's reference community at model abundances — every taxon in the tank starts present.",
+          unmatched: []
+        };
+      }
+      function tlApplySeed(key) {
+        var seed = key === "healthy" ? tlHealthySeed() : tlSeedLib[key];
+        if (!seed) { key = "healthy"; seed = tlHealthySeed(); }
+        TL.seedKey = key;
+        var selEl = document.getElementById("tlSeedSel");
+        if (selEl && selEl.value !== key) selEl.value = key;
+        TL.startPops = seed.pops.slice(); TL.K = seed.K.slice(); TL.visRef = seed.visRef.slice();
+        TL.seedLabel = seed.label;
+        var total = TL.startPops.reduce(function (a, b) { return a + b; }, 0);
+        TL.invScale = clamp(total / 360, 0.7, 3);
+        var rl = document.getElementById("tlRunLabel");
+        if (rl) rl.textContent = seed.label;
+        var sn = document.getElementById("tlSeedNote");
+        if (sn) {
+          sn.textContent = seed.note + (seed.unmatched && seed.unmatched.length
+            ? " Not stocked in the tank: " + seed.unmatched.join(", ") + "."
+            : "");
+        }
+      }
+      function tlBuildSeedOptions() {
+        var sel = document.getElementById("tlSeedSel");
+        if (!sel) return;
+        sel.innerHTML = "";
+        var o = document.createElement("option");
+        o.value = "healthy"; o.textContent = "Model riffle — Eddy's reference community";
+        sel.appendChild(o);
+        if (window.eddyHistoricalQwa && window.eddyHistoricalQwa.sites) {
+          window.eddyHistoricalQwa.sites.forEach(function (s) {
+            var fc = {};
+            s.rows.forEach(function (r) { fc[r[0]] = (fc[r[0]] || 0) + (parseInt(r[1], 10) || 0); });
+            var key = "hist:" + s.code;
+            tlSeedLib[key] = tlSeedFromRows(fc, s.code + " — " + s.site + " · real sample, 6 Nov 2016",
+              "Real per-family counts from the historical workbook sample at this site (6 November 2016). Taxa missing from the sample start at zero — they can only return on the drift.");
+            var op = document.createElement("option");
+            op.value = key; op.textContent = s.code + " — " + s.site + " (real sample, 2016)";
+            sel.appendChild(op);
+          });
+        }
+        if (window.eddyLib && window.eddyLib.all) {
+          window.eddyLib.all().then(function (recs) {
+            (recs || []).forEach(function (rec) {
+              if (!rec || !rec.rows || !rec.rows.length || rec.historical) return;
+              var fc = {}, any = false;
+              rec.rows.forEach(function (r) {
+                var c = parseInt(r.count, 10) || 0;
+                if (r.family && c > 0) { fc[r.family] = (fc[r.family] || 0) + c; any = true; }
+              });
+              if (!any) return;
+              var key = "lib:" + (rec.key || rec.sampleId || Math.random());
+              tlSeedLib[key] = tlSeedFromRows(fc, (rec.site || "Library sample") + (rec.date ? " · " + rec.date : ""),
+                "Real per-family counts from this Library sample. Taxa missing from the sample start at zero — they can only return on the drift.");
+              var op = document.createElement("option");
+              op.value = key;
+              op.textContent = "Library — " + (rec.site || rec.sampleId || "sample") + (rec.date ? " · " + rec.date : "");
+              sel.appendChild(op);
+            });
+            sel.value = TL.seedKey;
+          }).catch(function () { /* library unavailable — model + historical seeds still work */ });
+        }
+        sel.value = TL.seedKey;
+      }
+
+      /* ---- the monthly model ---- */
+      function tlCompute() {
+        var N = TL.months, start = TL.startPops, K = TL.K;
+        var cond = TL.cond;
+        var pops = start.slice();
+        var invDef = TL.invPlan.key ? TL_INV[TL.invPlan.key] : null;
+        var invMeta = TL.invPlan.key ? tlInvByKey(TL.invPlan.key) : null;
+        var invK = invDef ? invDef.K * TL.invScale : 0;
+        var invPop = 0, overtook = false, milestones = {};
+        var hist = [], log = [];
+        function logAt(month, html) { log.push({ month: month, html: html }); }
+        function snap(d, eff) {
+          var idx = tlIndices(pops, invPop);
+          hist.push({ pops: pops.slice(), invPop: invPop, idx: idx, season: d === 0 ? tlSeasonOf(1) : tlSeasonOf(d), eff: eff });
+          return idx;
+        }
+        var idx0 = snap(0, { poll: cond.poll, temp: cond.temp, ph: cond.ph });
+        var pollNames = ["none", "light", "moderate", "heavy"];
+        logAt(0, "<strong>Run started.</strong> " + tlEsc(TL.seedLabel) + ". Conditions held for the whole run: pollution runoff " +
+          pollNames[cond.poll] + ", " + cond.temp + "°F, pH " + Number(cond.ph).toFixed(1) +
+          " — seasons and any scheduled events roll over that baseline. Month 0: HBI " +
+          (idx0.hbi == null ? "—" : idx0.hbi.toFixed(2)) + ", " + idx0.richness + " taxa, " + idx0.total + " individuals.");
+        var wasZero = start.map(function (v) { return v <= 0.01; });
+        var crashLogged = {}, boomLogged = {}, anyCrash = false;
+        var tolN0 = 0;
+        start.forEach(function (v, i) { if (SPP[i].tol >= 6) tolN0 += v; });
+        var tot0 = start.reduce(function (a, b) { return a + b; }, 0);
+        var prevTolShare = tot0 > 0 ? tolN0 / tot0 : 0;
+        var prevSeason = tlSeasonOf(1);
+        logAt(0, TL_SEASON_TXT[prevSeason]);
+        for (var d = 1; d <= N; d++) {
+          var season = tlSeasonOf(d), sfx = tlSeasonFx(season);
+          if (season !== prevSeason) { logAt(d, TL_SEASON_TXT[season]); prevSeason = season; }
+          var eff = { poll: cond.poll + sfx.poll, temp: cond.temp + sfx.temp, ph: cond.ph };
+          var evStart = [], evBack = [], evGrow = 1;
+          TL.events.forEach(function (ev) {
+            var age = d - ev.month;
+            if (age === 0) { tlEventFx(ev.type, 1, eff); evStart.push(ev); if (ev.type === "spill") evGrow = Math.min(evGrow, 0.5); if (ev.type === "storm") evGrow = Math.min(evGrow, 0.8); }
+            else if (age === 1) tlEventFx(ev.type, 0.5, eff);
+            else if (age === 2) tlEventFx(ev.type, 0.25, eff);
+            else if (age === 3) evBack.push(ev);
+          });
+          eff.poll = clamp(eff.poll, 0, 3); eff.temp = clamp(eff.temp, 34, 98); eff.ph = clamp(eff.ph, 3.8, 9.2);
+          evStart.forEach(function (ev) { logAt(d, TL_EVENTS[ev.type].start); });
+          evBack.forEach(function (ev) { logAt(d, TL_EVENTS[ev.type].back); });
+
+          /* invasive introduction + logistic spread */
+          if (invDef && d === TL.invPlan.month) {
+            invPop = invDef.pop0;
+            logAt(d, "<strong>" + invMeta.name + " introduced.</strong> " + invDef.pop0 +
+              (invDef.pop0 === 1 ? " individual arrives" : " individuals arrive") + " in month " + d +
+              " — releases start exactly like this, a handful of animals. From here it spreads month by month.");
+          } else if (invDef && invPop > 0) {
+            invPop += invDef.r * invPop * (1 - invPop / invK) * evGrow;
+            if (invPop > invK * 1.02) invPop = invK * 1.02;
+          }
+          if (invDef && invPop > 0) {
+            var frac = invPop / invK;
+            [0.25, 0.5, 0.9].forEach(function (m) {
+              if (frac >= m && !milestones[m]) {
+                milestones[m] = 1;
+                logAt(d, "<strong>" + invMeta.name + " is spreading.</strong> It now stands at about " + Math.round(invPop) +
+                  " individuals — " + (m === 0.25 ? "a quarter" : m === 0.5 ? "half" : "nearly all") +
+                  " of what this riffle can hold — and the pressure on the natives is scaling with it.");
+              }
+            });
+          }
+
+          /* natives chase their monthly targets */
+          var prev = pops.slice();
+          SPP.forEach(function (sp, i) {
+            var a = abundance(sp, { poll: eff.poll, temp: eff.temp, ph: eff.ph, inv: { rusty: false, zebra: false, mud: false } });
+            var f = a.f;
+            if (invPop > 0) f *= 1 - tlInvPressure(sp, TL.invPlan.key, invPop / invK);
+            if (season === "Autumn" && TL_SHRED[sp.fam]) f *= 1.3;
+            var T = clamp(f, 0, 1.6) * K[i];
+            var p0 = pops[i];
+            var p;
+            if (p0 <= 0.001) {
+              /* locally extinct: no growth of its own — drift only,
+                 a trickle of individuals, strongest in spring    */
+              p = T > 0.3 * K[i] ? (0.25 + 0.5 * (T / K[i])) * sfx.drift : 0;
+            } else {
+              var sens = (10 - sp.tol) / 10;
+              var rate = (T < p0 ? 0.45 + 0.45 * sens : 0.20 + 0.20 * (1 - sens)) * sfx.rate;
+              var inc = (T - p0) * rate;
+              if (inc > 0 && p0 < 3) inc = Math.min(inc, (0.8 + p0 * 0.9) * (0.6 + 0.4 * sfx.drift));
+              p = p0 + inc;
+            }
+            if (p < 0.6 && T < 0.15 * K[i]) p = 0;   /* sustained bad conditions finish it */
+            pops[i] = Math.max(0, p);
+          });
+
+          /* invasive overtakes its native competitor */
+          if (invDef && invPop > 0 && !overtook) {
+            var ci = -1;
+            SPP.forEach(function (sp, i) { if (sp.p === invDef.competitor) ci = i; });
+            if (ci >= 0 && invPop > pops[ci] && invPop > 3) {
+              overtook = true;
+              logAt(d, "<strong>" + invMeta.name + " now outnumbers the " + invDef.compName + "</strong> — " +
+                Math.round(invPop) + " against " + Math.round(pops[ci]) +
+                ". The displacement is no longer coming; on these counts, it has happened.");
+            }
+          }
+
+          /* crashes, takeovers, recolonizations */
+          SPP.forEach(function (sp, i) {
+            var s0 = start[i], p = pops[i];
+            if (p <= 0.01 && prev[i] > 0.01) {
+              wasZero[i] = true; anyCrash = true;
+              logAt(d, "<strong>" + sp.name + " is gone from the tank.</strong> Sustained conditions past its limit (tolerance " +
+                sp.tolTxt + " of 10) finished it. From here it can only return on the drift — and only if the water suits it.");
+            } else if (wasZero[i] && p >= Math.max(2, 0.15 * K[i])) {
+              wasZero[i] = false;
+              logAt(d, "<strong>" + sp.name + " is drifting back in.</strong> Individuals washing down from upstream have taken hold — a foothold, not yet a recovery. Recolonisation on the drift is slower than the crash was; that asymmetry is the real ecology.");
+            }
+            if (s0 > 0 && p > 0.01 && p < 0.2 * s0 && prev[i] >= 0.2 * s0 && !crashLogged[i]) {
+              crashLogged[i] = 1; anyCrash = true;
+              logAt(d, "<strong>" + sp.name + " has crashed</strong> — down to " + Math.round(p) + " from " + Math.round(s0) +
+                " at the start. Sensitive taxa go first: that ordering is the tolerance table doing its work.");
+            }
+            /* A "takeover" is a tolerant taxon surging while the
+               community is under pressure — not a seeded taxon
+               simply growing toward its carrying capacity in
+               clean water, which is just the tank filling in.   */
+            if (sp.tol >= 6 && s0 > 0 && p > 1.5 * s0 && p > 1.02 * K[i] && anyCrash && !boomLogged[i]) {
+              boomLogged[i] = 1;
+              logAt(d, "<strong>" + sp.name + " is taking over</strong> — up to " + Math.round(p) + " from " + Math.round(s0) +
+                ". Tolerant taxa inherit whatever the sensitive ones leave behind.");
+            }
+          });
+
+          var idxD = snap(d, eff);
+          if (idxD.total > 0) {
+            /* the "flip" is an event only when the tolerant share
+               crosses 60% from below — a tolerant-dominated seed
+               starts flipped, which the start entry already says */
+            var tolN = 0;
+            SPP.forEach(function (sp, i) { if (sp.tol >= 6) tolN += Math.round(pops[i]); });
+            var share = tolN / idxD.total;
+            if (share >= 0.6 && prevTolShare < 0.6) {
+              logAt(d, "<strong>The riffle has flipped.</strong> Tolerant taxa (tolerance 6+) now make up " +
+                Math.round(100 * share) + "% of all individuals — the community the HBI is warning about.");
+            }
+            prevTolShare = share;
+          }
+          if (d % 3 === 0 || d === N) {
+            var vD = verdictFor(idxD.hbi);
+            logAt(d, "<strong>Month " + d + " check.</strong> HBI " + (idxD.hbi == null ? "—" : idxD.hbi.toFixed(2)) +
+              " (" + vD.word + ") · richness " + idxD.richness + " taxa · %EPT " +
+              (idxD.pctEpt == null ? "—" : idxD.pctEpt.toFixed(1)) + "% · " + idxD.total + " individuals.");
+          }
+        }
+        var idxN = hist[N].idx, vN = verdictFor(idxN.hbi), v0 = verdictFor(idx0.hbi);
+        logAt(N, "<strong>End of run — month " + N + ".</strong> HBI moved from " +
+          (idx0.hbi == null ? "—" : idx0.hbi.toFixed(2)) + " (" + v0.word + ") to " +
+          (idxN.hbi == null ? "—" : idxN.hbi.toFixed(2)) + " (" + vN.word + "), with " +
+          idxN.richness + " taxa present at the end against " + idx0.richness + " at the start. " +
+          (TL.invPlan.key && invPop > 0 ? tlInvByKey(TL.invPlan.key).name + " ends at about " + Math.round(invPop) + " individuals. " : "") +
+          "Scrub back through the timeline to watch any stretch of it again.");
+        TL.history = hist; TL.log = log;
+        tlDrawChart(); tlRenderLog(); tlBuildCards(true); tlBuildSeasonStrip();
+      }
+
+      /* ---- time-lapse rendering ---- */
+      function tlEsc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+      var tlLogEl = document.getElementById("tlLog");
+      var tlCardsEl = document.getElementById("tlCards");
+      var tlChartEl = document.getElementById("tlChart");
+      var TL_SERIES = [
+        { i: 0, label: "Stonefly · Perlidae", color: "#7bc47f" },
+        { i: 3, label: "Mayfly · Baetidae", color: "#e8a33d" },
+        { i: 5, label: "Caddisfly · Hydropsychidae", color: "#57b7e0" },
+        { i: 8, label: "Hellgrammite · Corydalidae", color: "#4fc4b5" },
+        { i: 12, label: "Native crayfish · Cambaridae", color: "#d98a4b" },
+        { i: 13, label: "Scud · Gammaridae", color: "#c9b458" },
+        { i: 15, label: "Midge · Chironomidae", color: "#e05f4f" },
+        { i: 20, label: "Worm · Oligochaeta", color: "#9aa7b1" }
+      ];
+      var TL_CH = { W: 960, H: 300, L: 46, R: 12, T: 16, B: 26 };
+      function tlChartX(d) { return TL_CH.L + (TL_CH.W - TL_CH.L - TL_CH.R) * (d / TL.months); }
+      function tlSmoothPath(pts) {
+        if (pts.length < 2) return "";
+        var d = "M" + pts[0].x.toFixed(1) + " " + pts[0].y.toFixed(1);
+        for (var i = 0; i < pts.length - 1; i++) {
+          var p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+          d += "C" + (p1.x + (p2.x - p0.x) / 6).toFixed(1) + " " + (p1.y + (p2.y - p0.y) / 6).toFixed(1) + " " +
+               (p2.x - (p3.x - p1.x) / 6).toFixed(1) + " " + (p2.y - (p3.y - p1.y) / 6).toFixed(1) + " " +
+               p2.x.toFixed(1) + " " + p2.y.toFixed(1);
+        }
+        return d;
+      }
+      function tlSvg(tag, attrs) {
+        var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (var k in attrs) el.setAttribute(k, attrs[k]);
+        return el;
+      }
+      function tlDrawChart() {
+        if (!tlChartEl || !TL.history.length) return;
+        while (tlChartEl.firstChild) tlChartEl.removeChild(tlChartEl.firstChild);
+        var N = TL.months, H = TL.history;
+        var maxPop = 10;
+        TL_SERIES.forEach(function (s) { H.forEach(function (h) { if (h.pops[s.i] > maxPop) maxPop = h.pops[s.i]; }); });
+        if (TL.invPlan.key) H.forEach(function (h) { if (h.invPop > maxPop) maxPop = h.invPop; });
+        function Y(v) { return TL_CH.T + (TL_CH.H - TL_CH.T - TL_CH.B) * (1 - Math.sqrt(Math.max(0, v) / maxPop)); }
+        /* season bands */
+        for (var d = 0; d < N; d++) {
+          var season = tlSeasonOf(d + 1);
+          var fill = season === "Spring" ? "rgba(123,196,127,.10)" : season === "Summer" ? "rgba(232,163,61,.10)" : season === "Autumn" ? "rgba(217,138,75,.12)" : "rgba(87,183,224,.10)";
+          tlChartEl.appendChild(tlSvg("rect", { x: tlChartX(d).toFixed(1), y: TL_CH.T - 6, width: (tlChartX(d + 1) - tlChartX(d)).toFixed(1), height: TL_CH.H - TL_CH.T - TL_CH.B + 6, fill: fill }));
+          if (d === 0 || tlSeasonOf(d) !== season) {
+            var t = tlSvg("text", { x: (tlChartX(d) + 3).toFixed(1), y: TL_CH.T + 2, "font-size": 9.5, fill: "#8fa5b5", "font-weight": 700 });
+            t.textContent = season + (d >= 12 ? " · Yr 2" : "");
+            tlChartEl.appendChild(t);
+          }
+        }
+        /* gridlines + y labels (square-root scale keeps small
+           populations readable beside boom taxa)              */
+        [0, 0.25, 0.5, 0.75, 1].forEach(function (fr) {
+          var v = maxPop * fr * fr, y = Y(v);
+          tlChartEl.appendChild(tlSvg("line", { x1: TL_CH.L, x2: TL_CH.W - TL_CH.R, y1: y.toFixed(1), y2: y.toFixed(1), stroke: "rgba(140,160,175,.25)", "stroke-width": 1 }));
+          var t = tlSvg("text", { x: TL_CH.L - 5, y: (y + 3).toFixed(1), "font-size": 9.5, fill: "#8fa5b5", "text-anchor": "end", "font-family": "IBM Plex Mono, monospace" });
+          t.textContent = String(Math.round(v));
+          tlChartEl.appendChild(t);
+        });
+        var cap = tlSvg("text", { x: TL_CH.L, y: TL_CH.H - 14, "font-size": 9, fill: "#8fa5b5" });
+        cap.textContent = "individuals (square-root scale)";
+        tlChartEl.appendChild(cap);
+        [0, Math.round(N / 2), N].forEach(function (d) {
+          var t = tlSvg("text", { x: tlChartX(d).toFixed(1), y: TL_CH.H - 2, "font-size": 9.5, fill: "#8fa5b5", "text-anchor": d === 0 ? "start" : d === N ? "end" : "middle", "font-family": "IBM Plex Mono, monospace" });
+          t.textContent = "Mo " + d;
+          tlChartEl.appendChild(t);
+        });
+        /* event + introduction markers */
+        TL.events.forEach(function (ev) {
+          tlChartEl.appendChild(tlSvg("line", { x1: tlChartX(ev.month).toFixed(1), x2: tlChartX(ev.month).toFixed(1), y1: TL_CH.T - 6, y2: TL_CH.H - TL_CH.B, stroke: "#e8a33d", "stroke-width": 1.4, "stroke-dasharray": "4 3" }));
+          var t = tlSvg("text", { x: (tlChartX(ev.month) + 4).toFixed(1), y: TL_CH.T + 14, "font-size": 9.5, fill: "#e8a33d", "font-weight": 700 });
+          t.textContent = TL_EVENTS[ev.type].name;
+          tlChartEl.appendChild(t);
+        });
+        if (TL.invPlan.key) {
+          tlChartEl.appendChild(tlSvg("line", { x1: tlChartX(TL.invPlan.month).toFixed(1), x2: tlChartX(TL.invPlan.month).toFixed(1), y1: TL_CH.T - 6, y2: TL_CH.H - TL_CH.B, stroke: "#ff5f45", "stroke-width": 1.4, "stroke-dasharray": "4 3" }));
+          var ti = tlSvg("text", { x: (tlChartX(TL.invPlan.month) + 4).toFixed(1), y: TL_CH.H - TL_CH.B - 6, "font-size": 9.5, fill: "#ff5f45", "font-weight": 700 });
+          ti.textContent = tlInvByKey(TL.invPlan.key).name + " in";
+          tlChartEl.appendChild(ti);
+        }
+        /* series — monthly model points, drawn as Catmull-Rom
+           splines so the lines flow instead of stepping        */
+        function drawSeries(key, get, color, dash) {
+          if (TL.hiddenSeries[key]) return;
+          var pts = H.map(function (h, d) { return { x: tlChartX(d), y: Y(get(h)) }; });
+          tlChartEl.appendChild(tlSvg("path", { d: tlSmoothPath(pts), fill: "none", stroke: color, "stroke-width": 2.2, "stroke-linecap": "round", "vector-effect": "non-scaling-stroke", "stroke-dasharray": dash || "none" }));
+        }
+        TL_SERIES.forEach(function (s) { drawSeries("sp" + s.i, function (h) { return h.pops[s.i]; }, s.color); });
+        if (TL.invPlan.key) drawSeries("inv", function (h) { return h.invPop; }, "#ff5f45", "7 4");
+        TL.playheadEl = tlSvg("line", { y1: TL_CH.T - 6, y2: TL_CH.H - TL_CH.B, stroke: "#f2f6fa", "stroke-width": 1.6, opacity: 0.85 });
+        tlChartEl.appendChild(TL.playheadEl);
+        /* legend */
+        var leg = document.getElementById("tlLegend");
+        if (leg) {
+          leg.innerHTML = "";
+          TL_SERIES.forEach(function (s) {
+            var b = document.createElement("button");
+            b.type = "button"; b.className = "tl-leg" + (TL.hiddenSeries["sp" + s.i] ? " off" : "");
+            b.innerHTML = '<span class="sw" style="border-top-color:' + s.color + '"></span>' + tlEsc(s.label);
+            b.addEventListener("click", function () { var k = "sp" + s.i; TL.hiddenSeries[k] = !TL.hiddenSeries[k]; tlDrawChart(); });
+            leg.appendChild(b);
+          });
+          if (TL.invPlan.key) {
+            var iv = tlInvByKey(TL.invPlan.key);
+            var b2 = document.createElement("button");
+            b2.type = "button"; b2.className = "tl-leg inv" + (TL.hiddenSeries.inv ? " off" : "");
+            b2.innerHTML = '<span class="sw" style="border-top-color:#ff5f45"></span>' + tlEsc(iv.name) + " — INVASIVE";
+            b2.addEventListener("click", function () { TL.hiddenSeries.inv = !TL.hiddenSeries.inv; tlDrawChart(); });
+            leg.appendChild(b2);
+          }
+        }
+      }
+      function tlBuildSeasonStrip() {
+        var strip = document.getElementById("tlSeasons");
+        if (!strip) return;
+        strip.innerHTML = ""; strip.style.position = "relative";
+        var cls = { Spring: "sp", Summer: "su", Autumn: "au", Winter: "wi" };
+        for (var d = 1; d <= TL.months; d++) {
+          var s = tlSeasonOf(d);
+          var seg = document.createElement("div");
+          seg.className = "tl-season " + cls[s];
+          seg.textContent = (d === 1 || tlSeasonOf(d - 1) !== s) ? s : "";
+          seg.title = "Month " + d + " — " + s + " (" + TL_MOYNAMES[tlMoy(d) - 1] + ")";
+          strip.appendChild(seg);
+        }
+        var mark = document.createElement("div");
+        mark.id = "tlSeasonMark";
+        mark.style.cssText = "position:absolute;top:0;bottom:0;width:3px;background:var(--amber);border-radius:2px;left:0;pointer-events:none";
+        strip.appendChild(mark);
+        TL.seasonMarkEl = mark;
+      }
+      function tlRenderLog() {
+        if (!tlLogEl) return;
+        tlLogEl.innerHTML = "";
+        TL.log.forEach(function (e) {
+          var li = document.createElement("li");
+          li.setAttribute("data-month", e.month);
+          var m = document.createElement("span");
+          m.className = "tl-m"; m.textContent = "M" + e.month;
+          li.appendChild(m);
+          var body = document.createElement("span");
+          body.innerHTML = e.html;
+          li.appendChild(body);
+          tlLogEl.appendChild(li);
+        });
+        TL.lastWhole = -1;
+      }
+      function tlCardImg(src, fallback, name) {
+        var img = document.createElement("img");
+        img.alt = ""; img.loading = "lazy"; img.draggable = false;
+        var tried = false;
+        img.addEventListener("error", function () {
+          if (fallback && !tried) { tried = true; img.src = fallback; return; }
+          var ph = document.createElement("span");
+          ph.className = "tl-ph"; ph.textContent = name;
+          if (img.parentNode) img.parentNode.replaceChild(ph, img);
+        });
+        img.src = src;
+        return img;
+      }
+      function tlBuildCards(rebuild) {
+        if (!tlCardsEl) return;
+        var key = TL.seedKey + "|" + TL.invPlan.key;
+        if (!rebuild && TL.cardsKey === key && TL.cardEls) return;
+        TL.cardsKey = key;
+        tlCardsEl.innerHTML = "";
+        TL.cardEls = SPP.map(function (sp, i) {
+          var card = document.createElement("div");
+          card.className = "tl-card";
+          var pn = sp.photos ? sp.photos[0] : 1;
+          var src = simRefImg(sp, pn);
+          card.appendChild(tlCardImg(src, src.indexOf("data:") === 0 ? "assets/ref/" + sp.p + "-" + pn + ".jpg" : null, sp.short));
+          var body = document.createElement("div"); body.className = "tl-body";
+          var nm = document.createElement("div"); nm.className = "tl-name"; nm.textContent = sp.name;
+          var fm = document.createElement("div"); fm.className = "tl-fam"; fm.textContent = sp.fam;
+          var ct = document.createElement("div");
+          var num = document.createElement("span"); num.className = "tl-count"; num.textContent = "0";
+          var dl = document.createElement("span"); dl.className = "tl-delta flat"; dl.textContent = "steady";
+          ct.appendChild(num); ct.appendChild(dl);
+          var meta = document.createElement("div"); meta.className = "tl-meta";
+          meta.textContent = "HBI tolerance " + sp.tolTxt + " · starts at " + Math.round(TL.startPops[i]);
+          body.appendChild(nm); body.appendChild(fm); body.appendChild(ct); body.appendChild(meta);
+          card.appendChild(body);
+          tlCardsEl.appendChild(card);
+          return { num: num, dl: dl };
+        });
+        TL.invCardEl = null;
+        if (TL.invPlan.key) {
+          var iv = tlInvByKey(TL.invPlan.key), ivd = TL_INV[TL.invPlan.key];
+          var card2 = document.createElement("div");
+          card2.className = "tl-card inv";
+          var src2 = simInvImg(iv, 1);
+          card2.appendChild(tlCardImg(src2, src2.indexOf("data:") === 0 ? iv.img : null, iv.short));
+          var body2 = document.createElement("div"); body2.className = "tl-body";
+          var nm2 = document.createElement("div"); nm2.className = "tl-name"; nm2.textContent = iv.name;
+          var tag = document.createElement("span"); tag.className = "tl-tag"; tag.textContent = "INVASIVE";
+          nm2.appendChild(tag);
+          var fm2 = document.createElement("div"); fm2.className = "tl-fam"; fm2.textContent = iv.sci;
+          var ct2 = document.createElement("div");
+          var num2 = document.createElement("span"); num2.className = "tl-count"; num2.textContent = "0";
+          var dl2 = document.createElement("span"); dl2.className = "tl-delta flat"; dl2.textContent = "not introduced";
+          ct2.appendChild(num2); ct2.appendChild(dl2);
+          var meta2 = document.createElement("div"); meta2.className = "tl-meta";
+          meta2.textContent = "Arrives month " + TL.invPlan.month + " · " + ivd.pop0 + " individuals · HBI tolerance " + ivd.tol;
+          body2.appendChild(nm2); body2.appendChild(fm2); body2.appendChild(ct2); body2.appendChild(meta2);
+          card2.appendChild(body2);
+          tlCardsEl.appendChild(card2);
+          TL.invCardEl = { num: num2, dl: dl2 };
+        }
+      }
+      function tlDelta(el, diff, zeroTxt) {
+        if (!el) return;
+        if (diff > 0) { el.textContent = "▲ +" + diff; el.className = "tl-delta up"; }
+        else if (diff < 0) { el.textContent = "▼ " + diff; el.className = "tl-delta down"; }
+        else { el.textContent = zeroTxt || "steady"; el.className = "tl-delta flat"; }
+      }
+
+      function tlRender(force) {
+        if (!TL.history.length) return;
+        var N = TL.months, pos = clamp(TL.pos, 0, N);
+        var m0 = Math.floor(pos), fr = pos - m0;
+        if (m0 >= N) { m0 = N; fr = 0; }
+        var A = TL.history[m0], B = TL.history[Math.min(N, m0 + 1)];
+        var pops = TL.startPops.map(function (_, i) { return A.pops[i] + (B.pops[i] - A.pops[i]) * fr; });
+        var invP = A.invPop + (B.invPop - A.invPop) * fr;
+        var idx = tlIndices(pops, invP);
+        /* readouts — the same elements the live mode writes */
+        var invCount = TL.invPlan.key && invP >= 0.5 ? 1 : 0;
+        document.getElementById("simStatRich").textContent = String(idx.richness || 0);
+        document.getElementById("simStatEpt").textContent = idx.pctEpt == null ? "—" : idx.pctEpt.toFixed(1).replace(/\.0$/, "") + "%";
+        document.getElementById("simStatHbi").textContent = idx.hbi == null ? "—" : idx.hbi.toFixed(2);
+        document.getElementById("simStatTot").textContent = String(idx.total || 0);
+        var v = verdictFor(idx.hbi);
+        var hud = document.getElementById("simHudVerdict");
+        hud.textContent = v.word; hud.className = "sim-hud-v v-" + v.cls;
+        document.getElementById("simHudHbi").textContent = idx.hbi == null ? "HBI —" : "HBI " + idx.hbi.toFixed(2) + " · EPT " + (idx.eptRich || 0) + " taxa";
+        var vEl = document.getElementById("simVerdict");
+        vEl.className = "sim-verdict v-" + v.cls;
+        vEl.innerHTML = "";
+        var vs = document.createElement("strong"); vs.textContent = "Water quality: " + v.word + ". ";
+        vEl.appendChild(vs);
+        vEl.appendChild(document.createTextNode(v.blurb + (invCount ? " An invasive species is established in the scene." : "")));
+        /* environment overlays from the month's effective conditions */
+        var effP = A.eff.poll + (B.eff.poll - A.eff.poll) * fr;
+        var effT = A.eff.temp + (B.eff.temp - A.eff.temp) * fr;
+        var effPh = A.eff.ph + (B.eff.ph - A.eff.ph) * fr;
+        var P = clamp(effP, 0, 3) / 3;
+        var warm01 = clamp((effT - 55) / 35, 0, 1);
+        var acidF = clamp((6.6 - effPh) / 2.6, 0, 1);
+        document.getElementById("simTurb").style.opacity = String(0.06 + P * 0.5);
+        var algae = clamp(P * (0.3 + 0.55 * warm01) + (effPh > 7.6 ? P * 0.15 : 0), 0, 0.9);
+        document.getElementById("simAlgae").style.opacity = String(algae);
+        ["simStrand1", "simStrand2", "simStrand3"].forEach(function (id) { document.getElementById(id).style.opacity = String(algae * 0.95); });
+        document.getElementById("simIron").style.opacity = String(acidF * 0.55);
+        document.getElementById("simSilt").style.height = (8 + P * 17) + "%";
+        /* critter visibility from the displayed populations */
+        SPP.forEach(function (sp, i) {
+          var set = critterSets[i], ref = TL.visRef[i];
+          var vis = pops[i] < 0.05 ? 0 : Math.max(1, Math.round(clamp(pops[i] / Math.max(ref, 1), 0, 1) * set.els.length));
+          if (ref > 0 && pops[i] >= ref * 0.999) vis = set.els.length;
+          set.els.forEach(function (el, j) { el.classList.toggle("off", j >= vis); });
+        });
+        INV.forEach(function (iv, k) {
+          var set = critterSets[SPP.length + k];
+          var show = TL.invPlan.key === iv.key ? invP : 0;
+          var vis = show < 0.5 ? 0 : Math.max(1, Math.round(clamp(show / (TL_INV[iv.key].K * TL.invScale), 0, 1) * set.els.length));
+          set.els.forEach(function (el, j) { el.classList.toggle("off", j >= vis); });
+        });
+        /* population cards */
+        if (TL.cardEls) TL.cardEls.forEach(function (c, i) {
+          var n = Math.round(pops[i]);
+          c.num.textContent = String(n);
+          tlDelta(c.dl, n - Math.round(TL.startPops[i]), TL.startPops[i] <= 0 ? "absent" : "steady");
+        });
+        if (TL.invCardEl) {
+          TL.invCardEl.num.textContent = String(Math.round(invP));
+          if (invP < 0.5) tlDelta(TL.invCardEl.dl, 0, TL.pos < TL.invPlan.month ? "arrives month " + TL.invPlan.month : "not introduced");
+          else tlDelta(TL.invCardEl.dl, Math.round(invP) - TL_INV[TL.invPlan.key].pop0, "just arrived");
+        }
+        /* playhead + season marker + scrub */
+        if (TL.playheadEl) { var x = tlChartX(pos).toFixed(1); TL.playheadEl.setAttribute("x1", x); TL.playheadEl.setAttribute("x2", x); }
+        if (TL.seasonMarkEl) TL.seasonMarkEl.style.left = "calc(" + (pos / N * 100) + "% - 1px)";
+        var scrub = document.getElementById("tlScrub");
+        if (scrub && document.activeElement !== scrub) scrub.value = String(pos);
+        /* whole-month updates */
+        var whole = Math.floor(pos + 0.0001);
+        if (force || whole !== TL.lastWhole) {
+          TL.lastWhole = whole;
+          var season = TL.history[Math.min(N, Math.max(0, whole))].season;
+          var clock = document.getElementById("tlClock");
+          if (clock) clock.textContent = "Month " + whole + " of " + N;
+          var msub = document.getElementById("tlMonthSub");
+          if (msub) msub.textContent = whole === 0 ? "Baseline sample — conditions just set" : season + " · " + TL_MOYNAMES[tlMoy(Math.max(1, whole)) - 1] + (N > 12 ? (whole > 12 ? " · Year 2" : " · Year 1") : "") + " — conditions held";
+          var chips = document.getElementById("simChips");
+          chips.innerHTML = "";
+          SPP.forEach(function (sp, i) {
+            var c = document.createElement("span");
+            c.className = "sim-chip" + (Math.round(pops[i]) === 0 ? " lost" : "");
+            c.textContent = sp.short;
+            var n = document.createElement("span"); n.className = "n"; n.textContent = "×" + Math.round(pops[i]);
+            c.appendChild(n); chips.appendChild(c);
+          });
+          if (TL.invPlan.key && invP >= 0.5) {
+            var c2 = document.createElement("span");
+            c2.className = "sim-chip inv";
+            c2.textContent = tlInvByKey(TL.invPlan.key).short + " — INVASIVE ×" + Math.round(invP);
+            chips.appendChild(c2);
+          }
+          infoEl.innerHTML = "";
+          var st = document.createElement("strong");
+          st.textContent = "Time-lapse · Month " + whole + " of " + N + " — " + season + ". ";
+          infoEl.appendChild(st);
+          infoEl.appendChild(document.createTextNode(
+            "HBI " + (idx.hbi == null ? "—" : idx.hbi.toFixed(2)) + " (" + v.word + ") · " + idx.richness + " taxa · " + idx.total +
+            " individuals. Conditions held: runoff " + ["none", "light", "moderate", "heavy"][TL.cond.poll] + ", " + TL.cond.temp + "°F, pH " + Number(TL.cond.ph).toFixed(1) + "."));
+          if (tlLogEl) {
+            var lastLi = null;
+            Array.prototype.forEach.call(tlLogEl.children, function (li) {
+              var fut = Number(li.getAttribute("data-month")) > whole;
+              li.classList.toggle("future", fut);
+              if (!fut) lastLi = li;
+            });
+            if (TL.playing && lastLi) tlLogEl.scrollTop = tlLogEl.scrollHeight;
+          }
+        }
+      }
+
+      /* ---- transport + controls ---- */
+      function tlPlay() {
+        if (TL.pos >= TL.months) TL.pos = 0;
+        TL.playing = true;
+        var b = document.getElementById("tlPlayBtn");
+        b.textContent = "❚❚ Pause"; b.setAttribute("aria-pressed", "true");
+      }
+      function tlPause() {
+        TL.playing = false;
+        var b = document.getElementById("tlPlayBtn");
+        if (b) { b.textContent = "▶ Run the year"; b.setAttribute("aria-pressed", "false"); }
+      }
+      function tlBuildInvMonthOptions() {
+        var sel = document.getElementById("tlInvMonth");
+        if (!sel) return;
+        var cur = TL.invPlan.month;
+        sel.innerHTML = "";
+        for (var m = 1; m <= TL.months; m++) {
+          var o = document.createElement("option");
+          o.value = String(m); o.textContent = String(m);
+          sel.appendChild(o);
+        }
+        sel.value = String(Math.min(cur, TL.months));
+      }
+      function tlRenderEventChips() {
+        var host = document.getElementById("tlEventChips");
+        if (!host) return;
+        host.innerHTML = "";
+        TL.events.forEach(function (ev, i) {
+          var chip = document.createElement("span");
+          chip.className = "sim-tl-evchip";
+          chip.appendChild(document.createTextNode(TL_EVENTS[ev.type].name + " · month " + ev.month));
+          var x = document.createElement("button");
+          x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label", "Remove " + TL_EVENTS[ev.type].name + " at month " + ev.month);
+          x.addEventListener("click", function () { TL.events.splice(i, 1); tlCompute(); tlRender(true); });
+          chip.appendChild(x);
+          host.appendChild(chip);
+        });
+      }
+      function tlAddEvent(type) {
+        var m = clamp(Math.round(TL.pos) || 1, 1, TL.months);
+        var dup = TL.events.some(function (e) { return e.type === type && e.month === m; });
+        if (!dup) TL.events.push({ type: type, month: m });
+        TL.events.sort(function (a, b) { return a.month - b.month; });
+        tlCompute(); tlRenderEventChips(); tlRender(true);
+      }
+      function tlSetMonths(n) {
+        TL.months = n;
+        TL.events = TL.events.filter(function (e) { return e.month <= n; });
+        if (TL.invPlan.month > n) TL.invPlan.month = n;
+        TL.pos = clamp(TL.pos, 0, n);
+        document.querySelectorAll("#tlLenSeg button").forEach(function (b) {
+          var on = Number(b.getAttribute("data-len")) === n;
+          b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        var scrub = document.getElementById("tlScrub");
+        if (scrub) scrub.max = String(n);
+        tlBuildInvMonthOptions(); tlCompute(); tlRenderEventChips(); tlRender(true);
+      }
+      function tlEnter() {
+        TL.on = true;
+        document.getElementById("simModeLive").classList.remove("on");
+        document.getElementById("simModeLive").setAttribute("aria-pressed", "false");
+        document.getElementById("simModeTl").classList.add("on");
+        document.getElementById("simModeTl").setAttribute("aria-pressed", "true");
+        document.getElementById("simTl").classList.remove("hidden");
+        var invRow = document.querySelector(".sim-inv-row");
+        if (invRow && invRow.closest(".sim-ctl")) invRow.closest(".sim-ctl").classList.add("tl-dim");
+        tlCaptureConditions();
+        if (!TL.startPops.length) tlApplySeed("healthy");
+        tlCompute(); TL.pos = 0; tlPause(); tlRender(true);
+      }
+      function tlExit() {
+        TL.on = false; tlPause();
+        document.getElementById("simModeTl").classList.remove("on");
+        document.getElementById("simModeTl").setAttribute("aria-pressed", "false");
+        document.getElementById("simModeLive").classList.add("on");
+        document.getElementById("simModeLive").setAttribute("aria-pressed", "true");
+        document.getElementById("simTl").classList.add("hidden");
+        var invRow = document.querySelector(".sim-inv-row");
+        if (invRow && invRow.closest(".sim-ctl")) invRow.closest(".sim-ctl").classList.remove("tl-dim");
+        update(false);
+      }
+
+      /* ---- simulation report PDF ----
+         Built with the sample papers' own on-device writer
+         (window.eddyPaper.internals): same fonts, title block,
+         tables and page furniture, fully offline.            */
+      function tlSerializePdf(doc) {
+        var totalPages = doc.pages.length;
+        doc.pages.forEach(function (pg, i) {
+          pg.push("0.78 G 0.4 w 54 44 m 558 44 l S");
+          pg.push("0.45 g BT /F4 7.5 Tf 1 0 0 1 54 34 Tm (Generated by Eddy - Ecosystem simulation report - Page " + (i + 1) + " of " + totalPages + ") Tj ET");
+        });
+        var fontBases = ["Times-Roman", "Times-Bold", "Times-Italic", "Helvetica", "Helvetica-Bold"];
+        var pageNums = [], next = 8;
+        doc.pages.forEach(function () { pageNums.push(next); next += 2; });
+        var objs = [];
+        objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        objs[2] = "<< /Type /Pages /Kids [" + pageNums.map(function (n) { return n + " 0 R"; }).join(" ") + "] /Count " + totalPages + " >>";
+        fontBases.forEach(function (b, i) { objs[3 + i] = "<< /Type /Font /Subtype /Type1 /BaseFont /" + b + " /Encoding /WinAnsiEncoding >>"; });
+        doc.pages.forEach(function (pg, i) {
+          var pn = pageNums[i], cn = pn + 1;
+          objs[pn] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R /F5 7 0 R >> >> /Contents " + cn + " 0 R >>";
+          var stream = pg.join("\n");
+          objs[cn] = "<< /Length " + stream.length + " >>\nstream\n" + stream + "\nendstream";
+        });
+        var out = "%PDF-1.4\n", offsets = [0], n;
+        for (n = 1; n < next; n++) { offsets[n] = out.length; out += n + " 0 obj\n" + objs[n] + "\nendobj\n"; }
+        var xrefPos = out.length;
+        out += "xref\n0 " + next + "\n0000000000 65535 f \n";
+        for (n = 1; n < next; n++) out += ("0000000000" + offsets[n]).slice(-10) + " 00000 n \n";
+        out += "trailer\n<< /Size " + next + " /Root 1 0 R >>\nstartxref\n" + xrefPos + "\n%%EOF";
+        return new Blob([out], { type: "application/pdf" });
+      }
+      function tlReport() {
+        var st = document.getElementById("tlReportStatus");
+        var P = window.eddyPaper;
+        if (!P || !P.internals || !P.internals.PaperDoc) {
+          if (st) { st.textContent = "The PDF writer isn't available right now — the run itself is unaffected."; st.className = "status bad"; }
+          return null;
+        }
+        if (!TL.history.length) tlCompute();
+        var endM = Math.max(0, Math.floor(TL.pos));
+        var H = TL.history, start = H[0], end = H[endM];
+        var Doc = P.internals.PaperDoc;
+        var doc = new Doc({ sampleId: "Simulation" });
+        var today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+        doc.line("Eddy Ecosystem Simulation Report", "b", 19, 23, {});
+        doc.para("Time-lapse simulation of a benthic macroinvertebrate community", "i", 11.5, 15, { gray: 0.3, spaceAfter: 4 });
+        doc.rule(1.4, 0, 7);
+        doc.line("Starting community: " + TL.seedLabel, "h", 9.5, 13, { gray: 0.25 });
+        doc.line("Timeline: " + TL.months + " months" + (endM < TL.months ? " (this report was generated at month " + endM + " of the run)" : " (full run)"), "h", 9.5, 13, { gray: 0.25 });
+        doc.line("Generated by Eddy - " + today, "h", 9.5, 13, { gray: 0.25, spaceAfter: 2 });
+        doc.rule(0.6, 0.6, 5);
+        doc.heading("1. Scenario");
+        doc.para("Conditions held for the whole run: pollution runoff " + ["none", "light", "moderate", "heavy"][TL.cond.poll] +
+          ", water temperature " + TL.cond.temp + " degF, pH " + Number(TL.cond.ph).toFixed(1) +
+          ". A seasonal cycle rolls over that baseline: spring runoff (a sediment pulse), summer heat and lower water, autumn leaf-fall (a food subsidy for shredder taxa), and a winter slowdown. Year 2 echoes year 1.", "r", 10.5, 14.5, { spaceAfter: 6 });
+        if (TL.invPlan.key) {
+          var ivm = tlInvByKey(TL.invPlan.key), ivd = TL_INV[TL.invPlan.key];
+          doc.para("Invasive introduction: " + ivm.name + " (" + ivm.sci + ") was introduced in month " + TL.invPlan.month +
+            " with " + ivd.pop0 + " individuals. It grows logistically toward what the riffle can hold, and its pressure on native taxa scales with its density; by month " + endM +
+            " it stands at about " + Math.round(end.invPop) + " individuals.", "r", 10.5, 14.5, { spaceAfter: 6 });
+        } else {
+          doc.para("Invasive introduction: none in this run.", "r", 10.5, 14.5, { spaceAfter: 6 });
+        }
+        doc.para(TL.events.length
+          ? "One-off events: " + TL.events.map(function (e) { return TL_EVENTS[e.type].name + " in month " + e.month; }).join("; ") + ". Each event's pressure fades over about three months."
+          : "One-off events: none were triggered in this run.", "r", 10.5, 14.5, { spaceAfter: 6 });
+        doc.heading("2. Populations — start vs month " + endM);
+        doc.para("Table 1. Modelled individuals per taxon at the start of the run and at month " + endM + ", with the change. Tolerance is the family value from Eddy's reference table — the same value Eddy scores real samples with.", "i", 9.5, 13, { gray: 0.3, spaceAfter: 4 });
+        var cols = [
+          { label: "Taxon", x: 54, w: 150 }, { label: "Family", x: 208, w: 106 },
+          { label: "Tol", x: 318, w: 40, align: "right" }, { label: "Start", x: 362, w: 52, align: "right" },
+          { label: "Month " + endM, x: 418, w: 56, align: "right" }, { label: "Change", x: 478, w: 80, align: "right" }
+        ];
+        var headFn = function () { doc.tableHead(cols); };
+        headFn();
+        SPP.forEach(function (sp, i) {
+          var s0 = Math.round(start.pops[i]), s1 = Math.round(end.pops[i]), dff = s1 - s0;
+          doc.tableRow(cols, [sp.name, sp.fam, sp.tolTxt, String(s0), String(s1), (dff > 0 ? "+" : "") + dff], headFn);
+        });
+        if (TL.invPlan.key) {
+          var ivm2 = tlInvByKey(TL.invPlan.key);
+          doc.tableRow(cols, [ivm2.name + " — INVASIVE", ivm2.fam, String(TL_INV[TL.invPlan.key].tol), "0", String(Math.round(end.invPop)), "+" + Math.round(end.invPop)], headFn);
+        }
+        doc.heading("3. Hilsenhoff Biotic Index through the run");
+        doc.para("Table 2. HBI at the start, at quarterly checkpoints, and at month " + endM + ", computed from the modelled counts with the same maths Eddy applies to real samples.", "i", 9.5, 13, { gray: 0.3, spaceAfter: 4 });
+        var icols = [
+          { label: "Month", x: 54, w: 70 }, { label: "HBI", x: 128, w: 60, align: "right" },
+          { label: "Band", x: 192, w: 102 }, { label: "%EPT", x: 298, w: 60, align: "right" },
+          { label: "Richness", x: 362, w: 76, align: "right" }, { label: "Individuals", x: 442, w: 116, align: "right" }
+        ];
+        var iheadFn = function () { doc.tableHead(icols); };
+        iheadFn();
+        var cps = [0];
+        for (var q = 3; q <= endM; q += 3) if (cps.indexOf(q) < 0) cps.push(q);
+        if (cps.indexOf(endM) < 0) cps.push(endM);
+        cps.sort(function (a, b) { return a - b; });
+        cps.forEach(function (m) {
+          var ix = H[m].idx, info = ix.hbi == null ? null : P.hbiInfo(ix.hbi);
+          doc.tableRow(icols, ["Month " + m, ix.hbi == null ? "—" : ix.hbi.toFixed(2), info ? info.band : "—",
+            ix.pctEpt == null ? "—" : ix.pctEpt.toFixed(1) + "%", String(ix.richness), String(ix.total)], iheadFn);
+        });
+        var endInfo = end.idx.hbi == null ? null : P.hbiInfo(end.idx.hbi);
+        if (endInfo) doc.para("Reading at month " + endM + ": HBI " + end.idx.hbi.toFixed(2) + " — " + endInfo.band + ". " + endInfo.meaning, "r", 10.5, 14.5, { spaceBefore: 4, spaceAfter: 6 });
+        doc.heading("4. Field log — key events");
+        var entries = TL.log.filter(function (e) { return e.month <= endM; });
+        if (entries.length > 26) { doc.para("Showing the first 26 of " + entries.length + " log entries.", "i", 9.5, 13, { gray: 0.3, spaceAfter: 4 }); entries = entries.slice(0, 26); }
+        entries.forEach(function (e) {
+          doc.para("Month " + e.month + " — " + String(e.html).replace(/<[^>]+>/g, ""), "r", 10, 13.5, { spaceAfter: 4 });
+        });
+        doc.heading("5. About this model");
+        doc.para("This report describes a simulation, not a field measurement. Eddy's Ecosystem Simulator is an illustrative educational model: abundances respond to each taxon's tolerance value in Eddy's reference table, its oxygen and pH needs, seasonal cycles, invasive pressure, and simple drift from upstream, using the same index maths Eddy applies to real samples. It is suitable for teaching and for exploring how a community might respond to changed conditions. It is not a prediction about any real stream, and no management or regulatory decision should rest on it.", "r", 10.5, 14.5, { spaceAfter: 6 });
+        var blob = tlSerializePdf(doc);
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "eddy-simulation-report.pdf";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        var info = { filename: "eddy-simulation-report.pdf", size: blob.size, pages: doc.pages.length, endMonth: endM, months: TL.months, seed: TL.seedLabel };
+        window.eddySimReportLast = info;
+        if (st) {
+          st.textContent = "Simulation report downloaded — " + info.pages + (info.pages === 1 ? " page" : " pages") +
+            ", start vs month " + endM + " for every taxon (" + info.filename + ").";
+          st.className = "status good";
+        }
+        return info;
+      }
+
+      /* ================= Style B creature motion =================
+         Busy and lively, but still a lab tool: the real specimen
+         photos stay exactly as they are — only their position
+         offsets move, written to the CSS `translate` property so
+         the layout transform and the .off fade are untouched.
+         Each group moves the way the animal moves: mayflies and
+         dragonfly nymphs dart, scuds hop, crayfish crawl and
+         occasionally tail-flip backwards, midges and worms
+         wriggle in place, snails glide, black flies and water
+         pennies cling and sway. The loop idles whenever the
+         Simulator isn't on screen, and stops entirely for
+         reduced-motion users.                                 */
+      var MOTION_OK = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      var motionStates = new Map();
+      function tlMotionMode(p) {
+        if (p.grp === "i") return p.invKey === "rusty" ? "crayfish" : p.invKey === "zebra" ? "cling" : "glide";
+        var g = p.spRef ? p.spRef.grp : "crawl";
+        if (g === "mayfly" || g === "dragonfly") return "dart";
+        if (g === "scud") return "hop";
+        if (g === "midge" || g === "worm" || g === "leech") return "wiggle";
+        if (g === "mollusk") return p.spRef.p === "sphaeriidae" ? "cling" : "glide";
+        if (g === "blackfly" || g === "penny") return "cling";
+        if (g === "crayfish") return "crayfish";
+        return "crawl";
+      }
+      function easeIO(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+      function simMotionTick(ts) {
+        if (!MOTION_OK) return;
+        if (!scene || scene.offsetParent === null) return;
+        var sw = scene.clientWidth, sh = scene.clientHeight;
+        if (!sw || !sh) return;
+        for (var k = 0; k < placed.length; k++) {
+          var p = placed[k], el = p.el;
+          if (el.classList.contains("off")) continue;
+          var st = motionStates.get(el);
+          if (!st) {
+            st = { mode: tlMotionMode(p), x: 0, y: 0, fx: 0, fy: 0, tx: 0, ty: 0, t0: 0, dur: 800, next: ts + Math.random() * 1400, flipAt: ts + 6000 + Math.random() * 8000, ph: Math.random() * 6.283 };
+            motionStates.set(el, st);
+          }
+          var nx = st.x, ny = st.y, moving = false;
+          function clampOff() {
+            nx = Math.max(-(p.x - 5), Math.min(95 - p.x, nx));
+            ny = Math.max(-(p.y - 24), Math.min(96 - p.y, ny));
+          }
+          function startMove(rx, ry, dur) {
+            st.fx = st.x; st.fy = st.y;
+            st.tx = (Math.random() * 2 - 1) * rx; st.ty = (Math.random() * 2 - 1) * ry;
+            st.t0 = ts; st.dur = dur; moving = true;
+          }
+          if (st.mode === "wiggle") {
+            nx = Math.sin(ts * 0.0021 + st.ph) * 0.55;
+            ny = Math.sin(ts * 0.0034 + st.ph * 1.7) * 0.34;
+            moving = true;
+          } else if (st.mode === "cling") {
+            nx = st.x + Math.sin(ts * 0.0013 + st.ph) * 0.13;
+            ny = st.y + Math.cos(ts * 0.0017 + st.ph) * 0.09;
+            if (ts >= st.next) { st.x = (Math.random() * 2 - 1) * 0.7; st.y = (Math.random() * 2 - 1) * 0.4; st.next = ts + 6000 + Math.random() * 5000; }
+            moving = true;
+          } else if (st.mode === "glide") {
+            var dx = st.tx - st.x, dy = st.ty - st.y, dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 0.15 || !st.t0) { st.tx = (Math.random() * 2 - 1) * 3.6; st.ty = (Math.random() * 2 - 1) * 1.6; st.t0 = 1; }
+            else { var step = Math.min(dist, 0.016); nx = st.x + dx / dist * step; ny = st.y + dy / dist * step; }
+            moving = true;
+          } else {
+            /* segmented movers: crawl / dart / hop / crayfish */
+            if (ts < st.t0 + st.dur && st.dur > 0) {
+              var pr = easeIO(Math.min(1, (ts - st.t0) / st.dur));
+              nx = st.fx + (st.tx - st.fx) * pr;
+              ny = st.fy + (st.ty - st.fy) * pr;
+              if (st.mode === "hop") ny -= Math.sin(Math.min(1, (ts - st.t0) / st.dur) * Math.PI) * 1.1;
+              moving = true;
+            } else if (ts >= st.next) {
+              st.x = st.tx; st.y = st.ty;
+              if (st.mode === "crayfish" && ts >= st.flipAt) {
+                /* tail-flip: a fast backward scoot, a beat, then life resumes */
+                st.fx = st.x; st.fy = st.y;
+                st.tx = st.x - 5.2; st.ty = st.y + 0.7;
+                st.t0 = ts; st.dur = 170; st.next = ts + 950;
+                st.flipAt = ts + 7000 + Math.random() * 8000;
+              } else if (st.mode === "dart") {
+                startMove(6.2, 1.7, 210 + Math.random() * 90);
+                st.next = ts + st.dur + 1500 + Math.random() * 2600;
+              } else if (st.mode === "hop") {
+                startMove(2.6, 0.8, 400 + Math.random() * 120);
+                st.next = ts + st.dur + 900 + Math.random() * 1800;
+              } else if (st.mode === "crayfish") {
+                startMove(3.8, 1.5, 1300 + Math.random() * 900);
+                st.next = ts + st.dur + 700 + Math.random() * 1500;
+              } else {
+                startMove(3.1, 1.6, 750 + Math.random() * 600);
+                st.next = ts + st.dur + 450 + Math.random() * 1500;
+              }
+              nx = st.x; ny = st.y; moving = true;
+            }
+          }
+          if (moving) {
+            clampOff();
+            st.x = nx; st.y = ny;
+            el.style.translate = (nx / 100 * sw).toFixed(1) + "px " + (ny / 100 * sh).toFixed(1) + "px";
+          }
+        }
+      }
+
+      /* ---- one master animation loop: playback + motion ---- */
+      var simAnimLast = 0;
+      function simAnimLoop(ts) {
+        requestAnimationFrame(simAnimLoop);
+        var dt = simAnimLast ? Math.min(0.1, (ts - simAnimLast) / 1000) : 0;
+        simAnimLast = ts;
+        if (TL.on && TL.playing && dt) {
+          TL.pos += dt * 0.9 * TL.speed;
+          if (TL.pos >= TL.months) { TL.pos = TL.months; tlPause(); }
+          tlRender(false);
+        }
+        simMotionTick(ts);
+      }
+
+      /* ---- wiring + init ---- */
+      document.getElementById("simModeLive").addEventListener("click", function () { if (TL.on) tlExit(); });
+      document.getElementById("simModeTl").addEventListener("click", function () { if (!TL.on) tlEnter(); });
+      document.getElementById("tlPlayBtn").addEventListener("click", function () { if (TL.playing) tlPause(); else tlPlay(); });
+      document.getElementById("tlScrub").addEventListener("input", function (e) { TL.pos = parseFloat(e.target.value) || 0; tlRender(false); });
+      document.getElementById("tlSpeedSeg").addEventListener("click", function (e) {
+        var b = e.target.closest ? e.target.closest("button[data-speed]") : null;
+        if (!b) return;
+        TL.speed = parseFloat(b.getAttribute("data-speed")) || 1;
+        document.querySelectorAll("#tlSpeedSeg button").forEach(function (x) {
+          var on = x === b;
+          x.classList.toggle("on", on); x.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      });
+      document.getElementById("tlLenSeg").addEventListener("click", function (e) {
+        var b = e.target.closest ? e.target.closest("button[data-len]") : null;
+        if (b) tlSetMonths(Number(b.getAttribute("data-len")));
+      });
+      document.getElementById("tlSeedSel").addEventListener("change", function (e) {
+        tlApplySeed(e.target.value); TL.pos = 0; tlPause(); tlCompute(); tlRender(true);
+      });
+      document.getElementById("tlInvSel").addEventListener("change", function (e) {
+        TL.invPlan.key = e.target.value || "";
+        tlCompute(); tlRender(true);
+      });
+      document.getElementById("tlInvMonth").addEventListener("change", function (e) {
+        TL.invPlan.month = clamp(parseInt(e.target.value, 10) || 1, 1, TL.months);
+        tlCompute(); tlRender(true);
+      });
+      document.getElementById("tlEvStorm").addEventListener("click", function () { tlAddEvent("storm"); });
+      document.getElementById("tlEvDrought").addEventListener("click", function () { tlAddEvent("drought"); });
+      document.getElementById("tlEvSpill").addEventListener("click", function () { tlAddEvent("spill"); });
+      document.getElementById("tlReportBtn").addEventListener("click", function () { tlReport(); });
+      tlBuildSeedOptions();
+      tlApplySeed("healthy");
+      tlCaptureConditions();
+      tlBuildInvMonthOptions();
+      tlCompute();
+      requestAnimationFrame(simAnimLoop);
+
+      /* Verification / debugging handle for the time-lapse, in
+         the same spirit as the rest of window.eddySim.        */
+      var TL_API = {
+        enter: tlEnter, exit: tlExit,
+        compute: function () { tlCompute(); return TL.history; },
+        history: function () { return TL.history; },
+        log: function () { return TL.log; },
+        render: function () { tlRender(true); },
+        play: tlPlay, pause: tlPause,
+        setPos: function (m) { TL.pos = clamp(Number(m) || 0, 0, TL.months); tlRender(true); },
+        setMonths: tlSetMonths,
+        setSeed: function (k) { tlApplySeed(k); TL.pos = 0; tlCompute(); tlRender(true); },
+        setInv: function (key, month) {
+          TL.invPlan = { key: key || "", month: clamp(month || 6, 1, TL.months) };
+          var s = document.getElementById("tlInvSel"); if (s) s.value = TL.invPlan.key;
+          tlBuildInvMonthOptions();
+          var ms = document.getElementById("tlInvMonth"); if (ms) ms.value = String(TL.invPlan.month);
+          tlCompute(); tlRender(true);
+        },
+        addEvent: function (type, month) {
+          TL.events.push({ type: type, month: clamp(month || 1, 1, TL.months) });
+          tlCompute(); tlRenderEventChips(); tlRender(true);
+        },
+        report: tlReport,
+        state: function () {
+          return { on: TL.on, months: TL.months, pos: TL.pos, playing: TL.playing, seed: TL.seedKey, seedLabel: TL.seedLabel, inv: TL.invPlan, events: TL.events, cond: TL.cond };
+        }
+      };
+
       /* Handle for verification / debugging, in the same spirit
          as window.eddyIndices and window.eddyShare.           */
       window.eddySim = {
@@ -24723,7 +26133,8 @@
             hbi: document.getElementById("simStatHbi").textContent,
             verdict: document.getElementById("simHudVerdict").textContent
           };
-        }
+        },
+        tl: TL_API
       };
     })();
     </script>
@@ -28532,5 +29943,158 @@
       window.__eddyINat = window.eddyINat;
     })();
     </script>
-  </body>
+  
+    <script>
+    /* Time-lapse mockup restyle — page furniture only. The mode
+       buttons' own handlers (registered earlier) show/hide the
+       time-lapse and restore Live; this script just adds the
+       .tl-on theme class, moves the shared stat tiles and water
+       panel into their time-lapse slots (and back out on exit),
+       swaps the stat labels for the mockup's, drives the scenario
+       pills through the simulator's real controls, and labels the
+       timeline ticks. It never touches the model itself.        */
+    (function () {
+      var col = document.querySelector(".sim-col");
+      var simView = document.getElementById("view-simulator");
+      if (!col || !simView) return;
+      var statsEl = simView.querySelector(".sim-stats");
+      var waterPanel = simView.querySelector(".sim-grid .sim-panel");
+      var statsSlot = document.getElementById("mkStatsSlot");
+      var waterSlot = document.getElementById("mkWaterSlot");
+      var scrub = document.getElementById("tlScrub");
+      var ticks = document.getElementById("mkTicks");
+      if (!statsEl || !waterPanel || !statsSlot || !waterSlot) return;
+
+      /* stat sub-lines (hidden again in Live by CSS) */
+      function statOf(numId) { var n = document.getElementById(numId); return n ? n.parentElement : null; }
+      function addSub(numId, txt) {
+        var st = statOf(numId); if (!st) return null;
+        var s = document.createElement("span"); s.className = "ss-sub"; s.textContent = txt;
+        st.appendChild(s); return s;
+      }
+      var hbiSub = addSub("simStatHbi", "Good \u2014 some impairment");
+      var taxaSub = addSub("simStatRich", "of 7 stocked taxa");
+      addSub("simStatTot", "in a standard sample");
+      addSub("simStatEpt", "mayfly \u00b7 stonefly \u00b7 caddisfly");
+
+      /* label swaps, restored verbatim on exit */
+      var swaps = [];
+      function swapLab(numId, tlText) {
+        var st = statOf(numId); if (!st) return;
+        var lab = st.querySelector(".ss-lab"); if (!lab) return;
+        swaps.push({ el: lab, live: lab.textContent, tl: tlText });
+      }
+      swapLab("simStatHbi", "HBI score");
+      swapLab("simStatTot", "Individuals");
+      swapLab("simStatRich", "Taxa present");
+      swapLab("simStatEpt", "EPT share");
+      var waterH3 = waterPanel.querySelector("h3");
+      if (waterH3) swaps.push({ el: waterH3, live: waterH3.textContent, tl: "Water \u2014 held conditions" });
+
+      /* node moves with placeholders */
+      function placeholder(el) { var p = document.createElement("div"); p.className = "mk-ph"; p.hidden = true; el.parentNode.insertBefore(p, el); return p; }
+      var statsPh = placeholder(statsEl), waterPh = placeholder(waterPanel);
+      var inTl = false;
+      function enter() {
+        if (inTl) return; inTl = true;
+        col.classList.add("tl-on");
+        statsSlot.appendChild(statsEl);
+        waterSlot.appendChild(waterPanel);
+        swaps.forEach(function (s) { s.el.textContent = s.tl; });
+        buildTicks(); updTaxa(); syncPills();
+      }
+      function exit() {
+        if (!inTl) return; inTl = false;
+        col.classList.remove("tl-on");
+        statsPh.parentNode.replaceChild(statsEl, statsPh); statsPh = placeholder(statsEl);
+        waterPh.parentNode.replaceChild(waterPanel, waterPh); waterPh = placeholder(waterPanel);
+        swaps.forEach(function (s) { s.el.textContent = s.live; });
+      }
+      document.getElementById("simModeTl").addEventListener("click", enter);
+      document.getElementById("simModeLive").addEventListener("click", exit);
+
+      /* timeline ticks: 0, 1 mo, 2 ... N mo */
+      function buildTicks() {
+        if (!scrub || !ticks) return;
+        var N = parseInt(scrub.max, 10) || 12;
+        ticks.innerHTML = "";
+        var step = N > 12 ? 2 : 1;
+        for (var v = 0; v <= N; v += step) {
+          var s = document.createElement("span");
+          s.textContent = v === 0 ? "0" : (v === N || v === 1 || v === Math.round(N / 2) ? v + " mo" : String(v));
+          ticks.appendChild(s);
+        }
+      }
+      var lenSeg = document.getElementById("tlLenSeg");
+      if (lenSeg) lenSeg.addEventListener("click", function () { setTimeout(buildTicks, 0); });
+
+      /* HBI band meaning under the big number */
+      var hbiEl = document.getElementById("simStatHbi");
+      function bandSub() {
+        if (!hbiEl || !hbiSub) return;
+        var v = parseFloat(hbiEl.textContent);
+        hbiSub.textContent = isNaN(v) ? "No community left"
+          : v <= 4.5 ? "Excellent \u2014 clean, sensitive community"
+          : v <= 5.5 ? "Good \u2014 some impairment"
+          : v <= 6.5 ? "Fair \u2014 clear impairment"
+          : "Poor \u2014 severe impairment";
+      }
+      if (hbiEl && window.MutationObserver) new MutationObserver(bandSub).observe(hbiEl, { childList: true, characterData: true, subtree: true });
+
+      /* "of N stocked taxa" from the population cards' start counts */
+      var cardsEl = document.getElementById("tlCards");
+      function updTaxa() {
+        if (!cardsEl || !taxaSub) return;
+        var stocked = 0;
+        Array.prototype.forEach.call(cardsEl.querySelectorAll(".tl-card"), function (c) {
+          if (c.classList.contains("inv")) return;
+          var m = c.querySelector(".tl-meta");
+          var hit = m ? /starts at (\d+)/.exec(m.textContent) : null;
+          if (hit && parseInt(hit[1], 10) > 0) stocked++;
+        });
+        if (stocked) taxaSub.textContent = "of " + stocked + " stocked taxa";
+      }
+      if (cardsEl && window.MutationObserver) new MutationObserver(updTaxa).observe(cardsEl, { childList: true });
+
+      /* scenario pills — driven through the simulator's own
+         preset buttons, pollution segment, sliders and invasive
+         toggles, so Live and time-lapse both respond exactly as
+         if those controls had been used directly.              */
+      var pills = Array.prototype.slice.call(document.querySelectorAll(".mk-pill"));
+      function clickPreset(name) {
+        var b = document.querySelector('.sim-preset[data-preset="' + name + '"]');
+        if (b) b.click();
+      }
+      function setInvOff() {
+        Array.prototype.forEach.call(document.querySelectorAll(".sim-inv.on"), function (b) { b.click(); });
+      }
+      function setPoll(n) {
+        var b = document.querySelector('#simPollSeg button[data-poll="' + n + '"]');
+        if (b) b.click();
+      }
+      function setSlider(id, val) {
+        var el = document.getElementById(id); if (!el) return;
+        el.value = String(val);
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      function syncPills() {
+        var on = document.querySelector(".sim-preset.on");
+        var map = { healthy: "healthy", storm: "runoff", acid: "acid" };
+        var want = on ? map[on.getAttribute("data-preset")] : null;
+        pills.forEach(function (p) { p.classList.toggle("on", p.getAttribute("data-scen") === want); });
+      }
+      pills.forEach(function (p) {
+        p.addEventListener("click", function () {
+          pills.forEach(function (x) { x.classList.toggle("on", x === p); });
+          var s = p.getAttribute("data-scen");
+          if (s === "healthy") clickPreset("healthy");
+          else if (s === "runoff") clickPreset("storm");
+          else if (s === "acid") clickPreset("acid");
+          else if (s === "heat") { setInvOff(); setPoll(1); setSlider("simTemp", 86); setSlider("simPh", 7.4); }
+          else if (s === "algae") { setInvOff(); setPoll(3); setSlider("simTemp", 74); setSlider("simPh", 7.9); }
+        });
+      });
+    })();
+    </script>
+</body>
 </html>
